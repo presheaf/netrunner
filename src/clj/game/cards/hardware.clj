@@ -400,8 +400,7 @@
                 :msg (msg (str "pump the strength of " (get-in card [:host :title]) " by 4"))}]})
 
 (define-card "Deep Red"
-  {:implementation "Cost 2->0"
-   :implementation "MU use restriction not enforced"
+  {:implementation "Cost 2->0, MU use restriction not enforced"
    :in-play [:memory 3]
    :events [{:event :runner-install
              :optional
