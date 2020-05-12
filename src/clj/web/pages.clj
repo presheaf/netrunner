@@ -16,7 +16,7 @@
      [:meta {:charset "utf-8"}]
      [:meta {:name "viewport" :content "width=device-width, initial-scale=0.6, minimal-ui"}]
      [:meta {:name "apple-mobile-web-app-capable" :content "yes"}]
-     [:title "Jinteki"]
+     [:title "Reteki"]
      (hiccup/include-css "/css/carousel.css")
      (hiccup/include-css (str "/css/netrunner.css?v=" version))
      (hiccup/include-css "/lib/toastr/toastr.min.css")
@@ -154,7 +154,7 @@
                                                 :resetPasswordExpires {"$gt" (c/to-date (t/now))}})]
     (hiccup/html5
       [:head
-       [:title "Jinteki"]
+       [:title "Reteki"]
        (hiccup/include-css "/css/netrunner.css")]
       [:body
        [:div.reset-bg]
