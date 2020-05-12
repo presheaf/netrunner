@@ -22,7 +22,7 @@
            [:p "The purpose of this page is to facilitate playtesting of an (unofficial) version of Netrunner, where the early cards in the game "
             "have been rebalanced. Changes have been kept minor where possible."
             " For discussion of the format, see #netrunner-reboot-project on Stimslack, and for a list of all card changes, see "
-            [:a {:href "https://docs.google.com/spreadsheets/d/19GaP9AwNpvd-gC4sKNo7ZaxRYljb485Uno5VHf9p8As/edit#gid=1391682776" :target "_blank"} "this spreadsheet."]
+            [:a {:href "https://docs.google.com/spreadsheets/d/19GaP9AwNpvd-gC4sKNo7ZaxRYljb485Uno5VHf9p8As/edit#gid=1391682776" :target "_blank"} "this spreadsheet."]]
            [:p "Note that card images will NOT have accurate rules text, but mousing over them in-game should reveal an implementation note with the card changes, if any. "]
 
            [:h3 "Disclaimer"]
