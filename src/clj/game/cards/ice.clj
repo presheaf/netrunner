@@ -1386,8 +1386,7 @@
    :strength-bonus (req (if (= (second (:zone card)) :rd) 3 0))})
 
 (define-card "Gyri Labyrinth"
-  {:implementation "Cost 2->0"
-   :implementation "Hand size is not restored if trashed or derezzed after firing"
+  {:implementation "Cost 2->0, Hand size is not restored if trashed or derezzed after firing"
    :subroutines [{:req (req (:run @state))
                   :label "Reduce Runner's maximum hand size by 2 until start of next Corp turn"
                   :msg "reduce the Runner's maximum hand size by 2 until the start of the next Corp turn"
