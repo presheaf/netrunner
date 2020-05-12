@@ -3331,8 +3331,7 @@
                  (do-net-damage 1)]})
 
 (define-card "Zed 1.0"
-  {:implementation "Strength 2->5"
-   :implementation "Restriction on having spent [click] is not implemented"
+  {:implementation "Strength 2->5, restriction on having spent [click] is not implemented"
    :subroutines [(do-brain-damage 1)
                  (do-brain-damage 1)]
    :runner-abilities [(bioroid-break 1 1)]})
