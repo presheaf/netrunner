@@ -1548,11 +1548,11 @@
                                (gain-credits state :corp credits)))}]})
 
 (define-card "Project Junebug"
-  (advance-ambush 1 {:implementation "Damage per counter 2->3"
+  (advance-ambush 1 {:implementation "Trash cost 0->3"
                      :req (req (pos? (get-counters (get-card state card) :advancement)))
-                     :msg (msg "do " (* 3 (get-counters (get-card state card) :advancement)) " net damage")
+                     :msg (msg "do " (* 2 (get-counters (get-card state card) :advancement)) " net damage")
                      :async true
-                     :effect (effect (damage eid :net (* 3 (get-counters (get-card state card) :advancement))
+                     :effect (effect (damage eid :net (* 2 (get-counters (get-card state card) :advancement))
                                              {:card card}))}))
 
 (define-card "Psychic Field"
