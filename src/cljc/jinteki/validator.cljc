@@ -199,13 +199,13 @@
 
 (defn legal?
   ([status card]
-   (legal? :standard status card))
+   (legal? :reboot status card))
   ([fmt status card]
    (= status (get-in card [:format fmt]))))
 
 (defn legal-line?
   ([status line]
-   (legal-line? :standard status (:card line)))
+   (legal-line? :reboot status (:card line)))
   ([fmt status line]
    (legal? fmt status (:card line))))
 
@@ -304,7 +304,7 @@
   (let [valid (valid-deck? deck)]
     {:format (:format deck)
      :casual valid
-     :standard (build-format-legality valid :standard deck)
+     :reboot (build-format-legality valid :reboot deck)
      :everything (build-format-legality valid :everything deck)}))
 
 (defn trusted-deck-status

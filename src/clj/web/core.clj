@@ -50,7 +50,7 @@
           cycles (mc/find-maps db "cycles" nil)
           mwl (mc/find-maps db "mwls" nil)
           latest-mwl (->> mwl
-                          (filter #(= "standard" (:format %)))
+                          (filter #(= "reboot" (:format %)))
                           (map (fn [e] (update e :date-start #(f/parse (f/formatters :date) %))))
                           (sort-by :date-start)
                           last)

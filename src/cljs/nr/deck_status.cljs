@@ -29,7 +29,7 @@
 (defn- format-deck-status-span
   [{:keys [format] :as deck-status} tooltip? violation-details?]
   (let [status (check-deck-status deck-status)
-        message (str (get slug->format (:format deck-status) "Standard")
+        message (str (get slug->format (:format deck-status) "Reboot")
                      " "
                      (if-not (= "invalid" status) "legal" "illegal"))]
     [:span.deck-status.shift-tooltip {:class status} message

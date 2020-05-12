@@ -80,7 +80,7 @@
       (swap! s assoc
              :title (str (:username user) "'s game")
              :side "Corp"
-             :format "standard"
+             :format "reboot"
              :editing true
              :flash-message ""
              :protected false
@@ -303,7 +303,7 @@
 
      [:section
       [:h3 "Format"]
-      [:select.format {:value (:format @s "standard")
+      [:select.format {:value (:format @s "reboot")
                        :on-change #(swap! s assoc :format (.. % -target -value))}
        (for [[k v] slug->format]
          ^{:key k}
@@ -376,13 +376,13 @@
                     name
                     "Deck selected")]])
               (when-let [deck (:deck player)]
-                [:div.float-right [deck-format-status-span deck (:format game "standard") true]])
+                [:div.float-right [deck-format-status-span deck (:format game "reboot") true]])
               (when this-player
                 [:span.fake-link.deck-load
                  {:on-click #(reagent-modals/modal!
                                [deckselect-modal user {:games games :gameid gameid
                                                        :sets sets :decks decks
-                                                       :format (:format game "standard")}])}
+                                                       :format (:format game "reboot")}])}
                  "Select Deck"])]))]
         (when (:allow-spectator game)
           [:div.spectators

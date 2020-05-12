@@ -27,7 +27,7 @@
           cycles (:json (<! (GET "/data/cycles")))
           mwls (:json (<! (GET "/data/mwl")))
           latest_mwl (->> mwls
-                          (filter #(= "standard" (:format %)))
+                          (filter #(= "reboot" (:format %)))
                           (map (fn [e] (update e :date-start #(js/Date.parse %))))
                           (sort-by :date-start)
                           last)]

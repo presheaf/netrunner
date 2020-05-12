@@ -94,24 +94,12 @@
         (apply map-longest f default (map rest colls))))))
 
 (def slug->format
-  {"standard" "Standard"
-   "eternal" "Eternal"
-   "core-experience" "Core Experience"
-   "snapshot" "Snapshot"
-   "snapshot-plus" "Snapshot Plus"
-   "socr" "SOCR"
-   "classic" "Classic"
-   "casual" "Casual"})
+  {"reboot" "Reboot"
+   "everything" "Everything"})
 
 (def format->slug
-  {"Standard" "standard"
-   "Eternal" "eternal"
-   "Core Experience" "core-experience"
-   "Snapshot" "snapshot"
-   "Snapshot Plus" "snapshot-plus"
-   "SOCR" "socr"
-   "Classic" "classic"
-   "Casual" "casual"})
+  {"Reboot" "reboot"
+   "Everything" "everything"})
 
 (defn regex-escape [string]
   "Escape characters in a string which have special meanings in regexes"

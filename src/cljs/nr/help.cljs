@@ -129,59 +129,15 @@
     {:id "formats"
      :title "Formats"
      :sub (list
-            {:id "standard"
-             :title "What is the Standard format?"
+            {:id "reboot"
+             :title "What is the Reboot format?"
              :content [:ul
-                        [:p "The flagship format of NISEI Organized Play, Standard is "
-                         "frequently changing to keep the meta exciting and engaging for "
-                         "players of all levels. Most official Organised Play events will "
-                         "follow the Standard format. "
-                         "Refer to " [:a {:href "https://nisei.net/op/supported-formats"} "NISEI Supported Formats"]]]}
-            {:id "eternal"
-             :title "What is Eternal format?"
+                        [:p "It consists of every card reworked so far in the " [:a {:href "https://docs.google.com/spreadsheets/d/19GaP9AwNpvd-gC4sKNo7ZaxRYljb485Uno5VHf9p8As/edit#gid=0"} "Reboot spreadsheet."]" There is no MWL."
+                         ]]}
+            {:id "eerything"
+             :title "What is the Everything format?"
              :content [:ul
-                        [:p "Eternal is not affected by rotation and has a much less "
-                         "stringent Most Wanted List. The largest and most complex format, "
-                         "it encompasses nearly the entirety of the printed card pool and "
-                         "only grows larger with time. "
-                         "Refer to " [:a {:href "https://nisei.net/op/supported-formats"} "NISEI Supported Formats"]]]}
-            {:id "core-experience"
-             :title "What is the Core Experience format?"
-             :content [:ul
-                        [:p "The \"core\" of the game experience, and an excellent "
-                         "starting point for new or returning players. A single copy of "
-                         "System Core 2019 is the only legal product; there is no MWL. "
-                         "Refer to " [:a {:href "https://nisei.net/op/supported-formats"} "NISEI Supported Formats"]]]}
-           {:id "snapshot"
-             :title "What is the Snapshot format?"
-             :content [:ul
-                        [:p "This format is a \"snapshot\" of the meta at Magnum Opus; "
-                         "the culmination of FFG Organized Play. It will see minimal "
-                         "changes unless strictly necessary. "
-                         "Refer to " [:a {:href "https://nisei.net/op/supported-formats"} "NISEI Supported Formats"]]]}
-           {:id "snapshot-plus"
-             :title "What is the Snapshot Plus format?"
-             :content [:ul
-                        [:p "This is the Snapshot format but with the cards that were "
-                         "released at Worlds 2018 (Magnum Opus) included as well. The "
-                         "included cards are Labor Rights, Embolus, Slot Machine, Border "
-                         "Control, Timely Public Release, Hired Help, and Watch The "
-                         "World Burn. "
-                         "Refer to " [:a {:href "https://nisei.net/op/supported-formats"} "NISEI Supported Formats"]]]}
-           {:id "socr"
-             :title "What is the SOCR format?"
-             :content [:ul
-                        [:p "SOCR stands for Stimhack Online Cache Refresh. It's a limited "
-                         "cardpool tournament originally based on FFG's Cache Refresh "
-                         "format but with an updated MWL and cardpool. It is currently "
-                         "in it's 9th iteration. "
-                         "Refer to the " [:a {:href "https://forum.stimhack.com/t/stimhack-online-cache-refresh-9-information-thread/10419"} "Stimhack Thread"]]]}
-           {:id "classic"
-             :title "What is the Classic format?"
-             :content [:ul
-                        [:p "An alternate Eternal format created by thebigboy. The entire "
-                         "ANR cardpool is legal, except for a Ban-list of (currently) 49 cards. "
-                         "Refer to the " [:a {:href "https://runthenet.wordpress.com/2019/01/01/the-classic-format-netrunners-final-form/"} "announcement article"]]]})}
+                        [:p "All cards ever printed (with the cards in the Reboot format having the number changes). There is no MWL."]]]})}
     {:id "site"
      :title "Website"
      :sub (list
@@ -319,10 +275,7 @@
             {:id "reportingbugs"
              :title "How can I report a bug?"
              :content [:ul
-                        [:p "The best place to report bugs is the " [:a {:href "https://github.com/mtgred/netrunner/issues" :target "_blank"} "GitHub issue tracker"]
-                         ". Before reporting, it is best to make a quick search to see if it's already been reported. "
-                         "If the bug concerns a card, look it up in "
-                         [:a {:href "https://docs.google.com/spreadsheets/d/1ICv19cNjSaW9C-DoEEGH3iFt09PBTob4CAutGex0gnE/pubhtml" :target "_blank"} "Card implementation status"]
+                        [:p "If it's a bug relating to the original Jinteki.net, see their help page. If the bug relates to cards not working as the reboot spreadsheet says, ping presheaf on Stimslack."
                          " - the card in question may be unimplemented yet."]]}
             {:id "features"
              :title "How can I suggest a feature?"
@@ -333,18 +286,10 @@
              :title "How can I make a donation?"
              :content [:ul
                         [:p "Donation info can be found on the " [:a {:href "/about"} "About"] " page."]]}
-            {:id "devs"
-             :title "How can I help with the coding/webdesign?"
-             :content [:ul [:p "Visit the project page on " [:a {:href "https://github.com/mtgred/netrunner/" :target "_blank"} "GitHub"] " and fork "
-                             "the repository. Implement the changes you were planning on doing and create a PR (Pull Request). If you are in "
-                             "need of some ideas, check out " [:a {:href "https://github.com/mtgred/netrunner/labels/easy" :target "_blank"} "issues marked 'easy' on GitHub"] "."]
-                            [:p "After two of your PRs have been merged into the master branch, send an e-mail to "
-                             [:a {:href "mailto:mtgred@gmail.com"} "mtgred@gmail.com"] " stating who you are on GitHub and ask for access "
-                             "to Jinteki.net Slack, so you can get in better contact with the dev team."]]}
             {:id "awesome"
              :title "Why is this site so awesome?"
              :content [:ul
-                        [:p "Because We Built It."]]}
+                        [:p "Forged Activation Orders."]]}
             )}))
 
 (def help-toc

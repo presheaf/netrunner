@@ -28,7 +28,7 @@
   [format card]
   (keyword (get-in card [:format (keyword format)] "unknown")))
 
-(def format-status (fnil format-status-impl :standard {}))
+(def format-status (fnil format-status-impl :reboot {}))
 
 (defn num->percent
   "Converts an input number to a percent of the second input number for display"
@@ -295,7 +295,7 @@
     (set-deck-on-state s {:name "New deck"
                           :cards []
                           :identity id
-                          :format "standard"
+                          :format "reboot"
                           :_id (.getTime (js/Date.))
                           :new true})
     (try (js/ga "send" "event" "deckbuilder" "new" side) (catch js/Error e))
@@ -728,7 +728,7 @@
   [s]
   [:div
    [:h3 "Format"]
-   [:select.format {:value (get-in @s [:deck :format] "standard")
+   [:select.format {:value (get-in @s [:deck :format] "reboot")
                     :on-change #(swap! s assoc-in [:deck :format] (.. % -target -value))}
     (for [[k v] slug->format]
       ^{:key k}
