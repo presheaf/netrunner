@@ -305,12 +305,7 @@
     {:format (:format deck)
      :casual valid
      :standard (build-format-legality valid :standard deck)
-     :eternal (build-format-legality valid :eternal deck)
-     :classic (build-format-legality valid :classic deck)
-     :snapshot (build-format-legality valid :snapshot deck)
-     :snapshot-plus (build-snapshot-plus-legality valid deck)
-     :core-experience (build-core-experience-legality valid deck)
-     :socr (build-socr-legality valid deck)}))
+     :everything (build-format-legality valid :everything deck)}))
 
 (defn trusted-deck-status
   [{:keys [status date] :as deck}]
