@@ -134,10 +134,10 @@
              :content [:ul
                         [:p "It consists of every card reworked so far in the " [:a {:href "https://docs.google.com/spreadsheets/d/19GaP9AwNpvd-gC4sKNo7ZaxRYljb485Uno5VHf9p8As/edit#gid=0"} "Reboot spreadsheet."]" There is no MWL."
                          ]]}
-            {:id "eerything"
+            {:id "everything"
              :title "What is the Everything format?"
              :content [:ul
-                        [:p "All cards ever printed (with the cards in the Reboot format having the number changes). There is no MWL."]]]})}
+                       [:p "All cards ever printed (with the cards in the Reboot format having the number changes). There is no MWL."]]})}
     {:id "site"
      :title "Website"
      :sub (list
