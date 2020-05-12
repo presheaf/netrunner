@@ -404,7 +404,8 @@
                 (strength-pump 2 3)))
 
 (define-card "Alpha"
-  (auto-icebreaker {:abilities [(break-sub 1 1 "All" {:req (req (= (:position run) (count run-ices)))})
+  (auto-icebreaker {:implementation "Cost 7->4"
+                    :abilities [(break-sub 1 1 "All" {:req (req (= (:position run) (count run-ices)))})
                                 (strength-pump 1 1 :end-of-encounter {:req (req (= (:position run) (count run-ices)))})]}))
 
 (define-card "Amina"
@@ -540,7 +541,8 @@
    :abilities [(break-sub 2 2 "Barrier")]})
 
 (define-card "Bishop"
-  {:abilities [{:cost [:click 1]
+  {:implementation "Strength Reduction 2->3"
+   :abilities [{:cost [:click 1]
                 :effect (req (let [b (get-card state card)
                                    hosted? (ice? (:host b))
                                    remote? (is-remote? (second (:zone (:host b))))]
@@ -569,7 +571,7 @@
                        :req (req (and (= (:cid target)
                                          (:cid (:host card)))
                                       (:rezzed target)))
-                       :value -2}]})
+                       :value -3}]})
 
 (define-card "Black Orchestra"
    (let [events (for [event [:run :approach-ice :encounter-ice :pass-ice :run-ends
@@ -751,7 +753,8 @@
                (set-autoresolve :auto-accept "adding virus counters")]})
 
 (define-card "Copycat"
-  {:abilities [{:async true
+  {:implementation "MU 1->0"
+   :abilities [{:async true
                 :req (req (and run
                                (:rezzed current-ice)))
                 :prompt (msg "Choose a rezzed copy of " (:title current-ice))
@@ -1178,7 +1181,8 @@
              :effect (effect (trash eid card {:cause :purge}))}]})
 
 (define-card "Expert Schedule Analyzer"
-  {:abilities [{:cost [:click 1]
+  {:implementation "Cost 1->0"
+   :abilities [{:cost [:click 1]
                 :msg "make a run on HQ"
                 :makes-run true
                 :effect (effect (make-run :hq {:req (req (= target :hq))
@@ -1198,7 +1202,8 @@
                               :effect (effect (trash eid card nil))}]}))
 
 (define-card "False Echo"
-  {:events [{:event :pass-ice
+  {:implementation "Cost 1->0"
+   :events [{:event :pass-ice
              :optional
              {:req (req (not (rezzed? target)))
               :prompt "Trash False Echo?"
@@ -1279,7 +1284,8 @@
                                 (strength-pump 1 1)]}))
 
 (define-card "Garrote"
-  (auto-icebreaker {:abilities [(break-sub 1 1 "Sentry")
+  (auto-icebreaker {:implementation "Strength 2->3"
+                    :abilities [(break-sub 1 1 "Sentry")
                                 (strength-pump 1 1)]}))
 
 (define-card "Gauss"
@@ -1391,7 +1397,8 @@
                    (swap! state assoc-in [:runner :locked] lock)))}})
 
 (define-card "Hemorrhage"
-  {:events [{:event :successful-run
+  {:implementation "Cost 3->2"
+   :events [{:event :successful-run
              :silent (req true)
              :effect (effect (add-counter card :virus 1))}]
    :abilities [{:cost [:click 1 :virus 2]
@@ -1621,8 +1628,9 @@
                              (use-mu (:memoryunits target)))}]})
 
 (define-card "Leviathan"
-  (auto-icebreaker {:abilities [(break-sub 3 3 "Code Gate")
-                                (strength-pump 3 5)]}))
+  (auto-icebreaker {:implementation "Cost to boost 3->1"
+                    :abilities [(break-sub 3 3 "Code Gate")
+                                (strength-pump 1 5)]}))
 
 (define-card "LLDS Energy Regulator"
   {:interactions {:prevent [{:type #{:trash-hardware}
@@ -1844,7 +1852,8 @@
                                 (strength-pump 3 3)]}))
 
 (define-card "Omega"
-  (auto-icebreaker {:abilities [(break-sub 1 1 "All" {:req (req (= 1 (:position run)))})
+  (auto-icebreaker {:implementation "Cost 7->5"
+                    :abilities [(break-sub 1 1 "All" {:req (req (= 1 (:position run)))})
                                 (strength-pump 1 1 :end-of-encounter {:req (req (= 1 (:position run)))})]}))
 
 (define-card "Origami"
@@ -1861,7 +1870,8 @@
                                 (strength-pump 1 1)]}))
 
 (define-card "Paintbrush"
-  {:abilities [{:cost [:click 1]
+  {:implementation "MU 2->1"
+   :abilities [{:cost [:click 1]
                 :choices {:card #(and (installed? %)
                                       (ice? %)
                                       (rezzed? %))}
@@ -2230,7 +2240,8 @@
    :abilities [(set-autoresolve :auto-fire "RNG Key")]})
 
 (define-card "Rook"
-  {:abilities [{:cost [:click 1]
+  {:implementation "Cost 2->1"
+   :abilities [{:cost [:click 1]
                 :effect (req (let [r (get-card state card)
                                    hosted? (ice? (:host r))
                                    icepos (ice-index state (get-card state (:host r)))]
@@ -2270,7 +2281,8 @@
                         1 "Code Gate")]))
 
 (define-card "Sahasrara"
-  {:recurring 2
+  {:implementation "Cost 2->1"
+   :recurring 2
    :interactions {:pay-credits {:req (req (and (= :runner-install (:source-type eid))
                                                (program? target)))
                                 :type :recurring}}})
@@ -2286,7 +2298,8 @@
                         1 "Sentry")]))
 
 (define-card "Savoir-faire"
-  {:abilities [{:cost [:credit 2]
+  {:implementation "Ability Cost 2->1"
+   :abilities [{:cost [:credit 1]
                 :once :per-turn
                 :req (req (not (install-locked? state side)))
                 :msg (msg "install " (:title target))
@@ -2511,7 +2524,8 @@
                :effect (effect (trash eid card {:cause :purge}))}]}))
 
 (define-card "Torch"
-  (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
+  (auto-icebreaker {:implementation "Cost 9->8"
+                    :abilities [(break-sub 1 1 "Code Gate")
                                 (strength-pump 1 1)]}))
 
 (define-card "Tracker"

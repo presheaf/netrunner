@@ -116,7 +116,8 @@
                              (trash eid card nil))}]})
 
 (define-card "Blackguard"
-  {:in-play [:memory 2]
+  {:implementation "Cost 11->9"
+   :in-play [:memory 2]
    :events [{:event :expose
              :msg (msg "attempt to force the rez of " (:title target))
              :async true
@@ -254,7 +255,8 @@
                   :effect (effect (move target :deck {:front true}))}]}))
 
 (define-card "Capstone"
-  {:abilities [{:req (req (pos? (count (:hand runner))))
+  {:implementation "Cards Drawn per 1->3"
+   :abilities [{:req (req (pos? (count (:hand runner))))
                 :cost [:click 1]
                 :async true
                 :prompt "Select any number of cards to trash from your grip"
@@ -267,7 +269,7 @@
                                                                  (set installed-card-names))]
                                (wait-for (trash-cards state side targets {:unpreventable true})
                                          (let [trashed-cards async-result]
-                                           (wait-for (draw state side (count overlap) nil)
+                                           (wait-for (draw state side (* 3 (count overlap)) nil)
                                                      (system-msg state side
                                                                  (str "spends [Click] to use Capstone to trash "
                                                                       (join ", " (map :title trashed-cards))
@@ -299,7 +301,8 @@
                                          card nil)))}]})
 
 (define-card "Clone Chip"
-  {:abilities [{:prompt "Select a program to install from your Heap"
+  {:implementation "Influence 2->3"
+   :abilities [{:prompt "Select a program to install from your Heap"
                 :show-discard true
                 :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
                                (not (install-locked? state side))
@@ -366,7 +369,8 @@
                                 :type :recurring}}})
 
 (define-card "CyberSolutions Mem Chip"
-  {:in-play [:memory 2]})
+  {:implementation "Cost 4->3"
+   :in-play [:memory 2]})
 
 (define-card "Cybsoft MacroDrive"
   {:recurring 1
@@ -396,7 +400,8 @@
                 :msg (msg (str "pump the strength of " (get-in card [:host :title]) " by 4"))}]})
 
 (define-card "Deep Red"
-  {:implementation "MU use restriction not enforced"
+  {:implementation "Cost 2->0"
+   :implementation "MU use restriction not enforced"
    :in-play [:memory 3]
    :events [{:event :runner-install
              :optional
@@ -530,7 +535,8 @@
                                 (make-run eid target nil card))}]})
 
 (define-card "Dyson Fractal Generator"
-  {:recurring 1
+  {:implementation "Cost 1->0"
+   :recurring 1
    :interactions {:pay-credits {:req (req (and (= :ability (:source-type eid))
                                                (has-subtype? target "Fracter")
                                                (has-subtype? target "Icebreaker")))
@@ -1109,7 +1115,8 @@
            :async true
            :effect (req (wait-for (runner-install state side target {:cost-bonus -4})
                                   (continue-ability state side (when (< n 3) (mh (inc n))) card nil)))})]
-    {:interactions {:prevent [{:type #{:net :brain}
+    {:implementation "Cost 18->12"
+     :interactions {:prevent [{:type #{:net :brain}
                                :req (req true)}]}
      :in-play [:memory 3]
      :async true
@@ -1233,7 +1240,8 @@
              :effect (req (change-hand-size state :runner target))}]})
 
 (define-card "Omni-drive"
-  {:recurring 1
+  {:implementation "Cost 3->2"
+   :recurring 1
    :abilities [{:async true
                 :label "Install and host a program of 1[Memory Unit] or less on Omni-drive"
                 :req (req (empty? (:hosted card)))

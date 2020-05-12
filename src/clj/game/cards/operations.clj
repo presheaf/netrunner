@@ -43,12 +43,13 @@
                :effect (req (wait-for (play-instant state side target {:no-additional-cost true})
                                       (let [cards (filterv #(not (same-card? % target)) cards)]
                                         (continue-ability state side (ad state side eid card cards) card nil))))}))]
-    {:async true
+    {:implementation "Cards Looked at 3->2"
+     :async true
      :effect
      (effect
        (continue-ability
-         (let [top (take 3 (:deck corp))]
-           {:prompt (str "The top 3 cards of R&D are " (join ", " (map :title top)) ".")
+         (let [top (take 2 (:deck corp))]
+           {:prompt (str "The top 2 cards of R&D are " (join ", " (map :title top)) ".")
             :choices ["OK"]
             :effect (effect (continue-ability (ad state side eid card top) card nil))})
          card nil))}))
@@ -269,7 +270,8 @@
    :effect (effect (gain-tags :corp eid 4))})
 
 (define-card "Bioroid Efficiency Research"
-  {:async true
+  {:implementation "Cost 3->2"
+   :async true
    :req (req (some #(and (ice? %)
                          (has-subtype? % "Bioroid")
                          (not (rezzed? %)))
@@ -418,10 +420,11 @@
                    (play-instant eid target nil))})
 
 (define-card "Corporate Shuffle"
-  {:msg "shuffle all cards in HQ into R&D and draw 5 cards"
+  {:implementation "Cards drawn 5->6"
+   :msg "shuffle all cards in HQ into R&D and draw 6 cards"
    :async true
    :effect (effect (shuffle-into-deck :hand)
-                   (draw eid 5 nil))})
+                   (draw eid 6 nil))})
 
 (define-card "Cyberdex Trial"
   {:msg "purge virus counters"
@@ -941,8 +944,9 @@
   {:msg "gain 9 [Credits]" :effect (effect (gain-credits 9))})
 
 (define-card "Hellion Alpha Test"
-  {:req (req (last-turn? state :runner :installed-resource))
-   :trace {:base 2
+  {:implementation "Trace Strength 2->5"
+   :req (req (last-turn? state :runner :installed-resource))
+   :trace {:base 5
            :successful {:msg "add a Resource to the top of the Stack"
                         :choices {:card #(and (installed? %)
                                               (resource? %))}
@@ -1051,7 +1055,8 @@
                                     (if (pos? x)
                                       (continue-ability state side (iop (dec x)) card nil)
                                       (effect-completed state side eid))))})]
-    {:trace {:base 2
+    {:implementation "Cost 2->0"
+     :trace {:base 2
              :successful {:msg "reveal the Runner's Grip and trash up to X resources or events"
                           :async true
                           :effect (req (reveal state side (:hand runner))
@@ -2077,9 +2082,10 @@
                                                  (advance state :corp (make-eid state {:source card :source-type :advance}) target :no-cost)))} card nil))})
 
 (define-card "Successful Demonstration"
-  {:req (req (last-turn? state :runner :unsuccessful-run))
-   :msg "gain 7 [Credits]"
-   :effect (effect (gain-credits 7))})
+  {:implementation "Credits Gained 7->8"
+   :req (req (last-turn? state :runner :unsuccessful-run))
+   :msg "gain 8 [Credits]"
+   :effect (effect (gain-credits 8))})
 
 (define-card "Sunset"
   (letfn [(sun [serv]
@@ -2354,5 +2360,6 @@
                :effect (req (add-extra-sub! state :corp (get-card state target) new-sub (:cid card) {:front true}))}]}))
 
 (define-card "Witness Tampering"
-  {:msg "remove 2 bad publicity"
+  {:implementation "Cost 4->1"
+   :msg "remove 2 bad publicity"
    :effect (effect (lose-bad-publicity 2))})

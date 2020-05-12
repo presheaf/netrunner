@@ -396,7 +396,8 @@
                                 (move target :rfg))}]})
 
 (define-card "Borrowed Satellite"
-  {:in-play [:hand-size 1 :link 1]})
+  {:implementation "Handsize Increase 1->3"
+   :in-play [:hand-size 3 :link 1]})
 
 (define-card "Bug Out Bag"
   {:prompt "How many power counters?"
@@ -993,7 +994,8 @@
              :req (req (genetics-trigger? state side :successful-run))}]})
 
 (define-card "Fall Guy"
-  {:interactions {:prevent [{:type #{:trash-resource}
+  {:implementation "Influence 1->3"
+   :interactions {:prevent [{:type #{:trash-resource}
                              :req (req true)}]}
    :abilities [{:label "Prevent another installed resource from being trashed"
                 :cost [:trash]
@@ -1136,7 +1138,8 @@
              :effect (effect (lose :click 1))}]})
 
 (define-card "Grifter"
-  {:events [{:event :runner-turn-ends
+  {:implementation "Cost 2->0"
+   :events [{:event :runner-turn-ends
              :async true
              :effect (req (let [ab (if (get-in @state [:runner :register :successful-run])
                                      {:msg "gain 1 [Credits]"
@@ -1178,7 +1181,8 @@
   (let [ability {:msg "gain 2 [Credits] and lose [Click]"
                  :once :per-turn
                  :effect (effect (lose :click 1) (gain-credits 2))}]
-    {:flags {:drip-economy true}
+    {:implementation "Cost 5->0"
+     :flags {:drip-economy true}
      :events [(assoc ability :event :runner-turn-begins)]
      :abilities [ability]}))
 
@@ -2047,7 +2051,8 @@
   (trash-when-tagged-contructor "Rachel Beckman" {:in-play [:click-per-turn 1]}))
 
 (define-card "Raymond Flint"
-  {:events [{:event :corp-gain-bad-publicity
+  {:implementation "Cost 2->1"
+   :events [{:event :corp-gain-bad-publicity
              :async true
              :msg (msg "access " (quantify (num-cards-to-access state :runner :hq {:no-root true}) "card") " from HQ")
              :effect (req (do-access state :runner eid [:hq] {:no-root true}))}]
@@ -2235,7 +2240,8 @@
                             card nil))}]})
 
 (define-card "Same Old Thing"
-  {:abilities [{:async true
+  {:implementation "Cost 0->1"
+   :abilities [{:async true
                 :cost [:click 2 :trash]
                 :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
                                (pos? (count (filter event? (:discard runner))))))
@@ -2319,7 +2325,8 @@
              :effect (effect (mill :corp eid :corp 1))}]})
 
 (define-card "Starlight Crusade Funding"
-  {:msg "ignore additional costs on Double events"
+  {:implementation "Cost 1->0"
+   :msg "ignore additional costs on Double events"
    :effect (req (swap! state assoc-in [:runner :register :double-ignore-additional] true))
    :events [{:event :runner-turn-begins
              :msg "lose [Click] and ignore additional costs on Double events"
@@ -2402,11 +2409,12 @@
              :effect (effect (draw :runner eid 1 nil))}]})
 
 (define-card "Tallie Perrault"
-  {:abilities [{:label "Draw 1 card for each Corp bad publicity"
+  {:implementation "Cards drawn 1->3"
+   :abilities [{:label "Draw 3 cards for each Corp bad publicity"
                 :async true
                 :cost [:trash]
-                :effect (effect (draw eid (count-bad-pub state) nil))
-                :msg (msg "draw " (count-bad-pub state) " cards")}]
+                :effect (effect (draw eid (* 3 (count-bad-pub state)) nil))
+                :msg (msg "draw " (* 3 (count-bad-pub state)) " cards")}]
    :events [{:event :play-operation
              :req (req (or (has-subtype? target "Black Ops")
                            (has-subtype? target "Gray Ops")))
@@ -2898,7 +2906,8 @@
                                      :no-ability {:effect (effect (clear-wait-prompt :runner)
                                                                   (system-msg "doesn't draw with Woman in the Red Dress"))}}}
                                    card nil))}]
-    {:events [(assoc ability :event :runner-turn-begins)]
+    {:implementation "Cost 3->1"
+     :events [(assoc ability :event :runner-turn-begins)]
      :abilities [ability]}))
 
 (define-card "Wyldside"

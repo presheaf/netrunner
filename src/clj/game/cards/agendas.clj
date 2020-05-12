@@ -387,13 +387,15 @@
                   (system-msg state side (str "gains " bucks " [Credits] from CFC Excavation Contract"))))})
 
 (define-card "Character Assassination"
-  {:prompt "Select a resource to trash"
+  {:implementation "Resources Trashed 1->2"
+   :prompt "Select a resource to trash"
    :choices {:card #(and (installed? %)
-                         (resource? %))}
-   :msg (msg "trash " (:title target))
+                         (resource? %))
+             :max 2}
+   :msg (msg "trash " (join ", " (map :title targets))
    :interactive (req true)
    :async true
-   :effect (effect (trash eid target {:unpreventable true}))})
+   :effect (effect (trash-cards eid targets {:unpreventable true}))})
 
 (define-card "Chronos Project"
   {:msg "remove all cards in the Runner's Heap from the game"
@@ -540,8 +542,9 @@
              :msg (msg "ignore the install cost of the first ICE this turn")}]})
 
 (define-card "Efficiency Committee"
-  {:silent (req true)
-   :effect (effect (add-counter card :agenda 3))
+  {:implementation "Agenda Counters 3->2"
+   :silent (req true)
+   :effect (effect (add-counter card :agenda 2))
    :abilities [{:cost [:click 1 :agenda 1]
                 :effect (effect (gain :click 2)
                                 (register-turn-flag!
@@ -649,11 +652,12 @@
    :silent (req true)})
 
 (define-card "Geothermal Fracking"
-  {:effect (effect (add-counter card :agenda 2))
+  {:implementation "Credits Gained 7->9"
+   :effect (effect (add-counter card :agenda 2))
    :silent (req true)
    :abilities [{:cost [:click 1 :agenda 1]
-                :msg "gain 7 [Credits] and take 1 bad publicity"
-                :effect (effect (gain-credits 7)
+                :msg "gain 9 [Credits] and take 1 bad publicity"
+                :effect (effect (gain-credits 9)
                                 (gain-bad-publicity :corp 1))}]})
 
 (define-card "Gila Hands Arcology"
@@ -883,12 +887,13 @@
                           :click-per-turn 1))})
 
 (define-card "Market Research"
-  {:interactive (req true)
+  {:implementation "Extra points 1->2"
+   :interactive (req true)
    :req (req tagged)
    :effect (effect (add-counter card :agenda 1)
                    (update-all-agenda-points)
                    (check-winner))
-   :agendapoints-corp (req (if (zero? (get-counters card :agenda)) 2 3))})
+   :agendapoints-corp (req (if (zero? (get-counters card :agenda)) 2 4))})
 
 (define-card "Medical Breakthrough"
   {:silent (req true)
@@ -927,7 +932,8 @@
                       (effect-completed state side eid))))})
 
 (define-card "NAPD Contract"
-  {:steal-cost-bonus (req [:credit 4])
+  {:implementation "Cost to Steal 4->3"
+   :steal-cost-bonus (req [:credit 3])
    :advancement-cost-bonus (req (count-bad-pub state))})
 
 (define-card "Net Quarantine"
@@ -1056,9 +1062,9 @@
 
 (define-card "Project Ares"
   (letfn [(trash-count-str [card]
-            (quantify (- (get-counters card :advancement) 4) "installed card"))]
+            (quantify (- (get-counters card :advancement) 2) "installed card"))]
     {:silent (req true)
-     :req (req (and (> (get-counters card :advancement) 4)
+     :req (req (and (> (get-counters card :advancement) 2)
                     (pos? (count (all-installed state :runner)))))
      :msg (msg "force the Runner to trash " (trash-count-str card) " and take 1 bad publicity")
      :async true
@@ -1066,7 +1072,7 @@
                (continue-ability
                  :runner
                  {:prompt (msg "Select " (trash-count-str card) " installed cards to trash")
-                  :choices {:max (min (- (get-counters card :advancement) 4)
+                  :choices {:max (min (- (get-counters card :advancement) 2)
                                       (count (all-installed state :runner)))
                             :card #(and (runner? %)
                                         (installed? %))}
@@ -1166,8 +1172,9 @@
                 :effect (effect (move target :hand))}]})
 
 (define-card "Project Wotan"
-  {:silent (req true)
-   :effect (effect (add-counter card :agenda 3))
+  {:implementation "Agenda Counters 3->6"
+   :silent (req true)
+   :effect (effect (add-counter card :agenda 6))
    :events [{:event :run-ends
              :effect (req (let [cid (:cid card)
                                 ices (get-in card [:special :wotan])]
@@ -1438,11 +1445,12 @@
             {:event :runner-turn-ends}]})
 
 (define-card "Sentinel Defense Program"
-  {:events [{:event :pre-resolve-damage
+  {:implementation "Net damage dealt 1->2"
+   :events [{:event :pre-resolve-damage
              :req (req (and (= target :brain)
                             (pos? (last targets))))
-             :msg "do 1 net damage"
-             :effect (effect (damage eid :net 1 {:card card}))}]})
+             :msg "do 2 net damage"
+             :effect (effect (damage eid :net 2 {:card card}))}]})
 
 (define-card "Show of Force"
   {:async true
@@ -1528,11 +1536,12 @@
             :effect (effect (gain-tags eid 1))}})
 
 (define-card "The Cleaners"
-  {:events [{:event :pre-damage
+  {:implementation "Damage Increase 1->2"
+   :events [{:event :pre-damage
              :req (req (and (= target :meat)
                             (= side :corp)))
-             :msg "do 1 additional meat damage"
-             :effect (effect (damage-bonus :meat 1))}]})
+             :msg "do 2 additional meat damage"
+             :effect (effect (damage-bonus :meat 2))}]})
 
 (define-card "The Future is Now"
   {:interactive (req true)
@@ -1651,9 +1660,10 @@
   {})
 
 (define-card "Veterans Program"
-  {:interactive (req true)
-   :msg "lose 2 bad publicity"
-   :effect (effect (lose-bad-publicity 2))})
+  {:implementation "BP Removed 2->3"
+   :interactive (req true)
+   :msg "lose 3 bad publicity"
+   :effect (effect (lose-bad-publicity 3))})
 
 (define-card "Viral Weaponization"
   (let [dmg {:msg "do 1 net damage for each card in the grip"
@@ -1700,9 +1710,10 @@
                            true))))}]})
 
 (define-card "Vulcan Coverup"
-  {:interactive (req true)
-   :msg "do 2 meat damage"
-   :effect (effect (damage eid :meat 2 {:card card}))
+  {:implementation "Meat Damage 2->3"
+   :interactive (req true)
+   :msg "do 3 meat damage"
+   :effect (effect (damage eid :meat 3 {:card card}))
    :stolen {:msg "force the Corp to take 1 bad publicity"
             :effect (effect (gain-bad-publicity :corp 1))}})
 

@@ -169,9 +169,10 @@
                 (draw state :runner eid 2 nil))})
 
 (define-card "Blackmail"
-  {:async true
+  {:implementation "Bad Publicity Required 1->2"
+   :async true
    :makes-run true
-   :req (req (has-bad-pub? state))
+   :req (req (> (count-bad-pub state) 1))
    :prompt "Choose a server"
    :choices (req runnable-servers)
    :msg "prevent ICE from being rezzed during this run"
@@ -935,7 +936,8 @@
                                card))}))
 
 (define-card "Eureka!"
-  {:async true
+  {:implementation "Cost 3->0"
+   :async true
    :effect (req (let [topcard (first (:deck runner))
                       caninst (and (or (hardware? topcard)
                                        (program? topcard)
@@ -969,7 +971,8 @@
                           (effect-completed state side eid)))})
 
 (define-card "Executive Wiretaps"
-  {:msg (msg "reveal cards in HQ: " (join ", " (sort (map :title (:hand corp)))))
+  {:implementation "Cost 4->2"
+   :msg (msg "reveal cards in HQ: " (join ", " (sort (map :title (:hand corp)))))
    :effect (effect (reveal (:hand corp)))})
 
 (define-card "Exploit"
@@ -985,7 +988,8 @@
                   (derez state side c)))})
 
 (define-card "Exploratory Romp"
-  {:async true
+  {:implementation "Cost 1->0"
+   :async true
    :makes-run true
    :prompt "Choose a server"
    :choices (req runnable-servers)
@@ -1120,7 +1124,8 @@
   (cutlery "Sentry"))
 
 (define-card "Frame Job"
-  {:prompt "Choose an agenda to forfeit"
+  {:implementation "Cost 1->0"
+   :prompt "Choose an agenda to forfeit"
    :choices (req (:scored runner))
    :effect (effect (forfeit target)
                    (gain-bad-publicity :corp 1))
@@ -1170,14 +1175,15 @@
              :effect (req (as-agenda state :runner eid card 1))}]})
 
 (define-card "Freelance Coding Contract"
-  {:choices {:max 5
+  {:implementation "Credits per program 2->3"
+   :choices {:max 5
              :card #(and (program? %)
                          (in-hand? %))}
    :msg (msg "trash " (join ", " (map :title targets)) " and gain "
-             (* 2 (count targets)) " [Credits]")
+             (* 3 (count targets)) " [Credits]")
    :async true
    :effect (req (wait-for (trash-cards state side targets {:unpreventable true})
-                          (gain-credits state side eid (* 2 (count targets)) nil)))})
+                          (gain-credits state side eid (* 3 (count targets)) nil)))})
 
 (define-card "Game Day"
   {:msg (msg "draw " (- (hand-size state :runner) (count (:hand runner))) " cards")
@@ -1295,7 +1301,8 @@
              :effect (effect (gain-credits :runner 12))}]})
 
 (define-card "Hostage"
-  {:prompt "Choose a Connection"
+  {:implementation "Cost 1->0"
+   :prompt "Choose a Connection"
    :choices (req (cancellable (filter #(has-subtype? % "Connection") (:deck runner)) :sorted))
    :msg (msg "add " (:title target) " to their Grip and shuffle their Stack")
    :async true
@@ -1676,7 +1683,8 @@
                                 card nil)))))})
 
 (define-card "Lawyer Up"
-  {:msg "remove 2 tags and draw 3 cards"
+  {:implementation "Cost 2->1"
+   :msg "remove 2 tags and draw 3 cards"
    :async true
    :effect (req (wait-for (lose-tags state side 2)
                           (draw state side eid 3 nil)))})
@@ -1726,7 +1734,8 @@
              :effect (effect (access-bonus :hq 2))}]})
 
 (define-card "Leverage"
-  {:optional
+  {:implementation "Cost 1->0"
+   :optional
    {:req (req (some #{:hq} (:successful-run runner-reg)))
     :player :corp
     :prompt "Take 2 bad publicity?"
@@ -2252,7 +2261,8 @@
                  card))}))
 
 (define-card "Recon"
-  {:async true
+  {:implementation "Cost 1->0"
+   :async true
    :makes-run true
    :prompt "Choose a server"
    :choices (req runnable-servers)
@@ -2439,7 +2449,8 @@
                                 card nil)))}]}))
 
 (define-card "Running Interference"
-  {:async true
+  {:implementation "Cost 4->2"
+   :async true
    :makes-run true
    :prompt "Choose a server"
    :choices (req runnable-servers)
@@ -2529,7 +2540,8 @@
              :effect (req (swap! state assoc-in [:runner :rd-access-fn] seq))}]})
 
 (define-card "Singularity"
-  {:async true
+  {:implementation "Cost 4->1"
+   :async true
    :makes-run true
    :prompt "Choose a server"
    :choices (req (filter #(can-run-server? state %) remotes))

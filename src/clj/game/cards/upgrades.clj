@@ -225,7 +225,8 @@
                                   card nil))}]})
 
 (define-card "Caprice Nisei"
-  {:events [{:event :pass-all-ice
+  {:implementation "Cost 2->3"
+   :events [{:event :pass-all-ice
              :req (req this-server)
              :psi {:not-equal {:msg "end the run"
                                :effect (effect (end-run eid card))}}}]})
@@ -1016,7 +1017,8 @@
              :effect (effect (add-prop :corp target :advance-counter 1 {:placed true}))}]})
 
 (define-card "Off the Grid"
-  {:install-req (req (remove #{"HQ" "R&D" "Archives"} targets))
+  {:implementation "Cost 6->5"
+   :install-req (req (remove #{"HQ" "R&D" "Archives"} targets))
    :effect (req (prevent-run-on-server state card (second (:zone card))))
    :events [{:event :runner-turn-begins
              :effect (req (prevent-run-on-server state card (second (:zone card))))}
@@ -1281,7 +1283,8 @@
                                 :type :recurring}}})
 
 (define-card "Strongbox"
-  {:trash-effect
+  {:implementation "Trash cost 1->5"
+   :trash-effect
    {:req (req (and (= :servers (first (:previous-zone card))) (:run @state)))
     :effect (effect (register-events
                       card
@@ -1437,7 +1440,8 @@
                             (draw state side 1 nil)))}]})
 
 (define-card "Tyr's Hand"
-  {:abilities [{:label "Prevent a subroutine on a piece of Bioroid ICE from being broken"
+  {:implementation "Cost 1->0"
+   :abilities [{:label "Prevent a subroutine on a piece of Bioroid ICE from being broken"
                 :req (req (and (= (butlast (:zone current-ice)) (butlast (:zone card)))
                                (has-subtype? current-ice "Bioroid")))
                 :cost [:trash]

@@ -339,7 +339,8 @@
              :effect (effect (lose-tags eid 1))}]})
 
 (define-card "Cerebral Imaging: Infinite Frontiers"
-  {:effect (req (when (> (:turn @state) 1)
+  {:implementation "Deck Size 45->50"
+   :effect (req (when (> (:turn @state) 1)
                   (swap! state assoc-in [:corp :hand-size :base] (:credit corp)))
                 (add-watch state :cerebral-imaging
                            (fn [k ref old new]
@@ -384,6 +385,10 @@
                               :no-ability {:effect (req (clear-wait-prompt state :runner)
                                                         (system-msg state :corp "doesn't use Chronos Protocol to select the first card trashed"))}}}
                             card nil))}]})
+
+(define-card "Custom Biotics: Engineered for Success"
+  ;; No special implementation
+  {:implementation "Influence 22->25"})
 
 (define-card "Cybernetics Division: Humanity Upgraded"
   {:effect (effect (lose :hand-size 1)
@@ -460,15 +465,16 @@
                                 :type :recurring}}})
 
 (define-card "Exile: Streethawk"
-  {:flags {:runner-install-draw true}
+  {:implementation "Cards drawn 1->2"
+   :flags {:runner-install-draw true}
    :events [{:event :runner-install
              :silent (req (not (and (program? target)
                                     (some #{:discard} (:previous-zone target)))))
              :async true
              :req (req (and (program? target)
                             (some #{:discard} (:previous-zone target))))
-             :msg (msg "draw a card")
-             :effect (req (draw state side eid 1 nil))}]})
+             :msg (msg "draw 2 cards")
+             :effect (req (draw state side eid 2 nil))}]})
 
 (define-card "Freedom Khumalo: Crypto-Anarchist"
   {:interactions
@@ -532,9 +538,10 @@
              :msg "make the Runner spend 1 [Credits] to access"}]})
 
 (define-card "GRNDL: Power Unleashed"
-  {:events [{:event :pre-start-game
+  {:implementation "Starting Credits 10->13"
+   :events [{:event :pre-start-game
              :req (req (= :corp side))
-             :effect (req (gain-credits state :corp 5)
+             :effect (req (gain-credits state :corp 8)
                           (when (zero? (count-bad-pub state))
                             (gain-bad-publicity state :corp 1)))}]})
 
@@ -1150,7 +1157,8 @@
                                                    (in-hand? %))}
                              :effect (req (wait-for (corp-install state side target nil nil)
                                                     (continue-ability state side (when (< n 3) (nd (inc n))) card nil)))})]
-    {:events [{:event :pre-first-turn
+    {:implementation "Influence 12->15"
+     :events [{:event :pre-first-turn
                :req (req (= side :corp))
                :msg "install up to 3 pieces of ICE and draw back up to 5 cards"
                :async true
@@ -1537,7 +1545,7 @@
 
 (define-card "The Professor: Keeper of Knowledge"
   ;; No special implementation
-  {})
+  {:implementation "Link 0->1"})
 
 (define-card "The Shadow: Pulling the Strings"
   {:events [{:event :pre-start-game
