@@ -392,7 +392,7 @@
    :choices {:card #(and (installed? %)
                          (resource? %))
              :max 2}
-   :msg (msg "trash " (join ", " (map :title targets))
+   :msg (msg "trash " (join ", " (map :title targets)))
    :interactive (req true)
    :async true
    :effect (effect (trash-cards eid targets {:unpreventable true}))})
