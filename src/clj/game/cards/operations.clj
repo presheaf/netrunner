@@ -74,7 +74,8 @@
      :effect (effect (continue-ability (ab 0 target) card nil))}))
 
 (define-card "Aggressive Negotiation"
-  {:req (req (:scored-agenda corp-reg))
+  {:implementation "Unimplemented: Cards searched for 1->2"
+   :req (req (:scored-agenda corp-reg))
    :prompt "Choose a card"
    :choices (req (cancellable (:deck corp) :sorted))
    :effect (effect (move target :hand)
@@ -261,10 +262,11 @@
                         (effect-completed state side eid)))))}))
 
 (define-card "Big Brother"
-  {:req (req tagged)
-   :msg "give the Runner 2 tags"
+  {:implementation "Tags given 2 -> 4"
+   :req (req tagged)
+   :msg "give the Runner 4 tags"
    :async true
-   :effect (effect (gain-tags :corp eid 2))})
+   :effect (effect (gain-tags :corp eid 4))})
 
 (define-card "Bioroid Efficiency Research"
   {:async true
@@ -292,7 +294,8 @@
                              (trash :corp eid card {:unpreventable true}))}]})
 
 (define-card "Biotic Labor"
-  {:msg "gain [Click][Click]"
+  {:implementation "Influence 4->5"
+   :msg "gain [Click][Click]"
    :effect (effect (gain :click 2))})
 
 (define-card "Blue Level Clearance"
@@ -753,9 +756,10 @@
                                         (trash eid target nil))}}})
 
 (define-card "Freelancer"
-  {:req (req tagged)
+  {:implementation "Resources trashed 2->4"
+   :req (req tagged)
    :msg (msg "trash " (join ", " (map :title (sort-by :title targets))))
-   :choices {:max 2
+   :choices {:max 4
              :card #(and (installed? %)
                          (resource? %))}
    :async true
@@ -1244,9 +1248,10 @@
                    (gain-credits :runner 3))})
 
 (define-card "Midseason Replacements"
-  {:req (req (last-turn? state :runner :stole-agenda))
-   :trace {:base 6
-           :label "Trace 6 - Give the Runner X tags"
+  {:implementation "Trace strength 6 -> 2"
+   :req (req (last-turn? state :runner :stole-agenda))
+   :trace {:base 2
+           :label "Trace 2 - Give the Runner X tags"
            :successful {:msg "give the Runner X tags"
                         :async true
                         :effect (effect (system-msg
@@ -1454,9 +1459,10 @@
 
 (define-card "Precognition"
   {:async true
-   :msg "rearrange the top 5 cards of R&D"
+   :implementation "Cards looked at 5->7"   
+   :msg "rearrange the top 7 cards of R&D"
    :effect (req (show-wait-prompt state :runner "Corp to rearrange the top cards of R&D")
-                (let [from (take 5 (:deck corp))]
+                (let [from (take 7 (:deck corp))]
                   (if (pos? (count from))
                     (continue-ability state side (reorder-choice :corp :runner from '()
                                                                  (count from) from) card nil)
@@ -1745,12 +1751,15 @@
                                 (effect-completed state side eid))))))})
 
 (define-card "Rework"
-  {:prompt "Select a card from HQ to shuffle into R&D"
+  {:implementation "Cards reshuffled 1 -> up to 3"
+   :prompt "Select up to 3 cards from HQ to shuffle into R&D"
    :choices {:card #(and (corp? %)
-                         (in-hand? %))}
-   :msg "shuffle a card from HQ into R&D"
-   :effect (effect (move target :deck)
-                   (shuffle! :deck))})
+                         (in-hand? %))
+             :max 3}
+   :msg (msg (str "shuffle " (quantify (count targets) "card") " from HQ into R&D"))
+   :effect (req (doseq [c targets]
+                  (move state side c :deck))
+                (shuffle! state side :deck))})
 
 (define-card "Riot Suppression"
   {:req (req (last-turn? state :runner :trashed-card))
@@ -1841,7 +1850,8 @@
                        :value 2}]})
 
 (define-card "Scorched Earth"
-  {:req (req tagged)
+  {:implementation "Influence 4->5"
+   :req (req tagged)
    :async true
    :msg "do 4 meat damage"
    :effect (effect (damage eid :meat 4 {:card card}))})

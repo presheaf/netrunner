@@ -33,7 +33,8 @@
 ;; Card definitions
 
 (define-card "Account Siphon"
-  {:req (req hq-runnable)
+  {:implementation "Cost 0->2"
+   :req (req hq-runnable)
    :makes-run true
    :async true
    :effect (effect (make-run
@@ -627,7 +628,8 @@
                                     :effect (effect (move target :hand))} card nil)))})
 
 (define-card "Demolition Run"
-  {:req (req (or rd-runnable hq-runnable))
+  {:implementation "Cost 2->0"
+   :req (req (or rd-runnable hq-runnable))
    :prompt "Choose a server"
    :choices ["HQ" "R&D"]
    :makes-run true
@@ -1088,7 +1090,8 @@
                           (draw state :corp eid 3 nil)))})
 
 (define-card "Forged Activation Orders"
-  {:choices {:card #(and (ice? %)
+  {:implementation "Cost 1->0"
+   :choices {:card #(and (ice? %)
                          (not (rezzed? %)))}
    :async true
    :effect (req (let [ice target
@@ -1391,7 +1394,8 @@
                " and draw " (quantify (cards-to-draw targets) "card"))}))
 
 (define-card "Indexing"
-  {:req (req rd-runnable)
+  {:implementation "Cost 0->1"
+   :req (req rd-runnable)
    :async true
    :makes-run true
    :effect (effect (make-run
@@ -1626,7 +1630,8 @@
   (cutlery "Barrier"))
 
 (define-card "Kraken"
-  {:async true
+  {:implementation "Cost 3->1"
+   :async true
    :req (req (:stole-agenda runner-reg))
    :prompt "Choose a server"
    :choices (req servers)
@@ -2447,9 +2452,10 @@
                    (make-run eid target nil card))})
 
 (define-card "Satellite Uplink"
-  {:async true
+  {:implementation "Cards exposed 2->3"
+   :async true
    :req (req (some #(not (rezzed? %)) (all-installed state :corp)))
-   :choices {:max 2
+   :choices {:max 3
              :card #(and (corp? %)
                          (installed? %)
                          (not (rezzed? %)))}
@@ -2680,7 +2686,8 @@
               (assoc ability :event :runner-turn-ends)]}))
 
 (define-card "Test Run"
-  {:prompt "Install a program from your Stack or Heap?"
+  {:implementation "Cost 3->2"
+   :prompt "Install a program from your Stack or Heap?"
    :choices ["Stack" "Heap"]
    :msg (msg "install a program from their " target)
    :async true
@@ -2830,7 +2837,8 @@
    :leave-play (effect (clear-turn-flag! card :can-install-ice))})
 
 (define-card "Vamp"
-  {:async true
+  {:implementation "Tags taken 1->2"
+   :async true
    :makes-run true
    :req (req hq-runnable)
    :effect (effect (make-run
@@ -2840,9 +2848,9 @@
                       {:async true
                        :prompt "How many [Credits]?"
                        :choices :credit
-                       :msg (msg "take 1 tag and make the Corp lose " target " [Credits]")
+                       :msg (msg "take 2 tags and make the Corp lose " target " [Credits]")
                        :effect (effect (lose-credits :corp target)
-                                       (gain-tags eid 1))}}
+                                       (gain-tags eid 2))}}
                      card))})
 
 (define-card "Wanton Destruction"

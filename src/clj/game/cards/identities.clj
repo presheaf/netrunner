@@ -188,7 +188,8 @@
                                card nil))}]})
 
 (define-card "Andromeda: Dispossessed Ristie"
-  {:events [{:event :pre-start-game
+  {:implementation "Link 1->0"
+   :events [{:event :pre-start-game
              :req (req (= side :runner))
              :effect (effect (draw 4 {:suppress-event true}))}]
    :mulligan (effect (draw 4 {:suppress-event true}))})
@@ -349,8 +350,9 @@
                     (swap! state assoc-in [:corp :hand-size :base] 5))})
 
 (define-card "Chaos Theory: Wünderkind"
-  {:effect (effect (gain :memory 1))
-   :leave-play (effect (lose :runner :memory 1))})
+  {:implementation "MU 1->2"
+   :effect (effect (gain :memory 2))
+   :leave-play (effect (lose :runner :memory 2))})
 
 (define-card "Chronos Protocol: Selective Mind-mapping"
   {:req (req (empty? (filter #(= :net (first %)) (turn-events state :runner :damage))))
@@ -573,13 +575,15 @@
                                card nil))}]})
 
 (define-card "Haas-Bioroid: Engineering the Future"
-  {:events [{:event :corp-install
+  {:implementation "Influence 15->10"
+   :events [{:event :corp-install
              :req (req (first-event? state corp :corp-install))
              :msg "gain 1 [Credits]"
              :effect (effect (gain-credits 1))}]})
 
 (define-card "Haas-Bioroid: Stronger Together"
-  {:constant-effects [{:type :ice-strength
+  {:implementation "Deck Size 45->40"
+   :constant-effects [{:type :ice-strength
                        :req (req (has-subtype? target "Bioroid"))
                        :value 1}]
    :leave-play (effect (update-all-ice))
@@ -862,7 +866,8 @@
   (letfn [(kate-type? [card] (or (hardware? card)
                                  (program? card)))
           (not-triggered? [state card] (no-event? state :runner :runner-install #(kate-type? (first %))))]
-    {:constant-effects [{:type :install-cost
+    {:implementation "Link 1->0"
+     :constant-effects [{:type :install-cost
                          :req (req (and (kate-type? target)
                                         (not-triggered? state card)))
                          :value -1}]
@@ -1093,13 +1098,15 @@
    :abilities [(set-autoresolve :auto-ctm "CtM")]})
 
 (define-card "NBN: Making News"
-  {:recurring 2
+  {:implementation "Influence 15->17"
+   :recurring 2
    :interactions {:pay-credits {:req (req (= :trace (:source-type eid)))
                                 :type :recurring}}})
 
 (define-card "NBN: The World is Yours*"
-  {:effect (effect (gain :hand-size 1))
-   :leave-play (effect (lose :hand-size 1))})
+  {:implementation "Handsize increase 1 -> 2"
+   :effect (effect (gain :hand-size 2))
+   :leave-play (effect (lose :hand-size 2))})
 
 (define-card "Near-Earth Hub: Broadcast Center"
   {:events [{:event :server-created
@@ -1164,7 +1171,8 @@
              :effect (effect (gain-credits :corp 1))}]})
 
 (define-card "Noise: Hacker Extraordinaire"
-  {:events [{:async true
+  {:implementation "Influence 15->10"
+   :events [{:async true
              :event :runner-install
              :req (req (has-subtype? target "Virus"))
              :msg "force the Corp to trash the top card of R&D"
@@ -1548,7 +1556,8 @@
              :effect (effect (gain :corp :bad-publicity 1))}]})
 
 (define-card "Weyland Consortium: Because We Built It"
-  {:recurring 1
+  {:implementation "Influence 15->22"
+   :recurring 1
    :interactions {:pay-credits {:req (req (= :advance (:source-type eid)))
                                 :type :recurring}}})
 
@@ -1569,7 +1578,8 @@
              :effect (effect (gain-credits 1))}]})
 
 (define-card "Whizzard: Master Gamer"
-  {:recurring 3
+  {:implementation "Recurring credits 3->2"
+   :recurring 2
    :interactions {:pay-credits {:req (req (and (= :runner-trash-corp-cards (:source-type eid))
                                                (corp? target)))
                                 :type :recurring}}})

@@ -147,7 +147,8 @@
    :abilities [(set-autoresolve :auto-reveal-and-gain "Aeneas Informant")]})
 
 (define-card "Aesop's Pawnshop"
-  {:flags {:runner-phase-12 (req (>= (count (all-installed state :runner)) 2))}
+  {:implementation "Cost 1->2"
+   :flags {:runner-phase-12 (req (>= (count (all-installed state :runner)) 2))}
    :abilities [{:async true
                 :choices {:req (req (and (runner? target)
                                          (installed? target)
@@ -206,7 +207,8 @@
                   :effect (req (move state side (first (:deck runner)) :deck))}}}]})
 
 (define-card "Armitage Codebusting"
-  {:data {:counter {:credit 12}}
+  {:implementation "Credits 12->14"
+   :data {:counter {:credit 14}}
    :events [(trash-on-empty :credit)]
    :abilities [{:cost [:click 1]
                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
@@ -551,7 +553,8 @@
                                 card nil)))}]}))
 
 (define-card "Compromised Employee"
-  {:recurring 1
+  {:implementation "Cost 2->1"
+   :recurring 1
    :events [{:event :rez
              :req (req (ice? target))
              :msg "gain 1 [Credits]"
@@ -630,7 +633,8 @@
                                                       (max-access state side 0)))))}]))}]})
 
 (define-card "Crash Space"
-  {:interactions {:prevent [{:type #{:meat}
+  {:implementation "Cost 2->1"
+   :interactions {:prevent [{:type #{:meat}
                              :req (req true)}]
                   :pay-credits {:req (req (or (= :remove-tag (:source-type eid))
                                               (and (same-card? (:source eid) (:basic-action-card runner))
@@ -1247,7 +1251,8 @@
                        :value -1}]})
 
 (define-card "Inside Man"
-  {:recurring 2
+  {:implementation "Cost 3->1"
+   :recurring 2
    :interactions {:pay-credits {:req (req (and (= :runner-install (:source-type eid))
                                                (hardware? target)))
                                 :type :recurring}}})
@@ -1540,7 +1545,8 @@
      :abilities [ability]}))
 
 (define-card "Mr. Li"
-  {:abilities [{:cost [:click 1]
+  {:implementation "Cost 3->1"
+   :abilities [{:cost [:click 1]
                 :msg (msg "draw 2 cards")
                 :async true
                 :effect (req (wait-for (draw state side 2 nil)
@@ -2034,7 +2040,8 @@
              :effect (effect (gain-credits :runner (total-cards-accessed target :deck)))}]})
 
 (define-card "Public Sympathy"
-  {:in-play [:hand-size 2]})
+  {:implementation "Cost 2->0"
+   :in-play [:hand-size 2]})
 
 (define-card "Rachel Beckman"
   (trash-when-tagged-contructor "Rachel Beckman" {:in-play [:click-per-turn 1]}))
@@ -2580,7 +2587,8 @@
                                   card nil))))}]}))
 
 (define-card "The Helpful AI"
-  {:in-play [:link 1]
+  {:implementation "Cost 2->1"
+   :in-play [:link 1]
    :abilities [{:msg (msg "give +2 strength to " (:title target))
                 :choices {:card #(and (has-subtype? % "Icebreaker")
                                       (installed? %))}
@@ -2894,7 +2902,8 @@
      :abilities [ability]}))
 
 (define-card "Wyldside"
-  {:flags {:runner-turn-draw true
+  {:implementation "Cost 3->2"
+   :flags {:runner-turn-draw true
            :runner-phase-12 (req (< 1 (count (filter #(card-flag? % :runner-turn-draw true)
                                                      (cons (get-in @state [:runner :identity])
                                                            (all-active-installed state :runner))))))}

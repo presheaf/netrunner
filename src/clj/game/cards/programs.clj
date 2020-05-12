@@ -481,7 +481,8 @@
              :effect (effect (update-breaker-strength card))}]})
 
 (define-card "Aurora"
-  (auto-icebreaker {:abilities [(break-sub 2 1 "Barrier")
+  (auto-icebreaker {:implementation "Subs broken 1->2"
+                    :abilities [(break-sub 2 2 "Barrier")
                                 (strength-pump 2 3)]}))
 
 (define-card "Baba Yaga"
@@ -527,7 +528,8 @@
                 :effect (effect (gain-credits (get-counters card :credit)))}]})
 
 (define-card "Battering Ram"
-  (auto-icebreaker {:abilities [(break-sub 2 2 "Barrier")
+  (auto-icebreaker {:implementation "Cost 5->3"
+                    :abilities [(break-sub 2 2 "Barrier")
                                 (strength-pump 1 1 :end-of-run)]}))
 
 (define-card "Berserker"
@@ -816,7 +818,8 @@
 
 (define-card "Creeper"
   (cloud-icebreaker
-    (auto-icebreaker {:abilities [(break-sub 2 1 "Sentry")
+   (auto-icebreaker {:implementation "Cost 5->1"
+                     :abilities [(break-sub 2 1 "Sentry")
                                   (strength-pump 1 1)]})))
 
 (define-card "Crescentus"
@@ -906,16 +909,17 @@
                                 (strength-pump 1 1)]}))
 
 (define-card "Darwin"
-  {:flags {:runner-phase-12 (req true)}
+  {:implementation "Counters gained 1->2"
+   :flags {:runner-phase-12 (req true)}
    :events [{:event :purge
              :effect (effect (update-breaker-strength card))}]
    :abilities [(break-sub 2 1)
-               {:label "Place 1 virus counter (start of turn)"
+               {:label "Place 2 virus counter (start of turn)"
                 :once :per-turn
                 :cost [:credit 1]
-                :msg "place 1 virus counter"
+                :msg "place 2 virus counters"
                 :req (req (:runner-phase-12 @state))
-                :effect (effect (add-counter card :virus 1)
+                :effect (effect (add-counter card :virus 2)
                                 (update-breaker-strength card))}]
    :strength-bonus (req (get-virus-counters state card))})
 
@@ -953,12 +957,13 @@
                 :effect (effect (runner-install (assoc eid :source card :source-type :runner-install) target {:ignore-install-cost true}))}]})
 
 (define-card "Deep Thought"
-  {:events [{:event :successful-run
+  {:implementation "Virus counter requirement 3->2"
+   :events [{:event :successful-run
              :silent (req true)
              :effect (effect (add-counter card :virus 1))
              :req (req (= target :rd))}
             {:event :runner-turn-begins
-             :req (req (>= (get-virus-counters state card) 3)) :msg "look at the top card of R&D"
+             :req (req (>= (get-virus-counters state card) 2)) :msg "look at the top card of R&D"
              :effect (effect (prompt! card (str "The top card of R&D is "
                                                 (:title (first (:deck corp)))) ["OK"] {}))}]})
 
@@ -1031,7 +1036,8 @@
                              (use-mu (:memoryunits target)))}]})
 
 (define-card "Disrupter"
-  {:events
+  {:implementation "Cost 1->0"
+   :events
    [{:event :pre-init-trace
      :async true
      :trash-icon true
@@ -1061,7 +1067,8 @@
              :effect (effect (trash eid card {:cause :purge}))}]})
 
 (define-card "Djinn"
-  {:abilities [{:label "Search your Stack for a virus program and add it to your Grip"
+  {:implementation "Cost 2->1"
+   :abilities [{:label "Search your Stack for a virus program and add it to your Grip"
                 :prompt "Choose a Virus"
                 :msg (msg "add " (:title target) " to their Grip")
                 :choices (req (cancellable (filter #(and (program? %)
@@ -1267,7 +1274,8 @@
                                 (strength-pump 1 1)]}))
 
 (define-card "Force of Nature"
-  (auto-icebreaker {:abilities [(break-sub 2 2 "Code Gate")
+  (auto-icebreaker {:implementation "Cost 5->2"
+                    :abilities [(break-sub 2 2 "Code Gate")
                                 (strength-pump 1 1)]}))
 
 (define-card "Garrote"
@@ -1746,7 +1754,8 @@
                                 (strength-pump 2 2)]}))
 
 (define-card "Morning Star"
-  {:abilities [(break-sub 1 0 "Barrier")]})
+  {:implementation "Cost 8->7"
+   :abilities [(break-sub 1 0 "Barrier")]})
 
 (define-card "Multithreader"
   {:recurring 2
@@ -1769,7 +1778,8 @@
                                   (strength-pump 3 2)]})))
 
 (define-card "Nerve Agent"
-  {:events [{:event :successful-run
+  {:implementation "Cost 3->2"
+   :events [{:event :successful-run
              :req (req (= target :hq))
              :effect (effect (add-counter card :virus 1))}
             {:event :pre-access
@@ -1800,8 +1810,9 @@
                              (update-breaker-strength card))}]})
 
 (define-card "Ninja"
-  (auto-icebreaker {:abilities [(break-sub 1 1 "Sentry")
-                                (strength-pump 3 5)]}))
+  (auto-icebreaker {:implementation "Boost Cost 3->2"
+                    :abilities [(break-sub 1 1 "Sentry")
+                                (strength-pump 2 5)]}))
 
 (define-card "Nyashia"
   {:data {:counter {:power 3}}
@@ -1925,7 +1936,8 @@
     (assoc cdef :events (apply conj events (:events cdef)))))
 
 (define-card "Parasite"
-  {:hosting {:card #(and (ice? %)
+  {:implementation "Cost 2->3"
+   :hosting {:card #(and (ice? %)
                          (can-host? %)
                          (rezzed? %))}
    :effect (req (when-let [h (:host card)]
@@ -2068,7 +2080,8 @@
                                           (update-all-ice state side)))}])))}]})
 
 (define-card "Pheromones"
-  {:recurring (req (when (< (get-counters card :recurring) (get-counters card :virus))
+  {:implementation "Cost 2->1"
+   :recurring (req (when (< (get-counters card :recurring) (get-counters card :virus))
                      (set-prop state side card :rec-counter (get-counters card :virus))))
    :events [{:event :successful-run
              :silent (req true)
@@ -2078,8 +2091,9 @@
                                 :type :recurring}}})
 
 (define-card "Pipeline"
-  (auto-icebreaker {:abilities [(break-sub 1 1 "Sentry")
-                                (strength-pump 2 1 :end-of-run)]}))
+  (auto-icebreaker {:implementation "Strength Gain 1->2"
+                    :abilities [(break-sub 1 1 "Sentry")
+                                (strength-pump 2 2 :end-of-run)]}))
 
 (define-card "Plague"
   {:prompt "Choose a server for Plague"
@@ -2367,7 +2381,8 @@
                                 card nil)))}}}]})
 
 (define-card "Snowball"
-  (auto-icebreaker {:abilities [(break-sub 1 1 "Barrier"
+  (auto-icebreaker {:implementation "Cost 4->3"
+                    :abilities [(break-sub 1 1 "Barrier"
                                            {:additional-ability {:msg "gain +1 strength for the remainder of the run"
                                                                  :effect (effect (pump card 1 :end-of-run))}})
                                 (strength-pump 1 1)]}))
@@ -2644,7 +2659,8 @@
                                  card nil))}]}))
 
 (define-card "Wyrm"
-  (auto-icebreaker {:abilities [(break-sub 3 1 "All" {:label "break 1 subroutine on ICE with 0 or less strength"
+  (auto-icebreaker {:implementation "Base strength 1->2"
+                    :abilities [(break-sub 3 1 "All" {:label "break 1 subroutine on ICE with 0 or less strength"
                                                       :req (req (not (pos? (get-strength current-ice))))})
                                 {:cost [:credit 1]
                                  :label "Give -1 strength to current ICE"
@@ -2654,12 +2670,14 @@
                                 (strength-pump 1 1)]}))
 
 (define-card "Yog.0"
-  {:abilities [(break-sub 0 1 "Code Gate")]})
+  {:implementation "Cost 5->6"
+   :abilities [(break-sub 0 1 "Code Gate")]})
 
 (define-card "Yusuf"
   (virus-breaker "Barrier"))
 
 (define-card "ZU.13 Key Master"
   (cloud-icebreaker
-    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
+   (auto-icebreaker {:implementation "Cost 1->0"
+                     :abilities [(break-sub 1 1 "Code Gate")
                                   (strength-pump 1 1)]})))

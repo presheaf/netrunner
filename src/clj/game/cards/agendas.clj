@@ -45,7 +45,7 @@
 (define-card "Accelerated Beta Test"
   (letfn [(abt [titles choices]
             {:async true
-             :prompt (str "The top 3 cards of R&D: " titles)
+             :prompt (str "The top 2 cards of R&D: " titles)
              :choices (concat (filter ice? choices) ["Done"])
              :effect (req (if (= target "Done")
                             (do (unregister-events state side card)
@@ -68,23 +68,24 @@
                                           (do (unregister-events state side card)
                                               (trash-cards state side eid choices {:unpreventable true})))))))})
           (suffer [titles choices]
-            {:prompt (str "The top 3 cards of R&D: " titles
+            {:prompt (str "The top 2 cards of R&D: " titles
                           ". None are ice. Say goodbye!")
              :choices ["I have no regrets"]
              :async true
              :effect (effect (system-msg (str "trashes " (quantify (count choices) "card")))
                              (trash-cards eid choices {:unpreventable true}))})]
-    {:interactive (req true)
+    {:implementation "Cards looked at 3 -> 2"
+     :interactive (req true)
      :optional
-     {:prompt "Look at the top 3 cards of R&D?"
+     {:prompt "Look at the top 2 cards of R&D?"
       :yes-ability
       {:async true
-       :msg "look at the top 3 cards of R&D"
+       :msg "look at the top 2 cards of R&D"
        :effect (req (register-events
                       state side card
                       [{:event :corp-shuffle-deck
                         :effect (effect (update! (assoc-in card [:special :shuffle-occurred] true)))}])
-                 (let [choices (take 3 (:deck corp))
+                 (let [choices (take 2 (:deck corp))
                        titles (join ", " (map :title choices))]
                    (continue-ability
                      state side
@@ -183,11 +184,13 @@
                                    :value [:trash-from-hand 1]}))}]})
 
 (define-card "AstroScript Pilot Program"
-  {:effect (effect (add-counter card :agenda 1))
+  {:implementation "Not limit 1 per deck. Target cannot be installed this turn."
+   :effect (effect (add-counter card :agenda 1))
    :silent (req true)
    :abilities [{:cost [:agenda 1]
                 :msg (msg "place 1 advancement token on " (card-str state target))
-                :choices {:card can-be-advanced?}
+                :choices {:card can-be-advanced?
+                          :req (req (not= :this-turn (installed? target)))}
                 :effect (effect (add-prop target :advance-counter 1 {:placed true}))}]})
 
 (define-card "Award Bait"
@@ -335,21 +338,23 @@
                      card nil))})
 
 (define-card "Braintrust"
-  {:effect (effect (add-counter card :agenda (quot (- (get-counters card :advancement) 3) 2)))
+  {:implementation "Extra advancements per agenda counter 2 -> 1"
+   :effect (effect (add-counter card :agenda (quot (- (get-counters card :advancement) 3) 1)))
    :silent (req true)
    :constant-effects [{:type :rez-cost
                        :req (req (ice? target))
                        :value (req (- (get-counters card :agenda)))}]})
 
 (define-card "Breaking News"
-  {:async true
+  {:implementation "Tags 2->1"
+   :async true
    :silent (req true)
-   :msg "give the Runner 2 tags"
-   :effect (effect (gain-tags :corp eid 2))
+   :msg "give the Runner 1 tag"
+   :effect (effect (gain-tags :corp eid 1))
    :events (let [event {:unregister-once-resolved true
                         :req (effect (first-event? :agenda-scored #(same-card? card (first %))))
-                        :msg "make the Runner lose 2 tags"
-                        :effect (effect (lose :runner :tag 2))}]
+                        :msg "make the Runner lose 1 tag"
+                        :effect (effect (lose :runner :tag 1))}]
              [(assoc event :event :corp-turn-ends)
               (assoc event :event :runner-turn-ends)])})
 
@@ -421,9 +426,10 @@
               (assoc e :event :corp-turn-begins)]}))
 
 (define-card "Corporate War"
-  {:msg (msg (if (> (:credit corp) 6) "gain 7 [Credits]" "lose all credits"))
+  {:implementation "Credits required 7->5"
+   :msg (msg (if (> (:credit corp) 4) "gain 7 [Credits]" "lose all credits"))
    :interactive (req true)
-   :effect (req (if (> (:credit corp) 6)
+   :effect (req (if (> (:credit corp) 4)
                   (gain-credits state :corp 7) (lose-credits state :corp :all)))})
 
 (define-card "Crisis Management"
@@ -564,7 +570,8 @@
                 :effect (effect (gain-credits (count-tags state)))}]})
 
 (define-card "Executive Retreat"
-  {:effect (effect (add-counter card :agenda 1)
+  {:implementation "Agenda counters on score 1 -> 2"
+   :effect (effect (add-counter card :agenda 2)
                    (shuffle-into-deck :hand))
    :interactive (req true)
    :abilities [{:cost [:click 1 :agenda 1]
@@ -673,9 +680,10 @@
   {:agendapoints-runner (req 2)})
 
 (define-card "Government Contracts"
-  {:abilities [{:cost [:click 2]
-                :effect (effect (gain-credits 4))
-                :msg "gain 4 [Credits]"}]})
+  {:implementation "Credits gained 4->5"
+   :abilities [{:cost [:click 2]
+                :effect (effect (gain-credits 5))
+                :msg "gain 5 [Credits]"}]})
 
 (define-card "Government Takeover"
   {:abilities [{:cost [:click 1]
@@ -1014,7 +1022,8 @@
    :effect (effect (damage eid :net (count (:scored runner)) {:card card}))})
 
 (define-card "Posted Bounty"
-  {:optional {:prompt "Forfeit Posted Bounty to give the Runner 1 tag and take 1 bad publicity?"
+  {:implementation "Points 1->2"
+   :optional {:prompt "Forfeit Posted Bounty to give the Runner 1 tag and take 1 bad publicity?"
               :yes-ability {:msg "give the Runner 1 tag and take 1 bad publicity"
                             :async true
                             :effect (effect (gain-bad-publicity :corp eid 1)
@@ -1029,10 +1038,11 @@
    :effect (effect (rez target {:ignore-cost :all-costs}))})
 
 (define-card "Private Security Force"
-  {:abilities [{:req (req tagged)
+  {:implementation "Meat Damage 1->2"
+   :abilities [{:req (req tagged)
                 :cost [:click 1]
-                :effect (effect (damage eid :meat 1 {:card card}))
-                :msg "do 1 meat damage"}]})
+                :effect (effect (damage eid :meat 2 {:card card}))
+                :msg "do 2 meat damage"}]})
 
 (define-card "Profiteering"
   {:interactive (req true)
@@ -1369,8 +1379,9 @@
                      card nil))})
 
 (define-card "Restructured Datapool"
-  {:abilities [{:cost [:click 1]
-                :trace {:base 2
+  {:implementation "Trace strength 2->3"
+   :abilities [{:cost [:click 1]
+                :trace {:base 3
                         :successful {:msg "give the Runner 1 tag"
                                      :async true
                                      :effect (effect (gain-tags eid 1))}}}]})

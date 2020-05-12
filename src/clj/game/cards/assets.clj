@@ -87,9 +87,10 @@
                 :effect (effect (corp-install eid target nil nil))}]})
 
 (define-card "Aggressive Secretary"
-  (advance-ambush 2 {:req (req (pos? (get-counters (get-card state card) :advancement)))
+  (advance-ambush 2 {:implementation "Trigger cost 2->1"
+                     :req (req (pos? (get-counters (get-card state card) :advancement)))
                      :prompt (msg "Choose " (quantify (get-counters (get-card state card) :advancement) "program") " to trash")
-                     :cost [:credit 2]
+                     :cost [:credit 1]
                      :choices {:max (req (get-counters (get-card state card) :advancement))
                                :card #(and (installed? %)
                                            (program? %))}
@@ -558,14 +559,16 @@
      :abilities [ability]}))
 
 (define-card "Dedicated Response Team"
-  {:events [{:event :run-ends
+  {:implementation "Trash Cost 3->4"
+   :events [{:event :run-ends
              :req (req (and tagged (:successful target)))
              :msg "do 2 meat damage"
              :async true
              :effect (effect (damage eid :meat 2 {:card card}))}]})
 
 (define-card "Dedicated Server"
-  {:recurring 2
+  {:implementation "Cost 3->1"
+   :recurring 2
    :interactions {:pay-credits {:req (req (and (= :rez (:source-type eid))
                                                (ice? target)))
                                 :type :recurring}}})
@@ -1309,7 +1312,8 @@
                      :req (req (seq (filter #(some #{:tag} %) targets))))]}))
 
 (define-card "Net Police"
-  {:recurring (effect (set-prop card :rec-counter (:link runner)))
+  {:implementation "Trash Cost 1->5"
+   :recurring (effect (set-prop card :rec-counter (:link runner)))
    :effect (effect (set-prop card :rec-counter (:link runner)))
    :interactions {:pay-credits {:req (req (= :trace (:source-type eid)))
                                 :type :recurring}}})
@@ -1525,7 +1529,8 @@
                                 :type :recurring}}})
 
 (define-card "Private Contracts"
-  {:effect (effect (add-counter card :credit 14))
+  {:implementation "Cost 3->2"
+   :effect (effect (add-counter card :credit 14))
    :events [(trash-on-empty :credit)]
    :abilities [{:cost [:click 1]
                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
@@ -1534,10 +1539,11 @@
                                (gain-credits state :corp credits)))}]})
 
 (define-card "Project Junebug"
-  (advance-ambush 1 {:req (req (pos? (get-counters (get-card state card) :advancement)))
-                     :msg (msg "do " (* 2 (get-counters (get-card state card) :advancement)) " net damage")
+  (advance-ambush 1 {:implementation "Damage per counter 2->3"
+                     :req (req (pos? (get-counters (get-card state card) :advancement)))
+                     :msg (msg "do " (* 3 (get-counters (get-card state card) :advancement)) " net damage")
                      :async true
-                     :effect (effect (damage eid :net (* 2 (get-counters (get-card state card) :advancement))
+                     :effect (effect (damage eid :net (* 3 (get-counters (get-card state card) :advancement))
                                              {:card card}))}))
 
 (define-card "Psychic Field"
@@ -1779,10 +1785,11 @@
                 :effect (effect (gain-credits target))}]})
 
 (define-card "Security Subcontract"
-  {:abilities [{:cost [:click 1 :ice 1]
-                :msg "gain 4 [Credits]"
-                :label "Gain 4 [Credits]"
-                :effect (effect (gain-credits 4))}]})
+  {:implementation "Credits gained 4->6"
+   :abilities [{:cost [:click 1 :ice 1]
+                :msg "gain 6 [Credits]"
+                :label "Gain 6 [Credits]"
+                :effect (effect (gain-credits 6))}]})
 
 (define-card "Sensie Actors Union"
   {:derezzed-events [corp-rez-toast]
