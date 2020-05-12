@@ -87,10 +87,10 @@
                 :effect (effect (corp-install eid target nil nil))}]})
 
 (define-card "Aggressive Secretary"
-  (advance-ambush 2 {:implementation "Trigger cost 2->1"
+  (advance-ambush 2 {:implementation "Trash cost 0->3"
                      :req (req (pos? (get-counters (get-card state card) :advancement)))
                      :prompt (msg "Choose " (quantify (get-counters (get-card state card) :advancement) "program") " to trash")
-                     :cost [:credit 1]
+                     :cost [:credit 2]
                      :choices {:max (req (get-counters (get-card state card) :advancement))
                                :card #(and (installed? %)
                                            (program? %))}
@@ -808,7 +808,8 @@
    :leave-play (req (swap! state update-in [:runner :register] dissoc :max-draw :cannot-draw))})
 
 (define-card "Ghost Branch"
-  (advance-ambush 0 {:async true
+  (advance-ambush 0 {:implementation "Trash cost 0->3"
+                     :async true
                      :req (req (pos? (get-counters (get-card state card) :advancement)))
                      :msg (msg "give the Runner " (quantify (get-counters (get-card state card) :advancement) "tag"))
                      :effect (effect (gain-tags :corp eid (get-counters (get-card state card) :advancement)))}))
