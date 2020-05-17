@@ -16,15 +16,13 @@
 ;; Card definitions
 
 (define-card "Akitaro Watanabe"
-  {:implementation "Cost 1->0"
-   :constant-effects [{:type :rez-cost
+  {:constant-effects [{:type :rez-cost
                        :req (req (and (ice? target)
                                       (= (card->server state card) (card->server state target))))
                        :value -2}]})
 
 (define-card "Amazon Industrial Zone"
-  {:implementation "Cost 4->1"
-   :events [{:event :corp-install
+  {:events [{:event :corp-install
              :optional
              {:req (req (and (ice? target)
                              (protecting-same-server? card target)
@@ -225,8 +223,7 @@
                                   card nil))}]})
 
 (define-card "Caprice Nisei"
-  {:implementation "Cost 2->3"
-   :events [{:event :pass-all-ice
+  {:events [{:event :pass-all-ice
              :req (req this-server)
              :psi {:not-equal {:msg "end the run"
                                :effect (effect (end-run eid card))}}}]})
@@ -283,8 +280,7 @@
      :abilities [ability]}))
 
 (define-card "ChiLo City Grid"
-  {:implementation "Cost 3->2"
-   :events [{:event :successful-trace
+  {:events [{:event :successful-trace
              :req (req this-server)
              :async true
              :effect (effect (gain-tags :corp eid 1))
@@ -321,8 +317,7 @@
                 :effect (effect (add-counter card :power 1))}]})
 
 (define-card "Corporate Troubleshooter"
-  {:implementation "Trash cost 2->3"
-   :abilities [{:async true
+  {:abilities [{:async true
                 :trash-icon true
                 :label "Add strength to a rezzed ICE protecting this server"
                 :prompt "How many credits?"
@@ -488,8 +483,7 @@
                  etr]}))
 
 (define-card "Experiential Data"
-  {:implementation "Strength gain 1->2"
-   :effect (effect (update-all-ice))
+  {:effect (effect (update-all-ice))
    :constant-effects [{:type :ice-strength
                        :req (req (protecting-same-server? card target))
                        :value 2}]
@@ -852,8 +846,7 @@
              :effect (effect (lose :runner :click 1))}]})
 
 (define-card "Midori"
-  {:implementation "Trash cost 3->5"
-   :events
+  {:events
    [{:event :approach-ice
      :optional
      {:req (req this-server)
@@ -1017,8 +1010,7 @@
              :effect (effect (add-prop :corp target :advance-counter 1 {:placed true}))}]})
 
 (define-card "Off the Grid"
-  {:implementation "Cost 6->5"
-   :install-req (req (remove #{"HQ" "R&D" "Archives"} targets))
+  {:install-req (req (remove #{"HQ" "R&D" "Archives"} targets))
    :effect (req (prevent-run-on-server state card (second (:zone card))))
    :events [{:event :runner-turn-begins
              :effect (req (prevent-run-on-server state card (second (:zone card))))}
@@ -1145,8 +1137,7 @@
             :effect (effect (gain-credits :corp 2))}})
 
 (define-card "Red Herrings"
-  {:implementation "Trash Cost 1->4"
-   :trash-effect
+  {:trash-effect
    {:req (req (and (= :servers (first (:previous-zone card)))
                    (:run @state)))
     :effect (effect (register-events
@@ -1184,14 +1175,12 @@
                      card nil))})
 
 (define-card "Research Station"
-  {:implementation "Trash Cost 3->6"
-   :init {:root "HQ"}
+  {:init {:root "HQ"}
    :install-req (req (filter #{"HQ"} targets))
    :in-play [:hand-size 2]})
 
 (define-card "Ruhr Valley"
-  {:implementation "Cost 6->3"
-   :constant-effects [{:type :run-additional-cost
+  {:constant-effects [{:type :run-additional-cost
                        :req (req (= (:server (second targets)) (unknown->kw (:zone card))))
                        :value [:click 1]}]})
 
@@ -1209,8 +1198,7 @@
                 :effect (effect (damage eid :brain 1 {:card card}))}]})
 
 (define-card "SanSan City Grid"
-  {:implementation "Trash Cost 5->4"
-   :effect (req (when-let [agenda (some #(when (agenda? %) %)
+  {:effect (req (when-let [agenda (some #(when (agenda? %) %)
                                         (:content (card->server state card)))]
                   (update-advancement-cost state side agenda)))
    :events [{:event :corp-install
@@ -1276,15 +1264,13 @@
                                 (toast :corp "Cannot install until the end of the run"))}]})
 
 (define-card "Simone Diego"
-  {:implementation "Cost 4->2"
-   :recurring 2
+  {:recurring 2
    :interactions {:pay-credits {:req (req (and (= :advance (:source-type eid))
                                                (same-server? card target)))
                                 :type :recurring}}})
 
 (define-card "Strongbox"
-  {:implementation "Trash cost 1->5"
-   :trash-effect
+  {:trash-effect
    {:req (req (and (= :servers (first (:previous-zone card))) (:run @state)))
     :effect (effect (register-events
                       card
@@ -1440,8 +1426,7 @@
                             (draw state side 1 nil)))}]})
 
 (define-card "Tyr's Hand"
-  {:implementation "Cost 1->0"
-   :abilities [{:label "Prevent a subroutine on a piece of Bioroid ICE from being broken"
+  {:abilities [{:label "Prevent a subroutine on a piece of Bioroid ICE from being broken"
                 :req (req (and (= (butlast (:zone current-ice)) (butlast (:zone card)))
                                (has-subtype? current-ice "Bioroid")))
                 :cost [:trash]

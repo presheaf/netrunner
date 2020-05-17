@@ -87,8 +87,7 @@
                 :effect (effect (corp-install eid target nil nil))}]})
 
 (define-card "Aggressive Secretary"
-  (advance-ambush 2 {:implementation "Trash cost 0->3"
-                     :req (req (pos? (get-counters (get-card state card) :advancement)))
+  (advance-ambush 2 {:req (req (pos? (get-counters (get-card state card) :advancement)))
                      :prompt (msg "Choose " (quantify (get-counters (get-card state card) :advancement) "program") " to trash")
                      :cost [:credit 2]
                      :choices {:max (req (get-counters (get-card state card) :advancement))
@@ -125,8 +124,7 @@
                                   card nil))}]})
 
 (define-card "Alix T4LB07"
-  {:implementation "Trash cost 2->4"
-   :events [{:event :corp-install
+  {:events [{:event :corp-install
              :effect (effect (add-counter card :power 1))}]
    :abilities [{:label "Gain 2 [Credits] for each counter on Alix T4LB07"
                 :cost [:click 1 :trash]
@@ -264,8 +262,7 @@
                                      (damage state side eid :meat 1 {:card card}))))}})
 
 (define-card "Broadcast Square"
-  {:implementation "Cost 2->0"
-   :events [{:event :pre-bad-publicity
+  {:events [{:event :pre-bad-publicity
              :async true
              :trace {:base 3
                      :successful {:msg "prevents all bad publicity"
@@ -335,8 +332,7 @@
                 :effect (effect (damage eid :meat 5 {:card card}))}]})
 
 (define-card "City Surveillance"
-  {:implementation "Cost 5->3"
-   :derezzed-events [corp-rez-toast]
+  {:derezzed-events [corp-rez-toast]
    :flags {:runner-phase-12 (req (pos? (:credit runner)))}
    :events [{:event :runner-turn-begins
              :player :runner
@@ -562,16 +558,14 @@
      :abilities [ability]}))
 
 (define-card "Dedicated Response Team"
-  {:implementation "Trash Cost 3->4"
-   :events [{:event :run-ends
+  {:events [{:event :run-ends
              :req (req (and tagged (:successful target)))
              :msg "do 2 meat damage"
              :async true
              :effect (effect (damage eid :meat 2 {:card card}))}]})
 
 (define-card "Dedicated Server"
-  {:implementation "Cost 3->1"
-   :recurring 2
+  {:recurring 2
    :interactions {:pay-credits {:req (req (and (= :rez (:source-type eid))
                                                (ice? target)))
                                 :type :recurring}}})
@@ -648,8 +642,7 @@
                 :effect (effect (rez target {:ignore-cost :all-costs}))}]})
 
 (define-card "Elizabeth Mills"
-  {:implementation "Cost 2->1"
-   :effect (effect (lose-bad-publicity 1))
+  {:effect (effect (lose-bad-publicity 1))
    :msg "remove 1 bad publicity"
    :abilities [{:cost [:click 1 :trash]
                 :label "Trash a location"
@@ -808,23 +801,20 @@
    :leave-play (req (swap! state update-in [:runner :register] dissoc :max-draw :cannot-draw))})
 
 (define-card "Ghost Branch"
-  (advance-ambush 0 {:implementation "Trash cost 0->3"
-                     :async true
+  (advance-ambush 0 {:async true
                      :req (req (pos? (get-counters (get-card state card) :advancement)))
                      :msg (msg "give the Runner " (quantify (get-counters (get-card state card) :advancement) "tag"))
                      :effect (effect (gain-tags :corp eid (get-counters (get-card state card) :advancement)))}))
 
 (define-card "GRNDL Refinery"
-  {:implementation "Trash Cost 2->4"
-   :advanceable :always
+  {:advanceable :always
    :abilities [{:label "Gain 4 [Credits] for each advancement token on GRNDL Refinery"
                 :cost [:click 1 :trash]
                 :msg (msg "gain " (* 4 (get-counters card :advancement)) " [Credits]")
                 :effect (effect (gain-credits (* 4 (get-counters card :advancement))))}]})
 
 (define-card "Haas Arcology AI"
-  {:implementation "Cost 2->1"
-   :advanceable :while-unrezzed
+  {:advanceable :while-unrezzed
    :abilities [{:label "Gain [Click][Click]"
                 :once :per-turn
                 :msg "gain [Click][Click]"
@@ -907,8 +897,7 @@
               (assoc iuse :event :rez)]}))
 
 (define-card "Isabel McGuire"
-  {:implementation "Trash cost 3->5"
-   :abilities [{:label "Add an installed card to HQ"
+  {:abilities [{:label "Add an installed card to HQ"
                 :cost [:click 1]
                 :choices {:card installed?}
                 :msg (msg "move " (card-str state target) " to HQ")
@@ -934,8 +923,7 @@
                                 (update-ice-strength target))}]})
 
 (define-card "Jackson Howard"
-  {:implementation "Trash Cost 3->2"
-   :abilities [{:cost [:click 1]
+  {:abilities [{:cost [:click 1]
                 :msg "draw 2 cards"
                 :effect (effect (draw 2))}
                {:label "Shuffle up to 3 cards from Archives into R&D"
@@ -1044,8 +1032,7 @@
   (campaign 6 2))
 
 (define-card "Levy University"
-  {:implementation "Cost 3->0"
-   :abilities [{:prompt "Choose an ICE"
+  {:abilities [{:prompt "Choose an ICE"
                 :msg (msg "adds " (:title target) " to HQ")
                 :choices (req (cancellable (filter ice? (:deck corp)) :sorted))
                 :label "Search R&D for a piece of ICE"
@@ -1286,8 +1273,7 @@
                  :label "Gain 1 [Credits] (start of turn)"
                  :once :per-turn
                  :effect (effect (gain-credits 1))}]
-    {:implementation "Manual - click NASX to add power counters"
-     :derezzed-events [corp-rez-toast]
+    {:derezzed-events [corp-rez-toast]
      :events [(assoc ability :event :corp-turn-begins)]
      :abilities [ability
                  {:label "Place 1 power counter"
@@ -1322,8 +1308,7 @@
                      :req (req (seq (filter #(some #{:tag} %) targets))))]}))
 
 (define-card "Net Police"
-  {:implementation "Trash Cost 1->5"
-   :recurring (effect (set-prop card :rec-counter (:link runner)))
+  {:recurring (effect (set-prop card :rec-counter (:link runner)))
    :effect (effect (set-prop card :rec-counter (:link runner)))
    :interactions {:pay-credits {:req (req (= :trace (:source-type eid)))
                                 :type :recurring}}})
@@ -1539,8 +1524,7 @@
                                 :type :recurring}}})
 
 (define-card "Private Contracts"
-  {:implementation "Cost 3->2"
-   :effect (effect (add-counter card :credit 14))
+  {:effect (effect (add-counter card :credit 14))
    :events [(trash-on-empty :credit)]
    :abilities [{:cost [:click 1]
                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
@@ -1549,8 +1533,7 @@
                                (gain-credits state :corp credits)))}]})
 
 (define-card "Project Junebug"
-  (advance-ambush 1 {:implementation "Trash cost 0->3"
-                     :req (req (pos? (get-counters (get-card state card) :advancement)))
+  (advance-ambush 1 {:req (req (pos? (get-counters (get-card state card) :advancement)))
                      :msg (msg "do " (* 2 (get-counters (get-card state card) :advancement)) " net damage")
                      :async true
                      :effect (effect (damage eid :net (* 2 (get-counters (get-card state card) :advancement))
@@ -1717,8 +1700,7 @@
                  :req (req (:corp-phase-12 @state))
                  :label "Remove 1 counter (start of turn)"
                  :effect (effect (add-counter card :power -1))}]
-    {:implementation "Credits Gained 5->7"
-     :effect (effect (add-counter card :power 3))
+    {:effect (effect (add-counter card :power 3))
      :derezzed-events [corp-rez-toast]
      :events [(trash-on-empty :power)
               (assoc ability :event :corp-turn-begins)]
@@ -1796,8 +1778,7 @@
                 :effect (effect (gain-credits target))}]})
 
 (define-card "Security Subcontract"
-  {:implementation "Credits gained 4->6"
-   :abilities [{:cost [:click 1 :ice 1]
+  {:abilities [{:cost [:click 1 :ice 1]
                 :msg "gain 6 [Credits]"
                 :label "Gain 6 [Credits]"
                 :effect (effect (gain-credits 6))}]})
@@ -1822,8 +1803,7 @@
                  :once :per-turn
                  :label "Gain 2 [Credits] (start of turn)"
                  :msg "gain 2 [Credits]"}]
-    {:implementation "Cost 3->2"
-     :derezzed-events [corp-rez-toast]
+    {:derezzed-events [corp-rez-toast]
      :abilities [ability]
      :events [(assoc ability :event :corp-turn-begins)
               {:event :corp-install
@@ -2107,8 +2087,7 @@
                                 :type :recurring}}})
 
 (define-card "Thomas Haas"
-  {:implementation "Credits Per Counter 2->3"
-   :advanceable :always
+  {:advanceable :always
    :abilities [{:label "Gain credits"
                 :msg (msg "gain " (* 3 (get-counters card :advancement)) " [Credits]")
                 :cost [:trash]

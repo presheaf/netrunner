@@ -116,8 +116,7 @@
                              (trash eid card nil))}]})
 
 (define-card "Blackguard"
-  {:implementation "Cost 11->9"
-   :in-play [:memory 2]
+  {:in-play [:memory 2]
    :events [{:event :expose
              :msg (msg "attempt to force the rez of " (:title target))
              :async true
@@ -255,8 +254,7 @@
                   :effect (effect (move target :deck {:front true}))}]}))
 
 (define-card "Capstone"
-  {:implementation "Cards Drawn per 1->3"
-   :abilities [{:req (req (pos? (count (:hand runner))))
+  {:abilities [{:req (req (pos? (count (:hand runner))))
                 :cost [:click 1]
                 :async true
                 :prompt "Select any number of cards to trash from your grip"
@@ -301,8 +299,7 @@
                                          card nil)))}]})
 
 (define-card "Clone Chip"
-  {:implementation "Influence 2->3"
-   :abilities [{:prompt "Select a program to install from your Heap"
+  {:abilities [{:prompt "Select a program to install from your Heap"
                 :show-discard true
                 :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
                                (not (install-locked? state side))
@@ -335,8 +332,7 @@
                                 (play-instant eid target nil))}]})
 
 (define-card "Cortez Chip"
-  {:implementation "Cost increase 2->3"
-   :abilities [{:prompt "Select a piece of ICE"
+  {:abilities [{:prompt "Select a piece of ICE"
                 :choices {:card #(and (ice? %)
                                       (not (rezzed? %)))}
                 :msg (msg "increase the rez cost of " (card-str state target)
@@ -359,8 +355,7 @@
              :effect (effect (gain-credits 1))}]})
 
 (define-card "Cyberfeeder"
-  {:implementation "Cost 2->1"
-   :recurring 1
+  {:recurring 1
    :interactions {:pay-credits {:req (req (or (and (= :runner-install (:source-type eid))
                                                    (has-subtype? target "Virus")
                                                    (program? target))
@@ -369,8 +364,7 @@
                                 :type :recurring}}})
 
 (define-card "CyberSolutions Mem Chip"
-  {:implementation "Cost 4->3"
-   :in-play [:memory 2]})
+  {:in-play [:memory 2]})
 
 (define-card "Cybsoft MacroDrive"
   {:recurring 1
@@ -400,7 +394,7 @@
                 :msg (msg (str "pump the strength of " (get-in card [:host :title]) " by 4"))}]})
 
 (define-card "Deep Red"
-  {:implementation "Cost 2->0, MU use restriction not enforced"
+  {:implementation "MU use restriction not enforced"
    :in-play [:memory 3]
    :events [{:event :runner-install
              :optional
@@ -431,8 +425,7 @@
              :effect (effect (gain-credits 1))}]})
 
 (define-card "Desperado"
-  {:implementation "MU 1->0"
-   :events [{:event :successful-run
+  {:events [{:event :successful-run
              :silent (req true)
              :msg "gain 1 [Credits]" :effect (effect (gain-credits 1))}]})
 
@@ -454,8 +447,7 @@
                                (update-all-ice))}}}]})
 
 (define-card "Dinosaurus"
-  {:implementation "Cost 5->3"
-   :abilities [{:label "Install a non-AI icebreaker on Dinosaurus"
+  {:abilities [{:label "Install a non-AI icebreaker on Dinosaurus"
                 :req (req (empty? (:hosted card))) :cost [:click 1]
                 :prompt "Select a non-AI icebreaker in your Grip to install on Dinosaurus"
                 :choices {:card #(and (has-subtype? % "Icebreaker")
@@ -486,8 +478,7 @@
                              (use-mu (:memoryunits target)))}]})
 
 (define-card "Doppelgänger"
-  {:implementation "Cost 3->1"
-   :in-play [:memory 1]
+  {:in-play [:memory 1]
    :events [{:event :runner-install
              :req (req (= card target))
              :silent (req true)
@@ -534,16 +525,14 @@
                                 (make-run eid target nil card))}]})
 
 (define-card "Dyson Fractal Generator"
-  {:implementation "Cost 1->0"
-   :recurring 1
+  {:recurring 1
    :interactions {:pay-credits {:req (req (and (= :ability (:source-type eid))
                                                (has-subtype? target "Fracter")
                                                (has-subtype? target "Icebreaker")))
                                 :type :recurring}}})
 
 (define-card "Dyson Mem Chip"
-  {:implementation "Cost 3->2"
-   :in-play [:memory 1 :link 1]})
+  {:in-play [:memory 1 :link 1]})
 
 (define-card "e3 Feedback Implants"
   {:abilities [(break-sub 1 1 "All" {:req (req true)})]})
@@ -913,8 +902,7 @@
                                (trash eid target nil))}}}]})
 
 (define-card "HQ Interface"
-  {:implementation "Cost 4->3"
-   :in-play [:hq-access 1]})
+  {:in-play [:hq-access 1]})
 
 (define-card "Keiko"
   (let [keiko-ability {:req (req (and (not (facedown? target))
@@ -947,8 +935,7 @@
    :abilities [(set-autoresolve :auto-add "Knobkierie")]})
 
 (define-card "Lemuria Codecracker"
-  {:implementation "Ability credit cost 1 -> 0"
-   :abilities [{:cost [:click 1]
+  {:abilities [{:cost [:click 1]
                 :req (req (some #{:hq} (:successful-run runner-reg)))
                 :choices {:card installed?}
                 :effect (effect (expose eid target))
@@ -1114,8 +1101,7 @@
            :async true
            :effect (req (wait-for (runner-install state side target {:cost-bonus -4})
                                   (continue-ability state side (when (< n 3) (mh (inc n))) card nil)))})]
-    {:implementation "Cost 18->12"
-     :interactions {:prevent [{:type #{:net :brain}
+    {:interactions {:prevent [{:type #{:net :brain}
                                :req (req true)}]}
      :in-play [:memory 3]
      :async true
@@ -1153,8 +1139,7 @@
                                (effect-completed eid))}}}]})
 
 (define-card "Muresh Bodysuit"
-  {:implementation "Damage prevented 1->2 (Bug: only stops the first instance)"
-   :events [{:event :pre-damage
+  {:events [{:event :pre-damage
              :once :per-turn :once-key :muresh-bodysuit
              :req (req (= target :meat))
              :msg "prevent 2 meat damage"
@@ -1239,8 +1224,7 @@
              :effect (req (change-hand-size state :runner target))}]})
 
 (define-card "Omni-drive"
-  {:implementation "Cost 3->2"
-   :recurring 1
+  {:recurring 1
    :abilities [{:async true
                 :label "Install and host a program of 1[Memory Unit] or less on Omni-drive"
                 :req (req (empty? (:hosted card)))
@@ -1751,8 +1735,7 @@
                        :value -1}]})
 
 (define-card "Spinal Modem"
-  {:implementation "Cost 4->3"
-   :in-play [:memory 1]
+  {:in-play [:memory 1]
    :recurring 2
    :events [{:event :successful-trace
              :req (req run)
@@ -1840,8 +1823,7 @@
                                card nil))}]})
 
 (define-card "The Personal Touch"
-  {:implementation "Cost 2->1"
-   :hosting {:card #(and (has-subtype? % "Icebreaker")
+  {:hosting {:card #(and (has-subtype? % "Icebreaker")
                          (installed? %))}
    :effect (effect (update-breaker-strength (:host card)))
    :constant-effects [{:type :breaker-strength
@@ -1849,8 +1831,7 @@
                        :value 1}]})
 
 (define-card "The Toolbox"
-  {:implementation "Cost 9->7"
-   :in-play [:link 2 :memory 2]
+  {:in-play [:link 2 :memory 2]
    :recurring 2
    :interactions {:pay-credits {:req (req (and (= :ability (:source-type eid))
                                                (has-subtype? target "Icebreaker")))

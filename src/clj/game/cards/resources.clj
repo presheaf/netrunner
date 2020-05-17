@@ -147,8 +147,7 @@
    :abilities [(set-autoresolve :auto-reveal-and-gain "Aeneas Informant")]})
 
 (define-card "Aesop's Pawnshop"
-  {:implementation "Cost 1->2"
-   :flags {:runner-phase-12 (req (>= (count (all-installed state :runner)) 2))}
+  {:flags {:runner-phase-12 (req (>= (count (all-installed state :runner)) 2))}
    :abilities [{:async true
                 :choices {:req (req (and (runner? target)
                                          (installed? target)
@@ -186,8 +185,7 @@
                 :msg "gain [Click][Click]"}]})
 
 (define-card "Always Be Running"
-  {:implementation "Run requirement not enforced"
-   :events [{:event :runner-turn-begins
+  {:events [{:event :runner-turn-begins
              :effect (req (toast state :runner "Reminder: Always Be Running requires a run on the first click" "info"))}]
    :abilities [(assoc (break-sub [:click 2 {:action :bioroid-cost}] 1 "All" {:req (req true)})
                       :once :per-turn)]})
@@ -207,8 +205,7 @@
                   :effect (req (move state side (first (:deck runner)) :deck))}}}]})
 
 (define-card "Armitage Codebusting"
-  {:implementation "Credits 12->14"
-   :data {:counter {:credit 14}}
+  {:data {:counter {:credit 14}}
    :events [(trash-on-empty :credit)]
    :abilities [{:cost [:click 1]
                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
@@ -396,8 +393,7 @@
                                 (move target :rfg))}]})
 
 (define-card "Borrowed Satellite"
-  {:implementation "Handsize Increase 1->3"
-   :in-play [:hand-size 3 :link 1]})
+  {:in-play [:hand-size 3 :link 1]})
 
 (define-card "Bug Out Bag"
   {:prompt "How many power counters?"
@@ -554,8 +550,7 @@
                                 card nil)))}]}))
 
 (define-card "Compromised Employee"
-  {:implementation "Cost 2->1"
-   :recurring 1
+  {:recurring 1
    :events [{:event :rez
              :req (req (ice? target))
              :msg "gain 1 [Credits]"
@@ -606,8 +601,7 @@
 
 (define-card "Counter Surveillance"
   ;; TODO: Fix to use replace-access
-  {:implementation "Does not prevent access of cards installed in the root of a server"
-   :abilities [{:cost [:click 1 :trash]
+  {:abilities [{:cost [:click 1 :trash]
                 :makes-run true
                 :prompt "Choose a server to run with Counter Surveillance"
                 :msg (msg "run " target)
@@ -634,8 +628,7 @@
                                                       (max-access state side 0)))))}]))}]})
 
 (define-card "Crash Space"
-  {:implementation "Cost 2->1"
-   :interactions {:prevent [{:type #{:meat}
+  {:interactions {:prevent [{:type #{:meat}
                              :req (req true)}]
                   :pay-credits {:req (req (or (= :remove-tag (:source-type eid))
                                               (and (same-card? (:source eid) (:basic-action-card runner))
@@ -994,8 +987,7 @@
              :req (req (genetics-trigger? state side :successful-run))}]})
 
 (define-card "Fall Guy"
-  {:implementation "Influence 1->3"
-   :interactions {:prevent [{:type #{:trash-resource}
+  {:interactions {:prevent [{:type #{:trash-resource}
                              :req (req true)}]}
    :abilities [{:label "Prevent another installed resource from being trashed"
                 :cost [:trash]
@@ -1138,8 +1130,7 @@
              :effect (effect (lose :click 1))}]})
 
 (define-card "Grifter"
-  {:implementation "Cost 2->0"
-   :events [{:event :runner-turn-ends
+  {:events [{:event :runner-turn-ends
              :async true
              :effect (req (let [ab (if (get-in @state [:runner :register :successful-run])
                                      {:msg "gain 1 [Credits]"
@@ -1181,8 +1172,7 @@
   (let [ability {:msg "gain 2 [Credits] and lose [Click]"
                  :once :per-turn
                  :effect (effect (lose :click 1) (gain-credits 2))}]
-    {:implementation "Cost 5->0"
-     :flags {:drip-economy true}
+    {:flags {:drip-economy true}
      :events [(assoc ability :event :runner-turn-begins)]
      :abilities [ability]}))
 
@@ -1255,8 +1245,7 @@
                        :value -1}]})
 
 (define-card "Inside Man"
-  {:implementation "Cost 3->1"
-   :recurring 2
+  {:recurring 2
    :interactions {:pay-credits {:req (req (and (= :runner-install (:source-type eid))
                                                (hardware? target)))
                                 :type :recurring}}})
@@ -1549,8 +1538,7 @@
      :abilities [ability]}))
 
 (define-card "Mr. Li"
-  {:implementation "Cost 3->1"
-   :abilities [{:cost [:click 1]
+  {:abilities [{:cost [:click 1]
                 :msg (msg "draw 2 cards")
                 :async true
                 :effect (req (wait-for (draw state side 2 nil)
@@ -2044,15 +2032,13 @@
              :effect (effect (gain-credits :runner (total-cards-accessed target :deck)))}]})
 
 (define-card "Public Sympathy"
-  {:implementation "Cost 2->0"
-   :in-play [:hand-size 2]})
+  {:in-play [:hand-size 2]})
 
 (define-card "Rachel Beckman"
   (trash-when-tagged-contructor "Rachel Beckman" {:in-play [:click-per-turn 1]}))
 
 (define-card "Raymond Flint"
-  {:implementation "Cost 2->1"
-   :events [{:event :corp-gain-bad-publicity
+  {:events [{:event :corp-gain-bad-publicity
              :async true
              :msg (msg "access " (quantify (num-cards-to-access state :runner :hq {:no-root true}) "card") " from HQ")
              :effect (req (do-access state :runner eid [:hq] {:no-root true}))}]
@@ -2240,8 +2226,7 @@
                             card nil))}]})
 
 (define-card "Same Old Thing"
-  {:implementation "Cost 0->1"
-   :abilities [{:async true
+  {:abilities [{:async true
                 :cost [:click 2 :trash]
                 :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
                                (pos? (count (filter event? (:discard runner))))))
@@ -2325,8 +2310,7 @@
              :effect (effect (mill :corp eid :corp 1))}]})
 
 (define-card "Starlight Crusade Funding"
-  {:implementation "Cost 1->0"
-   :msg "ignore additional costs on Double events"
+  {:msg "ignore additional costs on Double events"
    :effect (req (swap! state assoc-in [:runner :register :double-ignore-additional] true))
    :events [{:event :runner-turn-begins
              :msg "lose [Click] and ignore additional costs on Double events"
@@ -2409,8 +2393,7 @@
              :effect (effect (draw :runner eid 1 nil))}]})
 
 (define-card "Tallie Perrault"
-  {:implementation "Cards drawn 1->3"
-   :abilities [{:label "Draw 3 cards for each Corp bad publicity"
+  {:abilities [{:label "Draw 3 cards for each Corp bad publicity"
                 :async true
                 :cost [:trash]
                 :effect (effect (draw eid (* 3 (count-bad-pub state)) nil))
@@ -2595,8 +2578,7 @@
                                   card nil))))}]}))
 
 (define-card "The Helpful AI"
-  {:implementation "Cost 2->1"
-   :in-play [:link 1]
+  {:in-play [:link 1]
    :abilities [{:msg (msg "give +2 strength to " (:title target))
                 :choices {:card #(and (has-subtype? % "Icebreaker")
                                       (installed? %))}
@@ -2906,13 +2888,11 @@
                                      :no-ability {:effect (effect (clear-wait-prompt :runner)
                                                                   (system-msg "doesn't draw with Woman in the Red Dress"))}}}
                                    card nil))}]
-    {:implementation "Cost 3->1"
-     :events [(assoc ability :event :runner-turn-begins)]
+    {:events [(assoc ability :event :runner-turn-begins)]
      :abilities [ability]}))
 
 (define-card "Wyldside"
-  {:implementation "Cost 3->2"
-   :flags {:runner-turn-draw true
+  {:flags {:runner-turn-draw true
            :runner-phase-12 (req (< 1 (count (filter #(card-flag? % :runner-turn-draw true)
                                                      (cons (get-in @state [:runner :identity])
                                                            (all-active-installed state :runner))))))}

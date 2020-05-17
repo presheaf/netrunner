@@ -33,8 +33,7 @@
 ;; Card definitions
 
 (define-card "Account Siphon"
-  {:implementation "Cost 0->2"
-   :req (req hq-runnable)
+  {:req (req hq-runnable)
    :makes-run true
    :async true
    :effect (effect (make-run
@@ -169,8 +168,7 @@
                 (draw state :runner eid 2 nil))})
 
 (define-card "Blackmail"
-  {:implementation "Bad Publicity Required 1->2"
-   :async true
+  {:async true
    :makes-run true
    :req (req (> (count-bad-pub state) 1))
    :prompt "Choose a server"
@@ -629,8 +627,7 @@
                                     :effect (effect (move target :hand))} card nil)))})
 
 (define-card "Demolition Run"
-  {:implementation "Cost 2->0"
-   :req (req (or rd-runnable hq-runnable))
+  {:req (req (or rd-runnable hq-runnable))
    :prompt "Choose a server"
    :choices ["HQ" "R&D"]
    :makes-run true
@@ -936,8 +933,7 @@
                                card))}))
 
 (define-card "Eureka!"
-  {:implementation "Cost 3->0"
-   :async true
+  {:async true
    :effect (req (let [topcard (first (:deck runner))
                       caninst (and (or (hardware? topcard)
                                        (program? topcard)
@@ -971,8 +967,7 @@
                           (effect-completed state side eid)))})
 
 (define-card "Executive Wiretaps"
-  {:implementation "Cost 4->2"
-   :msg (msg "reveal cards in HQ: " (join ", " (sort (map :title (:hand corp)))))
+  {:msg (msg "reveal cards in HQ: " (join ", " (sort (map :title (:hand corp)))))
    :effect (effect (reveal (:hand corp)))})
 
 (define-card "Exploit"
@@ -988,8 +983,7 @@
                   (derez state side c)))})
 
 (define-card "Exploratory Romp"
-  {:implementation "Cost 1->0"
-   :async true
+  {:async true
    :makes-run true
    :prompt "Choose a server"
    :choices (req runnable-servers)
@@ -1094,8 +1088,7 @@
                           (draw state :corp eid 3 nil)))})
 
 (define-card "Forged Activation Orders"
-  {:implementation "Cost 1->0"
-   :choices {:card #(and (ice? %)
+  {:choices {:card #(and (ice? %)
                          (not (rezzed? %)))}
    :async true
    :effect (req (let [ice target
@@ -1124,8 +1117,7 @@
   (cutlery "Sentry"))
 
 (define-card "Frame Job"
-  {:implementation "Cost 1->0"
-   :prompt "Choose an agenda to forfeit"
+  {:prompt "Choose an agenda to forfeit"
    :choices (req (:scored runner))
    :effect (effect (forfeit target)
                    (gain-bad-publicity :corp 1))
@@ -1175,8 +1167,7 @@
              :effect (req (as-agenda state :runner eid card 1))}]})
 
 (define-card "Freelance Coding Contract"
-  {:implementation "Credits per program 2->3"
-   :choices {:max 5
+  {:choices {:max 5
              :card #(and (program? %)
                          (in-hand? %))}
    :msg (msg "trash " (join ", " (map :title targets)) " and gain "
@@ -1301,8 +1292,7 @@
              :effect (effect (gain-credits :runner 12))}]})
 
 (define-card "Hostage"
-  {:implementation "Cost 1->0"
-   :prompt "Choose a Connection"
+  {:prompt "Choose a Connection"
    :choices (req (cancellable (filter #(has-subtype? % "Connection") (:deck runner)) :sorted))
    :msg (msg "add " (:title target) " to their Grip and shuffle their Stack")
    :async true
@@ -1401,8 +1391,7 @@
                " and draw " (quantify (cards-to-draw targets) "card"))}))
 
 (define-card "Indexing"
-  {:implementation "Cost 0->1"
-   :req (req rd-runnable)
+  {:req (req rd-runnable)
    :async true
    :makes-run true
    :effect (effect (make-run
@@ -1637,8 +1626,7 @@
   (cutlery "Barrier"))
 
 (define-card "Kraken"
-  {:implementation "Cost 3->1"
-   :async true
+  {:async true
    :req (req (:stole-agenda runner-reg))
    :prompt "Choose a server"
    :choices (req servers)
@@ -1683,8 +1671,7 @@
                                 card nil)))))})
 
 (define-card "Lawyer Up"
-  {:implementation "Cost 2->1"
-   :msg "remove 2 tags and draw 3 cards"
+  {:msg "remove 2 tags and draw 3 cards"
    :async true
    :effect (req (wait-for (lose-tags state side 2)
                           (draw state side eid 3 nil)))})
@@ -1734,8 +1721,7 @@
              :effect (effect (access-bonus :hq 2))}]})
 
 (define-card "Leverage"
-  {:implementation "Cost 1->0"
-   :optional
+  {:optional
    {:req (req (some #{:hq} (:successful-run runner-reg)))
     :player :corp
     :prompt "Take 2 bad publicity?"
@@ -2261,8 +2247,7 @@
                  card))}))
 
 (define-card "Recon"
-  {:implementation "Cost 1->0"
-   :async true
+  {:async true
    :makes-run true
    :prompt "Choose a server"
    :choices (req runnable-servers)
@@ -2449,8 +2434,7 @@
                                 card nil)))}]}))
 
 (define-card "Running Interference"
-  {:implementation "Cost 4->2"
-   :async true
+  {:async true
    :makes-run true
    :prompt "Choose a server"
    :choices (req runnable-servers)
@@ -2463,8 +2447,7 @@
                    (make-run eid target nil card))})
 
 (define-card "Satellite Uplink"
-  {:implementation "Cards exposed 2->3"
-   :async true
+  {:async true
    :req (req (some #(not (rezzed? %)) (all-installed state :corp)))
    :choices {:max 3
              :card #(and (corp? %)
@@ -2540,8 +2523,7 @@
              :effect (req (swap! state assoc-in [:runner :rd-access-fn] seq))}]})
 
 (define-card "Singularity"
-  {:implementation "Cost 4->1"
-   :async true
+  {:async true
    :makes-run true
    :prompt "Choose a server"
    :choices (req (filter #(can-run-server? state %) remotes))
@@ -2698,8 +2680,7 @@
               (assoc ability :event :runner-turn-ends)]}))
 
 (define-card "Test Run"
-  {:implementation "Cost 3->2"
-   :prompt "Install a program from your Stack or Heap?"
+  {:prompt "Install a program from your Stack or Heap?"
    :choices ["Stack" "Heap"]
    :msg (msg "install a program from their " target)
    :async true
@@ -2849,8 +2830,7 @@
    :leave-play (effect (clear-turn-flag! card :can-install-ice))})
 
 (define-card "Vamp"
-  {:implementation "Tags taken 1->2"
-   :async true
+  {:async true
    :makes-run true
    :req (req hq-runnable)
    :effect (effect (make-run

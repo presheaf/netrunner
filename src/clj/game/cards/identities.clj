@@ -188,8 +188,7 @@
                                card nil))}]})
 
 (define-card "Andromeda: Dispossessed Ristie"
-  {:implementation "Link 1->0"
-   :events [{:event :pre-start-game
+  {:events [{:event :pre-start-game
              :req (req (= side :runner))
              :effect (effect (draw 4 {:suppress-event true}))}]
    :mulligan (effect (draw 4 {:suppress-event true}))})
@@ -205,8 +204,7 @@
                                 (:runner-phase-12 @state)))
                  :async true
                  :effect (effect (runner-install (assoc eid :source card :source-type :runner-install) target {:facedown true}))}]
-    {:implementation "Install restriction not enforced"
-     :events [(assoc ability :event :runner-turn-begins)]
+    {:events [(assoc ability :event :runner-turn-begins)]
      :flags {:runner-phase-12 (req true)}
      :abilities [ability]}))
 
@@ -339,8 +337,7 @@
              :effect (effect (lose-tags eid 1))}]})
 
 (define-card "Cerebral Imaging: Infinite Frontiers"
-  {:implementation "Deck Size 45->50"
-   :effect (req (when (> (:turn @state) 1)
+  {:effect (req (when (> (:turn @state) 1)
                   (swap! state assoc-in [:corp :hand-size :base] (:credit corp)))
                 (add-watch state :cerebral-imaging
                            (fn [k ref old new]
@@ -351,8 +348,7 @@
                     (swap! state assoc-in [:corp :hand-size :base] 5))})
 
 (define-card "Chaos Theory: Wünderkind"
-  {:implementation "MU 1->2"
-   :effect (effect (gain :memory 2))
+  {:effect (effect (gain :memory 2))
    :leave-play (effect (lose :runner :memory 2))})
 
 (define-card "Chronos Protocol: Selective Mind-mapping"
@@ -388,8 +384,7 @@
 
 (define-card "Custom Biotics: Engineered for Success"
   ;; No special implementation
-  {:implementation "Influence 22->25"})
-
+  {})
 (define-card "Cybernetics Division: Humanity Upgraded"
   {:effect (effect (lose :hand-size 1)
                    (lose :runner :hand-size 1))
@@ -465,8 +460,7 @@
                                 :type :recurring}}})
 
 (define-card "Exile: Streethawk"
-  {:implementation "Cards drawn 1->2"
-   :flags {:runner-install-draw true}
+  {:flags {:runner-install-draw true}
    :events [{:event :runner-install
              :silent (req (not (and (program? target)
                                     (some #{:discard} (:previous-zone target)))))
@@ -538,8 +532,7 @@
              :msg "make the Runner spend 1 [Credits] to access"}]})
 
 (define-card "GRNDL: Power Unleashed"
-  {:implementation "Starting Credits 10->13"
-   :events [{:event :pre-start-game
+  {:events [{:event :pre-start-game
              :req (req (= :corp side))
              :effect (req (gain-credits state :corp 8)
                           (when (zero? (count-bad-pub state))
@@ -582,15 +575,13 @@
                                card nil))}]})
 
 (define-card "Haas-Bioroid: Engineering the Future"
-  {:implementation "Influence 15->10"
-   :events [{:event :corp-install
+  {:events [{:event :corp-install
              :req (req (first-event? state corp :corp-install))
              :msg "gain 1 [Credits]"
              :effect (effect (gain-credits 1))}]})
 
 (define-card "Haas-Bioroid: Stronger Together"
-  {:implementation "Deck Size 45->40"
-   :constant-effects [{:type :ice-strength
+  {:constant-effects [{:type :ice-strength
                        :req (req (has-subtype? target "Bioroid"))
                        :value 1}]
    :leave-play (effect (update-all-ice))
@@ -873,8 +864,7 @@
   (letfn [(kate-type? [card] (or (hardware? card)
                                  (program? card)))
           (not-triggered? [state card] (no-event? state :runner :runner-install #(kate-type? (first %))))]
-    {:implementation "Link 1->0"
-     :constant-effects [{:type :install-cost
+    {:constant-effects [{:type :install-cost
                          :req (req (and (kate-type? target)
                                         (not-triggered? state card)))
                          :value -1}]
@@ -1105,14 +1095,12 @@
    :abilities [(set-autoresolve :auto-ctm "CtM")]})
 
 (define-card "NBN: Making News"
-  {:implementation "Influence 15->17"
-   :recurring 2
+  {:recurring 2
    :interactions {:pay-credits {:req (req (= :trace (:source-type eid)))
                                 :type :recurring}}})
 
 (define-card "NBN: The World is Yours*"
-  {:implementation "Handsize increase 1 -> 2"
-   :effect (effect (gain :hand-size 2))
+  {:effect (effect (gain :hand-size 2))
    :leave-play (effect (lose :hand-size 2))})
 
 (define-card "Near-Earth Hub: Broadcast Center"
@@ -1157,8 +1145,7 @@
                                                    (in-hand? %))}
                              :effect (req (wait-for (corp-install state side target nil nil)
                                                     (continue-ability state side (when (< n 3) (nd (inc n))) card nil)))})]
-    {:implementation "Influence 12->15"
-     :events [{:event :pre-first-turn
+    {:events [{:event :pre-first-turn
                :req (req (= side :corp))
                :msg "install up to 3 pieces of ICE and draw back up to 5 cards"
                :async true
@@ -1179,8 +1166,7 @@
              :effect (effect (gain-credits :corp 1))}]})
 
 (define-card "Noise: Hacker Extraordinaire"
-  {:implementation "Influence 15->10"
-   :events [{:async true
+  {:events [{:async true
              :event :runner-install
              :req (req (has-subtype? target "Virus"))
              :msg "force the Corp to trash the top card of R&D"
@@ -1545,7 +1531,7 @@
 
 (define-card "The Professor: Keeper of Knowledge"
   ;; No special implementation
-  {:implementation "Link 0->1"})
+  {})
 
 (define-card "The Shadow: Pulling the Strings"
   {:events [{:event :pre-start-game
@@ -1564,8 +1550,7 @@
              :effect (effect (gain :corp :bad-publicity 1))}]})
 
 (define-card "Weyland Consortium: Because We Built It"
-  {:implementation "Influence 15->22"
-   :recurring 1
+  {:recurring 1
    :interactions {:pay-credits {:req (req (= :advance (:source-type eid)))
                                 :type :recurring}}})
 
@@ -1586,8 +1571,7 @@
              :effect (effect (gain-credits 1))}]})
 
 (define-card "Whizzard: Master Gamer"
-  {:implementation "Recurring credits 3->2"
-   :recurring 2
+  {:recurring 2
    :interactions {:pay-credits {:req (req (and (= :runner-trash-corp-cards (:source-type eid))
                                                (corp? target)))
                                 :type :recurring}}})

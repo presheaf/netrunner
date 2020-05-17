@@ -669,8 +669,7 @@
                    sub]}))
 
 (define-card "Bullfrog"
-  {:implementation "Cost 3->0"
-   :subroutines [(do-psi {:label "Move Bullfrog to another server"
+  {:subroutines [(do-psi {:label "Move Bullfrog to another server"
                           :player :corp
                           :prompt "Choose a server"
                           :choices (req servers)
@@ -695,8 +694,7 @@
                    sub]}))
 
 (define-card "Burke Bugs"
-  {:implementation "Trace strength 0->4"
-   :subroutines [(trace-ability 4 (assoc trash-program
+  {:subroutines [(trace-ability 4 (assoc trash-program
                                          :not-distinct true
                                          :player :runner
                                          :msg "force the Runner to trash a program"
@@ -707,8 +705,7 @@
                  (trace-ability 2 end-the-run)]})
 
 (define-card "Cell Portal"
-  {:implementation "Cost 5->3"
-   :subroutines [{:msg "make the Runner approach the outermost ICE"
+  {:subroutines [{:msg "make the Runner approach the outermost ICE"
                   :effect (req (let [server (central->name (first (:server run)))]
                                  (redirect-run state side server :approach-ice)
                                  (derez state side card)))}]})
@@ -740,8 +737,7 @@
 (define-card "Chimera"
   (let [turn-end-ability {:effect (effect (derez :corp card)
                                           (update! (assoc (get-card state card) :subtype "Mythic")))}]
-    {:implementation "Strength 0->1"
-     :prompt "Choose one subtype"
+    {:prompt "Choose one subtype"
      :choices ["Barrier" "Code Gate" "Sentry"]
      :msg (msg "make it gain " target " until the end of the turn")
      :effect (effect (update! (assoc card
@@ -780,8 +776,7 @@
                               card nil))}})
 
 (define-card "Chum"
-  {:implementation "Strength boost 2->4"
-   :subroutines
+  {:subroutines
    [{:label "Give +4 strength to next ICE Runner encounters"
      :req (req this-server)
      :msg (msg "give +4 strength to the next ICE the Runner encounters")
@@ -914,8 +909,7 @@
                                         '() (count (remove-once #(= % target) cards))
                                         (remove-once #(= % target) cards))
                                       card nil)))})]
-    {:implementation "Trace strength 2 -> 6"
-     :subroutines [(trace-ability
+    {:subroutines [(trace-ability
                      6
                      {:async true
                       :label "Look at the top of the stack"
@@ -953,8 +947,7 @@
                  end-the-run]})
 
 (define-card "Data Mine"
-  {:subroutines [{:implementation "Damage 1->2"
-                  :msg "do 2 net damage"
+  {:subroutines [{:msg "do 2 net damage"
                   :async true
                   :effect (req (wait-for (damage state :runner :net 2 {:card card})
                                          (trash state :corp eid card {:cause :subroutine})))}]})
@@ -1004,8 +997,7 @@
                    sub]}))
 
 (define-card "Dracō"
-  {:implementation "Trace Strength 2->3"
-   :prompt "How many power counters?"
+  {:prompt "How many power counters?"
    :choices :credit
    :msg (msg "add " target " power counters")
    :effect (effect (add-counter card :power target)
@@ -1238,8 +1230,7 @@
      :runner-abilities [(bioroid-break 3 3)]}))
 
 (define-card "Fenris"
-  {:implementation "Strength 2->4"
-   :effect take-bad-pub
+  {:effect take-bad-pub
    :subroutines [(do-brain-damage 1)
                  end-the-run]})
 
@@ -1249,8 +1240,7 @@
    :strength-bonus advance-counters})
 
 (define-card "Flare"
-  {:implementation "Cost 9->8"
-   :subroutines [(trace-ability
+  {:subroutines [(trace-ability
                    6
                    {:label "Trash 1 hardware, do 2 meat damage, and end the run"
                     :async true
@@ -1371,8 +1361,7 @@
                  (end-the-run-unless-runner-pays 3)]})
 
 (define-card "Grim"
-  {:implementation "Cost 5->4"
-   :effect take-bad-pub
+  {:effect take-bad-pub
    :subroutines [trash-program]})
 
 (define-card "Guard"
@@ -1386,7 +1375,7 @@
    :strength-bonus (req (if (= (second (:zone card)) :rd) 3 0))})
 
 (define-card "Gyri Labyrinth"
-  {:implementation "Cost 2->0, Hand size is not restored if trashed or derezzed after firing"
+  {:implementation "Hand size is not restored if trashed or derezzed after firing"
    :subroutines [{:req (req (:run @state))
                   :label "Reduce Runner's maximum hand size by 2 until start of next Corp turn"
                   :msg "reduce the Runner's maximum hand size by 2 until the start of the next Corp turn"
@@ -1400,8 +1389,7 @@
    :events [{:event :corp-turn-begins}]})
 
 (define-card "Hadrian's Wall"
-  {:implementation "Cost 10->7"
-   :advanceable :always
+  {:advanceable :always
    :subroutines [end-the-run end-the-run]
    :strength-bonus advance-counters})
 
@@ -1453,14 +1441,12 @@
                    sub]}))
 
 (define-card "Heimdall 1.0"
-  {:implementation "Cost 8->6"
-   :subroutines [(do-brain-damage 1)
+  {:subroutines [(do-brain-damage 1)
                  end-the-run end-the-run]
    :runner-abilities [(bioroid-break 1 1)]})
 
 (define-card "Heimdall 2.0"
-  {:implementation "Cost 11->8"
-   :subroutines [(do-brain-damage 1)
+  {:subroutines [(do-brain-damage 1)
                  {:msg "do 1 brain damage and end the run"
                   :effect (req (wait-for (damage state side :brain 1 {:card card})
                                          (end-run state side eid card)))}
@@ -1572,16 +1558,14 @@
                                          (end-run state side eid card))))}]})))
 
 (define-card "Hourglass"
-  {:implementation "Cost 5->2"
-   :subroutines [runner-loses-click
+  {:subroutines [runner-loses-click
                  runner-loses-click
                  runner-loses-click]})
 
 (define-card "Howler"
   (let [ice-index (fn [state i] (first (keep-indexed #(when (same-card? %2 i) %1)
                                                      (get-in @state (cons :corp (:zone i))))))]
-    {:implementation "Cost 1->0"
-     :subroutines
+    {:subroutines
      [{:label "Install a piece of Bioroid ICE from HQ or Archives"
        :async true
        :prompt "Install ICE from HQ or Archives?"
@@ -1614,14 +1598,12 @@
 (define-card "Hudson 1.0"
   (let [sub {:msg "prevent the Runner from accessing more than 0 cards during this run"
              :effect (effect (max-access 0))}]
-    {:implementation "Cards Accessed 1->0"
-     :subroutines [sub
+    {:subroutines [sub
                    sub]
      :runner-abilities [(bioroid-break 1 1)]}))
 
 (define-card "Hunter"
-  {:implementation "Strength 4->5"
-   :subroutines [(tag-trace 3)]})
+  {:subroutines [(tag-trace 3)]})
 
 (define-card "Hydra"
   (letfn [(otherwise-tag [message ability]
@@ -1737,8 +1719,7 @@
   (let [sub {:msg "make the Runner lose 1 [Credits]"
              :effect (effect (lose-credits :runner 1))}
         ability {:effect (effect (reset-variable-subs card (count-bad-pub state) sub))}]
-    {:implementation "Strength 2->4"
-     :events [(assoc ability
+    {:events [(assoc ability
                      :event :rez
                      :req (req (same-card? card target)))
               (assoc ability :event :corp-gain-bad-publicity)
@@ -1753,8 +1734,7 @@
                                                (trash state side eid card {:cause :subroutine}))))]})
 
 (define-card "Janus 1.0"
-  {:implementation "Cost 15->12"
-   :subroutines [(do-brain-damage 1)
+  {:subroutines [(do-brain-damage 1)
                  (do-brain-damage 1)
                  (do-brain-damage 1)
                  (do-brain-damage 1)]
@@ -1993,8 +1973,7 @@
                                           (effect-completed eid))})]})
 
 (define-card "Marker"
-  {:implementation "Strength 3->5"
-   :subroutines [{:label "Give next encountered ice \"End the run\""
+  {:subroutines [{:label "Give next encountered ice \"End the run\""
                   :msg (msg "give next encountered ice \"[Subroutine] End the run\" after all its other subroutines for the remainder of the run")
                   :effect (effect
                             (register-events
@@ -2025,8 +2004,7 @@
               (assoc ability :event :rez)]}))
 
 (define-card "Matrix Analyzer"
-  {:implementation "Trace strength 2->4"
-   :on-encounter {:cost [:credit 1]
+  {:on-encounter {:cost [:credit 1]
                   :choices {:card can-be-advanced?}
                   :msg (msg "place 1 advancement token on " (card-str state target))
                   :effect (effect (add-prop target :advance-counter 1))}
@@ -2146,8 +2124,7 @@
                                           (start-next-phase nil))})]})
 
 (define-card "Minelayer"
-  {:implementation "Cost 1->0"
-   :subroutines [{:msg "install an ICE from HQ"
+  {:subroutines [{:msg "install an ICE from HQ"
                   :async true
                   :choices {:card #(and (ice? %)
                                         (in-hand? %))}
@@ -2231,8 +2208,7 @@
               (assoc mg :event :ice-subtype-changed)]}))
 
 (define-card "Muckraker"
-  {:implementation "Strength 3->4"
-   :effect take-bad-pub
+  {:effect take-bad-pub
    :subroutines [(tag-trace 1)
                  (tag-trace 2)
                  (tag-trace 3)
@@ -2268,8 +2244,7 @@
      :runner-abilities [(bioroid-break 2 2)]}))
 
 (define-card "Neural Katana"
-  {:implementation "Cost 4->2"
-   :subroutines [(do-net-damage 3)]})
+  {:subroutines [(do-net-damage 3)]})
 
 (define-card "News Hound"
   (let [ab {:req (req (has-subtype? target "Current"))
@@ -2555,7 +2530,7 @@
                  end-the-run]})
 
 (define-card "RSVP"
-  {:implementation "Strength 4->5. Unimplemented"
+  {:implementation "Unimplemented"
    :subroutines [{:label "The Runner cannot spend any credits for the remainder of this run."}]})
 
 (define-card "Sadaka"
@@ -2723,8 +2698,7 @@
    :flags {:cannot-lower-strength true}})
 
 (define-card "Sensei"
-  {:implementation "Cost 3->0"
-   :subroutines [{:label "Give encountered ice \"End the run\""
+  {:subroutines [{:label "Give encountered ice \"End the run\""
                   :msg (msg "give encountered ice \"[Subroutine] End the run\" after all its other subroutines for the remainder of the run")
                   :effect (effect
                             (register-events
@@ -2739,8 +2713,7 @@
                                 :effect (effect (remove-sub! target #(= (:cid card) (:from-cid %))))}]))}]})
 
 (define-card "Shadow"
-  {:implementation "Cost 3->2"
-   :advanceable :always
+  {:advanceable :always
    :subroutines [(gain-credits-sub 2)
                  (tag-trace 3)]
    :strength-bonus advance-counters})
@@ -2751,8 +2724,7 @@
                               :label "Add an installed program to the top of the Runner's Stack"
                               :msg (msg "add " (:title target) " to the top of the Runner's Stack")
                               :effect (effect (move :runner target :deck {:front true}))})]
-    {:implementation "Strength 5->6"
-     :subroutines [sub
+    {:subroutines [sub
                    sub]
      :runner-abilities [(bioroid-break 1 1)]}))
 
@@ -2768,8 +2740,7 @@
      :runner-abilities [(bioroid-break 2 2)]}))
 
 (define-card "Shinobi"
-  {:implementation "Cost 7->6"
-   :effect take-bad-pub
+  {:effect take-bad-pub
    :subroutines [(trace-ability 1 (do-net-damage 1))
                  (trace-ability 2 (do-net-damage 2))
                  (trace-ability 3 {:label "Do 3 net damage and end the run"
@@ -2850,8 +2821,7 @@
                                 card nil))}]}))
 
 (define-card "Snoop"
-  {:implementation "Trace Strength 3->5"
-   :on-encounter {:msg (msg "reveal the Runner's Grip (" (join ", " (map :title (:hand runner))) ")")
+  {:on-encounter {:msg (msg "reveal the Runner's Grip (" (join ", " (map :title (:hand runner))) ")")
                   :effect (effect (reveal (:hand runner)))}
    :abilities [{:async true
                 :req (req (pos? (get-counters card :power)))
@@ -2866,8 +2836,7 @@
    :subroutines [(trace-ability 5 add-power-counter)]})
 
 (define-card "Snowflake"
-  {:implementation "Strength 3->4"
-   :subroutines [(do-psi end-the-run)]})
+  {:subroutines [(do-psi end-the-run)]})
 
 (define-card "Special Offer"
   {:subroutines [{:label "Gain 5 [Credits] and trash Special Offer"
@@ -2924,8 +2893,7 @@
   (let [sub (end-the-run-unless-runner-pays 3)
         ability {:req (req (same-card? card target))
                  :effect (effect (reset-variable-subs card (get-counters card :advancement) sub))}]
-    {:implementation "Cost 8->5"
-     :advanceable :always
+    {:advanceable :always
      :effect take-bad-pub
      :events [(assoc ability :event :advance)
               (assoc ability :event :advancement-placed)
@@ -3048,8 +3016,7 @@
                                 :effect (effect (remove-subs! (get-card state new-card) #(= cid (:from-cid %))))}]))))}]))}]})
 
 (define-card "TMI"
-  {:implementation "Trace strength 2->3"
-   :trace {:base 3
+  {:trace {:base 3
            :msg "keep TMI rezzed"
            :label "Keep TMI rezzed"
            :unsuccessful {:effect (effect (derez card))}}
@@ -3173,8 +3140,7 @@
                    "Resolve a subroutine on a rezzed psi ice")]})
 
 (define-card "Uroboros"
-  {:implementation "Cost 6->5"
-   :subroutines [(trace-ability 4 {:label "Prevent the Runner from making another run"
+  {:subroutines [(trace-ability 4 {:label "Prevent the Runner from making another run"
                                    :msg "prevent the Runner from making another run"
                                    :effect (effect (register-turn-flag! card :can-run nil))})
                  (trace-ability 4 end-the-run)]})
@@ -3199,14 +3165,12 @@
    :runner-abilities [(bioroid-break 1 1)]})
 
 (define-card "Viktor 1.0"
-  {:implementation "Strength 3->4"
-   :subroutines [(do-brain-damage 1)
+  {:subroutines [(do-brain-damage 1)
                  end-the-run]
    :runner-abilities [(bioroid-break 1 1)]})
 
 (define-card "Viktor 2.0"
-  {:implementation "Trace Strength 2->3"
-   :abilities [(power-counter-ability (do-brain-damage 1))]
+  {:abilities [(power-counter-ability (do-brain-damage 1))]
    :subroutines [(trace-ability 3 add-power-counter)
                  end-the-run]
    :runner-abilities [(bioroid-break 2 2)]})
@@ -3234,8 +3198,7 @@
   {:subroutines [end-the-run]})
 
 (define-card "Wall of Thorns"
-  {:implementation "Cost 8->6"
-   :subroutines [(do-net-damage 2)
+  {:subroutines [(do-net-damage 2)
                  end-the-run]})
 
 (define-card "Watchtower"
@@ -3295,8 +3258,7 @@
   (space-ice (resolve-another-subroutine)))
 
 (define-card "Wotan"
-  {:implementation "Cost 14->10"
-   :subroutines [(end-the-run-unless-runner
+  {:subroutines [(end-the-run-unless-runner
                    "spends [Click][Click]"
                    "spend [Click][Click]"
                    (runner-pay [:click 2] 1))
@@ -3331,7 +3293,7 @@
                  (do-net-damage 1)]})
 
 (define-card "Zed 1.0"
-  {:implementation "Strength 2->5, restriction on having spent [click] is not implemented"
+  {:implementation "Restriction on having spent [click] is not implemented"
    :subroutines [(do-brain-damage 1)
                  (do-brain-damage 1)]
    :runner-abilities [(bioroid-break 1 1)]})
