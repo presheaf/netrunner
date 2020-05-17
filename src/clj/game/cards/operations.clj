@@ -1390,12 +1390,12 @@
 (define-card "Patch"
   {:choices {:card #(and (ice? %)
                          (rezzed? %))}
-   :msg (msg "give +2 strength to " (card-str state target))
+   :msg (msg "give +3 strength to " (card-str state target))
    :effect (req (let [card (host state side target (assoc card :seen true :condition true))]
                   (update-ice-strength state side (get-card state target))))
    :constant-effects [{:type :ice-strength
                        :req (req (same-card? target (:host card)))
-                       :value 2}]})
+                       :value 3}]})
 
 (define-card "Paywall Implementation"
   {:events [{:event :successful-run

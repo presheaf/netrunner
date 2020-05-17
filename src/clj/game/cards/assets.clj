@@ -58,13 +58,14 @@
                (assoc ability :event :corp-turn-begins)]
       :abilities [ability]})))
 
-(def executive-trash-effect
+(defn make-executive-trash-effect
+  [num-points]
   {:when-inactive true
    :req (req (and (= side :runner)
                   (same-card? target (:access @state))))
-   :msg "add it to the Runner's score area as an agenda worth 2 agenda points"
+   :msg (str "add it to the Runner's score area as an agenda worth " num-points " agenda points")
    :async true
-   :effect (req (as-agenda state :runner eid card 2))})
+   :effect (req (as-agenda state :runner eid card num-points))})
 
 ;; Card definitions
 
@@ -320,7 +321,7 @@
 (define-card "Chairman Hiro"
   {:effect (effect (lose :runner :hand-size 2))
    :leave-play (effect (gain :runner :hand-size 2))
-   :trash-effect executive-trash-effect})
+   :trash-effect (make-executive-trash-effect 2)})
 
 (define-card "Chief Slee"
   {:events [{:event :encounter-ice-ends
@@ -406,7 +407,8 @@
      :abilities [ability]}))
 
 (define-card "Constellation Protocol"
-  {:derezzed-events [corp-rez-toast]
+  {:implementation "Restriction that up to 3 counters may be moved and only between 2 ice not enforced."
+   :derezzed-events [corp-rez-toast]
    :flags {:corp-phase-12
            (req (let [a-token (->> (all-installed state :corp)
                                    (filter ice?)
@@ -424,7 +426,6 @@
                     (count it)
                     (pos? it))))}
    :abilities [{:label "Move an advancement counter between ICE"
-                :once :per-turn
                 :effect (req (show-wait-prompt state :runner "Corp to use Constellation Protocol")
                              (continue-ability
                                state side
@@ -572,7 +573,7 @@
 
 (define-card "Director Haas"
   {:in-play [:click-per-turn 1]
-   :trash-effect executive-trash-effect})
+   :trash-effect (make-executive-trash-effect 1)})
 
 (define-card "Docklands Crackdown"
   {:abilities [{:cost [:click 2]
@@ -2064,7 +2065,7 @@
 (define-card "The Board"
   {:effect (effect (update-all-agenda-points))
    :leave-play (effect (update-all-agenda-points))
-   :trash-effect executive-trash-effect
+   :trash-effect (make-executive-trash-effect 1)
    :constant-effects [{:type :agenda-value
                        :req (req (= :runner (:scored-side target)))
                        :value -1}]

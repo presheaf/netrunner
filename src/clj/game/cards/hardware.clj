@@ -84,9 +84,12 @@
                     {:optional
                      {:prompt "Use Archives Interface to remove a card from the game instead of accessing it?"
                       :yes-ability {:prompt "Choose a card in Archives to remove from the game instead of accessing"
-                                    :choices (req (:discard corp))
-                                    :msg (msg "remove " (:title target) " from the game")
-                                    :effect (effect (move :corp target :rfg))}}} card nil))}]})
+                                    :choices {:card #(and (corp? %)
+                                                          (in-discard? %))
+                                              :max 3}
+                                    :msg (msg "remove up to 3 cards from  the game")
+                                    :effect (req (doseq [c targets]
+                                                   (move :corp c :rfg)))}}} card nil))}]})
 
 (define-card "Astrolabe"
   {:in-play [:memory 1]

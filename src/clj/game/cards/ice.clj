@@ -715,7 +715,7 @@
 
 (define-card "Checkpoint"
   {:effect take-bad-pub
-   :subroutines [(trace-ability 5 {:label "Do 3 meat damage when this run is successful"
+   :subroutines [(trace-ability 7 {:label "Do 3 meat damage when this run is successful"
                                    :msg "do 3 meat damage when this run is successful"
                                    :effect (effect (register-events
                                                      card
