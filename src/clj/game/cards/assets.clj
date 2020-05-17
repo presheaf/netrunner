@@ -2164,7 +2164,7 @@
 (define-card "Victoria Jenkins"
   {:effect (req (lose state :runner :click-per-turn 1))
    :leave-play (req (gain state :runner :click-per-turn 1))
-   :trash-effect executive-trash-effect})
+   :trash-effect (make-executive-trash-effect 2)})
 
 (define-card "Wall To Wall"
   (let [all [{:msg "gain 1 [Credits]"
