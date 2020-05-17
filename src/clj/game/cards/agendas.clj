@@ -29,7 +29,7 @@
      :swapped {:effect (req (update-all-ice state side))}
      :constant-effects [{:type :ice-strength
                          :req (req (has-subtype? target subtype))
-                         :value str-bost}]}))
+                         :value str-boost}]}))
 
 ;; Card definitions
 
