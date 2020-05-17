@@ -1226,7 +1226,7 @@
    :abilities [{:async true
                 :req (req this-server)
                 :cost [:trash]
-                :label "Trace X - Do 3 net damage"
+                :label "Trace X - Do 4 net damage"
                 :effect (req (let [serv (card->server state card)
                                    cards (concat (:ices serv) (:content serv))]
                                (wait-for (trash-cards state side cards nil)
@@ -1236,8 +1236,8 @@
                                             {:base (count cards)
                                              :successful
                                              {:async true
-                                              :msg "do 3 net damage"
-                                              :effect (effect (damage eid :net 3 {:card card}))}}}
+                                              :msg "do 4 net damage"
+                                              :effect (effect (damage eid :net 4 {:card card}))}}}
                                            card nil))))}]})
 
 (define-card "Shell Corporation"

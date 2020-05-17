@@ -381,7 +381,7 @@
              (make-run
                eid :rd
                {:replace-access
-                (let [rd-ice (fn [state] (* -3 (count (get-in @state [:corp :servers :rd :ices]))))]
+                (let [rd-ice (fn [state] (* -5 (count (get-in @state [:corp :servers :rd :ices]))))]
                   {:async true
                    :prompt "Choose a program to install"
                    :msg (msg "install " (:title target) " and take 1 tag")

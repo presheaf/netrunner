@@ -307,8 +307,8 @@
 ;;; For Constellation ICE
 (defn constellation-ice
   "Generates map for Constellation ICE with specified effect."
-  [ability]
-  {:subroutines [(assoc-in (trace-ability 2 ability) [:trace :kicker] (assoc ability :min 5))]})
+  [ability base-str]
+  {:subroutines [(assoc-in (trace-ability base-str ability) [:trace :kicker] (assoc ability :min 5))]})
 
 ;; For advance-only-while-rezzed, sub-growing ICE
 (defn zero-to-hero
@@ -487,16 +487,16 @@
 
 (define-card "Architect"
   {:flags {:untrashable-while-rezzed true}
-   :subroutines [{:label "Look at the top 5 cards of R&D"
+   :subroutines [{:label "Look at the top 3 cards of R&D"
                   :prompt "Choose a card to install"
                   :async true
                   :activatemsg "uses Architect to look at the top 5 cards of R&D"
                   :req (req (and (not (string? target))
                                  (not (operation? target))))
                   :not-distinct true
-                  :choices (req (conj (take 5 (:deck corp)) "No install"))
+                  :choices (req (conj (take 3 (:deck corp)) "No install"))
                   :effect (effect (system-msg (str "chooses the card in position "
-                                                   (+ 1 (.indexOf (take 5 (:deck corp)) target))
+                                                   (+ 1 (.indexOf (take 3 (:deck corp)) target))
                                                    " from R&D (top is 1)"))
                                   (corp-install eid target nil {:ignore-all-cost true}))}
                  {:label "Install a card from HQ or Archives"
@@ -1347,7 +1347,7 @@
                    end-the-run]}))
 
 (define-card "Gemini"
-  (constellation-ice (do-net-damage 1)))
+  (constellation-ice 4 (do-net-damage 1)))
 
 (define-card "Gold Farmer"
   {:on-break-subs {:req (req (some :printed (second targets)))
@@ -1675,7 +1675,7 @@
 (define-card "Information Overload"
   (let [ef (effect (reset-variable-subs card (count-tags state) runner-trash-installed-sub))
         ability {:effect ef}]
-    {:on-encounter (tag-trace 1)
+    {:on-encounter (tag-trace 3)
      :effect ef
      :events [(assoc ability :event :runner-gain-tag)
               (assoc ability :event :runner-lose-tag)]}))
@@ -2602,7 +2602,7 @@
                            (trash state :corp eid card nil)))}]}))
 
 (define-card "Sagittarius"
-  (constellation-ice trash-program))
+  (constellation-ice 4 trash-program))
 
 (define-card "Saisentan"
   (let [sub {:label "Do 1 net damage"
@@ -2931,7 +2931,7 @@
                   :effect (effect (move target :deck {:front true}))}]})
 
 (define-card "Taurus"
-  (constellation-ice trash-hardware))
+  (constellation-ice 2 trash-hardware))
 
 (define-card "Thimblerig"
   (let [ability {:optional
@@ -3180,7 +3180,7 @@
                  (trace-ability 3 end-the-run)]})
 
 (define-card "Virgo"
-  (constellation-ice (give-tags 1)))
+  (constellation-ice 2 (give-tags 1)))
 
 (define-card "Waiver"
   {:subroutines [(trace-ability

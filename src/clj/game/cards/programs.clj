@@ -613,10 +613,10 @@
    :req (req (some #{:hq} (:successful-run runner-reg)))
    :events [{:event :corp-draw
              :optional
-             {:prompt (msg "Pay 2 [Credits] to reveal card just drawn?")
+             {:prompt (msg "Pay 1 [Credit] to reveal card just drawn?")
               :player :runner
               :yes-ability {:msg (msg "reveal the card just drawn: " (:title (last (:hand corp))))
-                            :cost [:credit 2]}}}]})
+                            :cost [:credit 1]}}}]})
 
 (define-card "Bukhgalter"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Sentry")
@@ -712,9 +712,9 @@
 (define-card "Collective Consciousness"
   {:events [{:event :rez
              :req (req (ice? target))
-             :msg "draw 1 card"
+             :msg "draw 2 card"
              :async true
-             :effect (effect (draw :runner eid 1 nil))}]})
+             :effect (effect (draw :runner eid 2 nil))}]})
 
 (define-card "Consume"
   {:events [{:event :runner-trash
@@ -1285,7 +1285,7 @@
 
 (define-card "Gingerbread"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Tracer")
-                                (strength-pump 2 3)]}))
+                                (strength-pump 1 3)]}))
 
 (define-card "God of War"
   (auto-icebreaker {:flags {:runner-phase-12 (req true)}

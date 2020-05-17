@@ -581,12 +581,12 @@
    :constant-effects [{:type :install-cost
                        :req (req (and (pos? (get-counters card :power))
                                       (not (get-in @state [:per-turn (:cid card)]))))
-                       :value (req (get-counters card :power))}]
+                       :value (req (* 2 (get-counters card :power)))}]
    :events [{:event :runner-install
              :silent (req true)
              :req (req (and (pos? (get-counters card :power))
                             (not (get-in @state [:per-turn (:cid card)]))))
-             :msg (msg "increase the install cost of " (:title target) " by " (get-counters card :power) " [Credits]")
+             :msg (msg "increase the install cost of " (:title target) " by " (* 2 (get-counters card :power)) " [Credits]")
              :effect (req (swap! state assoc-in [:per-turn (:cid card)] true))}]})
 
 (define-card "Drudge Work"

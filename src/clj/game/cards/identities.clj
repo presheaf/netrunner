@@ -1162,8 +1162,8 @@
   {:events [{:event :reveal-spent-credits
              :req (req (and (some? (first targets))
                             (some? (second targets))))
-             :msg "gain 1 [Credits]"
-             :effect (effect (gain-credits :corp 1))}]})
+             :msg "gain 2 [Credits]"
+             :effect (effect (gain-credits :corp 2))}]})
 
 (define-card "Noise: Hacker Extraordinaire"
   {:events [{:async true

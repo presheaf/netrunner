@@ -14,7 +14,7 @@
             [clojure.set :as clj-set]
             [jinteki.utils :refer :all]))
 
-(defn ice-boost-agenda [subtype]
+(defn ice-boost-agenda [subtype cred-gain str-boost]
   (letfn [(count-ice [corp]
             (reduce (fn [c server]
                       (+ c (count (filter #(and (has-subtype? % subtype)
@@ -24,12 +24,12 @@
                     (flatten (seq (:servers corp)))))]
     {:msg (msg "gain " (count-ice corp) " [Credits]")
      :interactive (req true)
-     :effect (effect (gain-credits (count-ice corp))
+     :effect (effect (gain-credits (* cred-gain (count-ice corp)))
                (update-all-ice))
      :swapped {:effect (req (update-all-ice state side))}
      :constant-effects [{:type :ice-strength
                          :req (req (has-subtype? target subtype))
-                         :value 1}]}))
+                         :value str-bost}]}))
 
 ;; Card definitions
 
@@ -556,7 +556,7 @@
                 :msg "gain [Click][Click]"}]})
 
 (define-card "Encrypted Portals"
-  (ice-boost-agenda "Code Gate"))
+  (ice-boost-agenda "Code Gate" 2 1))
 
 (define-card "Escalate Vitriol"
   {:abilities [{:label "Gain 1 [Credit] for each Runner tag"
@@ -703,24 +703,23 @@
      :effect (effect (continue-ability (graft 1) card nil))}))
 
 (define-card "Hades Fragment"
-  {:flags {:corp-phase-12 (req (and (not-empty (get-in @state [:corp :discard]))
+  {:implementation "System message doesn't tell the runner which cards were bottomed"
+   :flags {:corp-phase-12 (req (and (not-empty (get-in @state [:corp :discard]))
                                     (is-scored? state :corp card)))}
    :abilities [{:prompt "Select a card to add to the bottom of R&D"
                 :show-discard true
                 :choices {:card #(and (corp? %)
-                                      (in-discard? %))}
-                :effect (effect (move target :deck))
-                :msg (msg "add "
-                          (if (:seen target)
-                            (:title target)
-                            "a card")
-                          " to the bottom of R&D")}]})
+                                      (in-discard? %))
+                          :max 2}
+                :effect (req (doseq [c targets]
+                               (move state side c :deck)))
+                :msg (msg "add up to 2 cards to the bottom of R&D")}]})
 
 (define-card "Helium-3 Deposit"
   {:async true
    :interactive (req true)
    :prompt "How many power counters?"
-   :choices ["0" "1" "2"]
+   :choices ["0" "1" "2" "3" "4"]
    :effect (req (let [c (str->int target)]
                   (continue-ability
                     state side
@@ -826,7 +825,7 @@
   {:interactions {:prevent [{:type #{:jack-out}
                              :req (req (pos? (get-counters card :power)))}]}
    :silent (req true)
-   :effect (effect (add-counter card :power 2))
+   :effect (effect (add-counter card :power 5))
    :abilities [{:req (req (:run @state))
                 :cost [:power 1]
                 :msg "prevent the Runner from jacking out"
@@ -1510,7 +1509,7 @@
                     (continue-ability state side (sft 1 max-ops) card nil)))}))
 
 (define-card "Superior Cyberwalls"
-  (ice-boost-agenda "Barrier"))
+  (ice-boost-agenda "Barrier" 1 2))
 
 (define-card "TGTBT"
   {:flags {:rd-reveal (req true)}
@@ -1635,7 +1634,7 @@
   {:events [{:event :pre-steal-cost
              :req (req (pos? (get-counters target :advancement)))
              :effect (req (let [counter (get-counters target :advancement)]
-                            (steal-cost-bonus state side [:credit (* 2 counter)])))}]})
+                            (steal-cost-bonus state side [:credit (* 3 counter)])))}]})
 
 (define-card "Vanity Project"
   ;; No special implementation

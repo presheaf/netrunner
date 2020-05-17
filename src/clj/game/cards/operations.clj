@@ -1240,9 +1240,9 @@
              :effect (effect (update! (assoc card :title "Media Blitz")))}]})
 
 (define-card "Medical Research Fundraiser"
-  {:msg "gain 8 [Credits]. The Runner gains 3 [Credits]"
+  {:msg "gain 8 [Credits]. The Runner gains 2 [Credits]"
    :effect (effect (gain-credits 8)
-                   (gain-credits :runner 3))})
+                   (gain-credits :runner 2))})
 
 (define-card "Midseason Replacements"
   {:req (req (last-turn? state :runner :stole-agenda))
@@ -1956,7 +1956,7 @@
      :effect (effect (continue-ability (rez-helper targets) card nil))}))
 
 (define-card "Snatch and Grab"
-  {:trace {:base 3
+  {:trace {:base 4
            :successful
            {:msg "trash a connection"
             :choices {:card #(has-subtype? % "Connection")}
