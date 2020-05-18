@@ -183,12 +183,13 @@
                                    :value [:trash-from-hand 1]}))}]})
 
 (define-card "AstroScript Pilot Program"
-  {:effect (effect (add-counter card :agenda 1))
+  {:implementation "Target restriction not implemented"
+   :effect (effect (add-counter card :agenda 1))
    :silent (req true)
    :abilities [{:cost [:agenda 1]
                 :msg (msg "place 1 advancement token on " (card-str state target))
-                :choices {:card can-be-advanced?
-                          :req (req (not= :this-turn (installed? target)))}
+                :choices {:req (req (and (can-be-advanced? target)
+                                         (not= :this-turn (installed? target))))}
                 :effect (effect (add-prop target :advance-counter 1 {:placed true}))}]})
 
 (define-card "Award Bait"
@@ -383,7 +384,7 @@
                   (system-msg state side (str "gains " bucks " [Credits] from CFC Excavation Contract"))))})
 
 (define-card "Character Assassination"
-  {:prompt "Select a resource to trash"
+  {:prompt "Select up to 2 resources to trash"
    :choices {:card #(and (installed? %)
                          (resource? %))
              :max 2}
