@@ -1587,7 +1587,7 @@
 
 (define-card "Security Chip"
   {:abilities [{:label "Add [Link] strength to a non-Cloud icebreaker until the end of the run"
-                :msg (msg "add " (:link runner) " strength to " (:title target) " until the end of the run")
+                :msg (msg "add " (* 2 (:link runner)) " strength to " (:title target) " until the end of the run")
                 :req (req (:run @state))
                 :prompt "Select one non-Cloud icebreaker"
                 :choices {:card #(and (has-subtype? % "Icebreaker")
@@ -1596,7 +1596,7 @@
                 :cost [:trash]
                 :effect (effect (pump target (:link runner) :end-of-run))}
                {:label "Add [Link] strength to any Cloud icebreakers until the end of the run"
-                :msg (msg "add " (:link runner) " strength to " (count targets) " Cloud icebreakers until the end of the run")
+                :msg (msg "add " (* 2 (:link runner)) " strength to " (count targets) " Cloud icebreakers until the end of the run")
                 :req (req (:run @state))
                 :prompt "Select any number of Cloud icebreakers"
                 :choices {:max 50
@@ -1605,7 +1605,7 @@
                                       (installed? %))}
                 :cost [:trash]
                 :effect (req (doseq [t targets]
-                               (pump state side t (:link runner) :end-of-run)
+                               (pump state side t (* 2 (:link runner)) :end-of-run)
                                (update-breaker-strength state side t)))}]})
 
 (define-card "Security Nexus"

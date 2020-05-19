@@ -2388,9 +2388,9 @@
 (define-card "Synthetic Blood"
   {:events [{:event :damage
              :req (req (genetics-trigger? state side :damage))
-             :msg "draw 1 card"
+             :msg "draw 2 cards"
              :async true
-             :effect (effect (draw :runner eid 1 nil))}]})
+             :effect (effect (draw :runner eid 2 nil))}]})
 
 (define-card "Tallie Perrault"
   {:abilities [{:label "Draw 3 cards for each Corp bad publicity"

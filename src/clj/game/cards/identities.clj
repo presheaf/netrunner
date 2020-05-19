@@ -775,7 +775,7 @@
                                "The Tank"
                                (toast state :corp "Flip to: The Tank (Shuffle Archives into R&D)" "info")
                                "The Greenhouse"
-                               (toast state :corp "Flip to: The Greenhouse (Place 4 advancement tokens on a card)" "info")))}
+                               (toast state :corp "Flip to: The Greenhouse (Place 5 advancement tokens on a card)" "info")))}
                {:cost [:click 3]
                 :req (req (not (:biotech-used card)))
                 :label "Flip this identity"
@@ -790,14 +790,14 @@
                                      (shuffle-into-deck state side :discard)
                                      (update! state side (assoc card :code "tank")))
                                  "The Greenhouse"
-                                 (do (system-msg state side (str "uses The Greenhouse to place 4 advancement tokens "
+                                 (do (system-msg state side (str "uses The Greenhouse to place 5 advancement tokens "
                                                                  "on a card that can be advanced"))
                                      (update! state side (assoc card :code "greenhouse"))
                                      (resolve-ability
                                        state side
                                        {:prompt "Select a card that can be advanced"
                                         :choices {:card can-be-advanced?}
-                                        :effect (effect (add-prop target :advance-counter 4 {:placed true}))} card nil)))
+                                        :effect (effect (add-prop target :advance-counter 5 {:placed true}))} card nil)))
                                (update! state side (assoc (get-card state card) :biotech-used true))))}]})
 
 (define-card "Jinteki: Personal Evolution"

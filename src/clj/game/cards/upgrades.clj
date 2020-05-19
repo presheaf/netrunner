@@ -998,7 +998,7 @@
 (define-card "Oaktown Grid"
   {:constant-effects [{:type :trash-cost
                        :req (req (in-same-server? card target))
-                       :value 3}]})
+                       :value 4}]})
 
 (define-card "Oberth Protocol"
   {:additional-cost [:forfeit]

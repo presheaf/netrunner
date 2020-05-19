@@ -2067,8 +2067,8 @@
   {:events [{:event :pre-steal-cost
              :duration :end-of-turn
              :once :per-turn
-             :msg "gain 7 [Credits]"
-             :effect (effect (gain-credits 7))}]})
+             :msg "gain 9 [Credits]"
+             :effect (effect (gain-credits 9))}]})
 
 (define-card "Prey"
   {:async true

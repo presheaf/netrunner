@@ -118,8 +118,8 @@
 
 (define-card "Ancestral Imager"
   {:events [{:event :jack-out
-             :msg "do 1 net damage"
-             :effect (effect (damage :net 1))}]})
+             :msg "do 2 net damage"
+             :effect (effect (damage :net 2))}]})
 
 (define-card "AR-Enhanced Security"
   {:events [{:event :runner-trash
@@ -199,7 +199,7 @@
             :effect (effect (show-wait-prompt :runner "Corp to place advancement tokens with Award Bait")
                             (continue-ability
                               {:async true
-                               :choices ["0", "1", "2"]
+                               :choices ["0", "1", "2", "3"]
                                :prompt "How many advancement tokens?"
                                :effect (req (let [c (str->int target)]
                                               (continue-ability
@@ -639,8 +639,8 @@
 
 (define-card "Genetic Resequencing"
   {:choices {:card #(= (last (:zone %)) :scored)}
-   :msg (msg "add 1 agenda counter on " (:title target))
-   :effect (effect (add-counter target :agenda 1)
+   :msg (msg "add 2 agenda counters on " (:title target))
+   :effect (effect (add-counter target :agenda 2)
                    (update-all-agenda-points))
    :silent (req true)})
 
@@ -1525,14 +1525,26 @@
              :msg "do 2 additional meat damage"
              :effect (effect (damage-bonus :meat 2))}]})
 
+(define-card "Aggressive Negotiation"
+  (let 
+    {:implementation "Increase to number of cards added not implemented"
+     :req (req (:scored-agenda corp-reg))
+     :effect (effect (resolve-ability (tutor-ab "Choose a card (1 of 2)") target :hand)
+                     (resolve-ability (tutor-ab "Choose a card (2 of 2)") target :hand)
+                     (shuffle! :deck))
+     :msg "search R&D for 2 cards and add them to HQ"}))
+
 (define-card "The Future is Now"
-  {:interactive (req true)
-   :prompt "Choose a card to add to HQ"
-   :choices (req (:deck corp))
-   :msg (msg "add a card from R&D to HQ and shuffle R&D")
-   :req (req (pos? (count (:deck corp))))
-   :effect (effect (shuffle! :deck)
-                   (move target :hand))})
+  (letfn [(tutor-ab [prompt-msg]
+            {:prompt prompt-msg
+             :choices (req (cancellable (:deck corp) :sorted))
+             :effect (effect (move target :hand))})]
+    {:interactive (req true)
+     :msg (msg "add 2 cards from R&D to HQ and shuffle R&D")
+     :req (req (pos? (count (:deck corp))))
+     :effect (effect (resolve-ability (tutor-ab "Choose a card (1 of 2)") target :hand)
+                     (resolve-ability (tutor-ab "Choose a card (2 of 2)") target :hand)
+                     (shuffle! :deck))}))
 
 (define-card "The Future Perfect"
   {:flags {:rd-reveal (req true)}

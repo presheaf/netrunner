@@ -17,7 +17,7 @@
 (define-card "24/7 News Cycle"
   {:req (req (pos? (count (:scored corp))))
    :async true
-   :additional-cost [:forfeit]
+   :additional-cost [:forfeit 3]  ; TODO: Verify this works
    :effect (req (continue-ability
                   state side
                   {:prompt "Select an agenda in your score area to trigger its \"when scored\" ability"
@@ -74,13 +74,17 @@
      :effect (effect (continue-ability (ab 0 target) card nil))}))
 
 (define-card "Aggressive Negotiation"
-  {:implementation "Increase to number of cards added not implemented"
-   :req (req (:scored-agenda corp-reg))
-   :prompt "Choose a card"
-   :choices (req (cancellable (:deck corp) :sorted))
-   :effect (effect (move target :hand)
-                   (shuffle! :deck))
-   :msg "search R&D for a card and add it to HQ"})
+  (let [(tutor-ab [prompt-msg]
+        {:prompt prompt-msg
+         :choices (req (cancellable (:deck corp) :sorted))
+         :effect (effect (move target :hand))})]
+    {:implementation "Increase to number of cards added not implemented"
+     :req (req (:scored-agenda corp-reg))
+     :effect (effect (resolve-ability (tutor-ab "Choose a card (1 of 2)") target :hand)
+                     (resolve-ability (tutor-ab "Choose a card (2 of 2)") target :hand)
+                     (shuffle! :deck))
+     :msg "search R&D for 2 cards and add them to HQ"}))
+        
 
 (define-card "An Offer You Can't Refuse"
   {:async true
@@ -1466,7 +1470,7 @@
 
 (define-card "Predictive Algorithm"
   {:events [{:event :pre-steal-cost
-             :effect (effect (steal-cost-bonus [:credit 2]))}]})
+             :effect (effect (steal-cost-bonus [:credit 3]))}]})
 
 (define-card "Preemptive Action"
   {:async true
