@@ -79,9 +79,9 @@
              :choices (req (cancellable (:deck corp) :sorted))
              :effect (effect (move target :hand))})]
     {:req (req (:scored-agenda corp-reg))
-     :effect (effect (wait-for (resolve-ability (tutor-ab "Choose a card (1 of 2)") target :hand)
-                               (resolve-ability (tutor-ab "Choose a card (2 of 2)") target :hand)
-                               (shuffle! :deck)))
+     :effect (req (wait-for (resolve-ability state side (tutor-ab "Choose a card (1 of 2)") target :hand)
+                            (resolve-ability state side (tutor-ab "Choose a card (2 of 2)") target :hand)
+                            (shuffle! state side :deck)))
      :msg "search R&D for 2 cards and add them to HQ"}))
         
 
