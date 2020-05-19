@@ -74,10 +74,10 @@
      :effect (effect (continue-ability (ab 0 target) card nil))}))
 
 (define-card "Aggressive Negotiation"
-  (let [(tutor-ab [prompt-msg]
-        {:prompt prompt-msg
-         :choices (req (cancellable (:deck corp) :sorted))
-         :effect (effect (move target :hand))})]
+  (letfn [(tutor-ab [prompt-msg]
+            {:prompt prompt-msg
+             :choices (req (cancellable (:deck corp) :sorted))
+             :effect (effect (move target :hand))})]
     {:implementation "Increase to number of cards added not implemented"
      :req (req (:scored-agenda corp-reg))
      :effect (effect (resolve-ability (tutor-ab "Choose a card (1 of 2)") target :hand)
