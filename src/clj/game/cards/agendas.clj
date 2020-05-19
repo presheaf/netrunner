@@ -1533,9 +1533,9 @@
     {:interactive (req true)
      :msg (msg "add 2 cards from R&D to HQ and shuffle R&D")
      :req (req (pos? (count (:deck corp))))
-     :effect (effect (resolve-ability (tutor-ab "Choose a card (1 of 2)") target :hand)
-                     (resolve-ability (tutor-ab "Choose a card (2 of 2)") target :hand)
-                     (shuffle! :deck))}))
+     :effect (req (wait-for (resolve-ability state side (tutor-ab "Choose a card (1 of 2)") target :hand)
+                            (resolve-ability state side (tutor-ab "Choose a card (2 of 2)") target :hand)
+                            (shuffle! state side :deck)))}))
 
 (define-card "The Future Perfect"
   {:flags {:rd-reveal (req true)}
