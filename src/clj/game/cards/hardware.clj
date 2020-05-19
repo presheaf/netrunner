@@ -270,7 +270,7 @@
                                                                  (set installed-card-names))]
                                (wait-for (trash-cards state side targets {:unpreventable true})
                                          (let [trashed-cards async-result]
-                                           (wait-for (draw state side (* 3 (count overlap)) nil)
+                                           (wait-for (draw state side (* 3 (count (filter overlap trashed-card-names))) nil)
                                                      (system-msg state side
                                                                  (str "spends [Click] to use Capstone to trash "
                                                                       (join ", " (map :title trashed-cards))
