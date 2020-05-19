@@ -78,8 +78,7 @@
             {:prompt prompt-msg
              :choices (req (cancellable (:deck corp) :sorted))
              :effect (effect (move target :hand))})]
-    {:implementation "Increase to number of cards added not implemented"
-     :req (req (:scored-agenda corp-reg))
+    {:req (req (:scored-agenda corp-reg))
      :effect (effect (resolve-ability (tutor-ab "Choose a card (1 of 2)") target :hand)
                      (resolve-ability (tutor-ab "Choose a card (2 of 2)") target :hand)
                      (shuffle! :deck))

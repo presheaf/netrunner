@@ -1525,15 +1525,6 @@
              :msg "do 2 additional meat damage"
              :effect (effect (damage-bonus :meat 2))}]})
 
-(define-card "Aggressive Negotiation"
-  (let 
-    {:implementation "Increase to number of cards added not implemented"
-     :req (req (:scored-agenda corp-reg))
-     :effect (effect (resolve-ability (tutor-ab "Choose a card (1 of 2)") target :hand)
-                     (resolve-ability (tutor-ab "Choose a card (2 of 2)") target :hand)
-                     (shuffle! :deck))
-     :msg "search R&D for 2 cards and add them to HQ"}))
-
 (define-card "The Future is Now"
   (letfn [(tutor-ab [prompt-msg]
             {:prompt prompt-msg
