@@ -1027,7 +1027,8 @@
   {:interactive (req true)
    :choices {:card #(and (ice? %)
                          (not (rezzed? %))
-                         (installed? %))}
+                         (installed? %))
+             :max 2}
    :effect (effect (rez target {:ignore-cost :all-costs}))})
 
 (define-card "Private Security Force"
