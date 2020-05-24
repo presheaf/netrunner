@@ -2840,9 +2840,9 @@
                       {:async true
                        :prompt "How many [Credits]?"
                        :choices :credit
-                       :msg (msg "take 2 tags and make the Corp lose " target " [Credits]")
+                       :msg (msg "take 1 tag and make the Corp lose " target " [Credits]")
                        :effect (effect (lose-credits :corp target)
-                                       (gain-tags eid 2))}}
+                                       (gain-tags eid 1))}}
                      card))})
 
 (define-card "Wanton Destruction"

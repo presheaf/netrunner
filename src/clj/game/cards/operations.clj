@@ -1249,8 +1249,8 @@
 
 (define-card "Midseason Replacements"
   {:req (req (last-turn? state :runner :stole-agenda))
-   :trace {:base 2
-           :label "Trace 2 - Give the Runner X tags"
+   :trace {:base 3
+           :label "Trace 3 - Give the Runner X tags"
            :successful {:msg "give the Runner X tags"
                         :async true
                         :effect (effect (system-msg

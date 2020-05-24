@@ -1571,7 +1571,7 @@
              :effect (effect (gain-credits 1))}]})
 
 (define-card "Whizzard: Master Gamer"
-  {:recurring 2
+  {:recurring 3
    :interactions {:pay-credits {:req (req (and (= :runner-trash-corp-cards (:source-type eid))
                                                (corp? target)))
                                 :type :recurring}}})
