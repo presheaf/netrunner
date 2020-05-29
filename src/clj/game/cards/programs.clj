@@ -913,11 +913,11 @@
                {:label "Place 2 virus counter (start of turn)"
                 :once :per-turn
                 :cost [:credit 1]
-                :msg "place 2 virus counters"
+                :msg "place 1 virus counter"
                 :req (req (:runner-phase-12 @state))
-                :effect (effect (add-counter card :virus 2)
+                :effect (effect (add-counter card :virus 1)
                                 (update-breaker-strength card))}]
-   :strength-bonus (req (get-virus-counters state card))})
+   :strength-bonus (req (+ 1 (get-virus-counters state card)))})
 
 (define-card "Datasucker"
   {:events [{:event :successful-run
@@ -1218,8 +1218,7 @@
                         card target)))}}}]})
 
 (define-card "Faust"
-  {:abilities [(break-sub [:trash-from-hand 1] 1)
-               (strength-pump [:trash-from-hand 1] 2)]})
+  {:abilities [(break-sub [:trash-from-hand 1] 1)]})
 
 (define-card "Fawkes"
   {:implementation "Stealth credit restriction not enforced"
