@@ -2458,7 +2458,7 @@
                             (if (>= 2 (count targets)) ; TODO: clean up this mess
                               (wait-for (expose state side (second targets))
                                         (if (= 3 (count targets))
-                                          (expose state side (third targets))
+                                          (expose state side (nth targets 3))
                                           (effect-completed state side eid)))
                               (effect-completed state side eid)))
                   (effect-completed state side eid)))})
