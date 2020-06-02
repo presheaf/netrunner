@@ -1167,14 +1167,14 @@
              :effect (req (as-agenda state :runner eid card 1))}]})
 
 (define-card "Freelance Coding Contract"
-  {:choices {:max 5
+  {:choices {:max 8
              :card #(and (program? %)
                          (in-hand? %))}
    :msg (msg "trash " (join ", " (map :title targets)) " and gain "
-             (* 3 (count targets)) " [Credits]")
+             (* 2 (count targets)) " [Credits]")
    :async true
    :effect (req (wait-for (trash-cards state side targets {:unpreventable true})
-                          (gain-credits state side eid (* 3 (count targets)) nil)))})
+                          (gain-credits state side eid (* 2 (count targets)) nil)))})
 
 (define-card "Game Day"
   {:msg (msg "draw " (- (hand-size state :runner) (count (:hand runner))) " cards")

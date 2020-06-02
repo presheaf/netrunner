@@ -3171,7 +3171,7 @@
 
 (define-card "Viktor 2.0"
   {:abilities [(power-counter-ability (do-brain-damage 1))]
-   :subroutines [(trace-ability 3 add-power-counter)
+   :subroutines [(trace-ability 2 add-power-counter)
                  end-the-run]
    :runner-abilities [(bioroid-break 2 2)]})
 
