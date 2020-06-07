@@ -2,7 +2,7 @@
   (:require [aero.core :refer [read-config]]
             [clojure.java.io :as io]))
 
-(defonce frontend-version (atom "0.1.0"))
+(defonce frontend-version (atom "0.2.5"))
 
 (defonce server-mode (atom "prod"))
 
