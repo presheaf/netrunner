@@ -18,7 +18,9 @@
            [:p "This is a lightly modified version of " [:a {:href "http://jinteki.net" :target "_blank"} "Jinteki.net"]
             "a website founded by " [:a {:href "http://twitter.com/mtgred" :target "_blank"} "@mtgred"]
             ", an avid Netrunner player from Belgium. For up-to-date information about contributors etc., please see the original site. "
-            "All credits, rights et cetera to the source code are entirely due to the original creators and contributors to Jinteki.net."]
+            "All credits, rights et cetera to the source code are entirely due to the original creators and contributors to Jinteki.net. "
+            "I'd also like to thank NoahTheDuke for being incredibly knowledgable and helpful in general, and for answering all kinds of "
+            "questions I had about Jinteki internals for this project in particular."]
            [:p "The purpose of this page is to facilitate playtesting of an (unofficial) version of Netrunner, where the early cards in the game "
             "have been rebalanced. Changes have been kept minor where possible."
             " For discussion of the format, see #netrunner-reboot-project on Stimslack, and for a list of all card changes, see "
