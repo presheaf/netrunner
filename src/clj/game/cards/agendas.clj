@@ -834,7 +834,7 @@
 
 (define-card "License Acquisition"
   (letfn [(lacq [n maxcards]
-            {:prompt "Select a card in HQ to install with License Acquisition"
+            {:prompt "Select a card in HQ or Archives to install with License Acquisition"
              :async true
              :show-discard true
              :choices {:card #(and (or (asset? %) (upgrade? %))
