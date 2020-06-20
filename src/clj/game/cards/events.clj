@@ -2818,8 +2818,8 @@
                          (or (hardware? %)
                              (program? %)))
              :max 2}
-   :msg (msg "move " (join ", " (map :title choices)) " to their Grip")
-   :effect (req (doseq [c targets]
+   :msg (msg "move " (join ", " (map :title target)) " to their Grip")
+   :effect (req (doseq [c target]
                   (move state side c :hand)))})
 
 (define-card "Unscheduled Maintenance"
