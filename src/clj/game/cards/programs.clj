@@ -703,7 +703,7 @@
    :events [{:event :purge
              :async true
              :effect (req (swap! state update-in [:corp :register] dissoc :cannot-score)
-                          (trash state side eid card {:cause :purge}))}
+                          (move state side card :rfg))}
             {:event :corp-install
              :req (req (agenda? target))
              :effect (req (swap! state update-in [:corp :register :cannot-score] #(cons target %)))}]

@@ -602,7 +602,7 @@
 
 (define-card "Firmware Updates"
   {:silent (req true)
-   :effect (effect (add-counter card :agenda 3))
+   :effect (effect (add-counter card :agenda 5))
    :abilities [{:cost [:agenda 1]
                 :choices {:card #(and (ice? %)
                                       (can-be-advanced? %))}
@@ -833,15 +833,22 @@
                 :effect (effect (jack-out-prevent))}]})
 
 (define-card "License Acquisition"
-  {:interactive (req true)
-   :prompt "Select an asset or upgrade to install from Archives or HQ"
-   :show-discard true
-   :choices {:card #(and (or (asset? %) (upgrade? %))
+  (letfn [(lacq [n maxcards]
+            {:prompt "Select a card in HQ to install with License Acquisition"
+             :async true
+             :choices {:card #(and (or (asset? %) (upgrade? %))
                          (#{[:hand] [:discard]} (:zone %))
                          (corp? %))}
-   :msg (msg "install and rez " (:title target) ", ignoring all costs")
-   :async true
-   :effect (effect (corp-install eid target nil {:install-state :rezzed-no-cost}))})
+             :effect (req (wait-for
+                           (corp-install state side target nil {:install-state :rezzed-no-cost
+                                                                :ignore-all-cost true})
+                           (continue-ability state side (when (< n maxcards)
+                                                          (lacq (inc n) maxcards))
+                                             card nil)))})]
+    {:interactive (req true)
+     :async true
+     :msg "install up to two assets or upgrades from HQ, ignoring all costs"
+     :effect (req (continue-ability state side (lacq 1 2) card nil))}))
 
 (define-card "Mandatory Seed Replacement"
   (letfn [(msr [] {:prompt "Select two pieces of ICE to swap positions"

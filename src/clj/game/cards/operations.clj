@@ -17,6 +17,7 @@
 (define-card "24/7 News Cycle"
   {:req (req (pos? (count (:scored corp))))
    :async true
+   :implementation "Effect resolves erroneously if additional costs are ignored (e.g. via Accelerated Diagnostics)."
    :additional-cost [:forfeit 3]  ; TODO: Verify this works
    :effect (req (continue-ability
                   state side

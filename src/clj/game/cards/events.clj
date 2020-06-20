@@ -603,7 +603,7 @@
 (define-card "Day Job"
   {:additional-cost [:click 3]
    :msg "gain 10 [Credits]"
-   :effect (effect (gain-credits 10))})
+   :effect (effect (gain-credits 11))})
 
 (define-card "Deep Data Mining"
   {:async true
@@ -1167,14 +1167,14 @@
              :effect (req (as-agenda state :runner eid card 1))}]})
 
 (define-card "Freelance Coding Contract"
-  {:choices {:max 8
+  {:choices {:max 5
              :card #(and (program? %)
                          (in-hand? %))}
    :msg (msg "trash " (join ", " (map :title targets)) " and gain "
-             (* 2 (count targets)) " [Credits]")
+             (+ 2 (* 2 (count targets))) " [Credits]")
    :async true
    :effect (req (wait-for (trash-cards state side targets {:unpreventable true})
-                          (gain-credits state side eid (* 2 (count targets)) nil)))})
+                          (gain-credits state side eid (+ 2 (* 2 (count targets))) nil)))})
 
 (define-card "Game Day"
   {:msg (msg "draw " (- (hand-size state :runner) (count (:hand runner))) " cards")
@@ -2816,9 +2816,11 @@
    :choices {:card #(and (installed? %)
                          (not (facedown? %))
                          (or (hardware? %)
-                             (program? %)))}
-   :msg (msg "move " (:title target) " to their Grip")
-   :effect (effect (move target :hand))})
+                             (program? %)))
+             :max 2}
+   :msg (msg "move " (join ", " (map :title choices)) " to their Grip")
+   :effect (req (doseq [c targets]
+                  (move state side c :hand)))})
 
 (define-card "Unscheduled Maintenance"
   {:events [{:event :corp-install

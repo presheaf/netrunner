@@ -487,16 +487,16 @@
 
 (define-card "Architect"
   {:flags {:untrashable-while-rezzed true}
-   :subroutines [{:label "Look at the top 3 cards of R&D"
+   :subroutines [{:label "Look at the top 4 cards of R&D"
                   :prompt "Choose a card to install"
                   :async true
                   :activatemsg "uses Architect to look at the top 5 cards of R&D"
                   :req (req (and (not (string? target))
                                  (not (operation? target))))
                   :not-distinct true
-                  :choices (req (conj (take 3 (:deck corp)) "No install"))
+                  :choices (req (conj (take 4 (:deck corp)) "No install"))
                   :effect (effect (system-msg (str "chooses the card in position "
-                                                   (+ 1 (.indexOf (take 3 (:deck corp)) target))
+                                                   (+ 1 (.indexOf (take 4 (:deck corp)) target))
                                                    " from R&D (top is 1)"))
                                   (corp-install eid target nil {:ignore-all-cost true}))}
                  {:label "Install a card from HQ or Archives"

@@ -193,8 +193,8 @@
 (define-card "Angel Arena"
   {:prompt "How many power counters?"
    :choices :credit
-   :msg (msg "add " target " power counters")
-   :effect (effect (add-counter card :power target))
+   :msg (msg "add " (* 2 target) " power counters")
+   :effect (effect (add-counter card :power (* 2 target)))
    :events [(trash-on-empty :power)]
    :abilities [{:cost [:power 1]
                 :msg "look at the top card of Stack"
