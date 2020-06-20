@@ -836,6 +836,7 @@
   (letfn [(lacq [n maxcards]
             {:prompt "Select a card in HQ to install with License Acquisition"
              :async true
+             :show-discard true
              :choices {:card #(and (or (asset? %) (upgrade? %))
                          (#{[:hand] [:discard]} (:zone %))
                          (corp? %))}
