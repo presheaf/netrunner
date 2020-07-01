@@ -1941,10 +1941,10 @@
          :once :per-turn
          :msg (msg "remove 1 counter from " (:title target))
          :choices {:card #(:host %)}
-         :effect (req (if (not (pos? (get-counters (get-card state target) :power)))
+         :effect (req (add-counter state side target :power -1)
+                      (if (not (pos? (get-counters (get-card state target) :power)))
                         (runner-install state side eid (dissoc target :counter) {:ignore-all-cost true})
-                        (do (add-counter state side target :power -1)
-                            (effect-completed state side eid))))}]
+                        (effect-completed state side eid)))}]
     {:flags {:drip-economy true}
      :abilities [{:async true
                   :label "Host a program or piece of hardware"
