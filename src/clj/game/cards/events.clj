@@ -602,7 +602,7 @@
 
 (define-card "Day Job"
   {:additional-cost [:click 3]
-   :msg "gain 10 [Credits]"
+   :msg "gain 11 [Credits]"
    :effect (effect (gain-credits 11))})
 
 (define-card "Deep Data Mining"
