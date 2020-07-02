@@ -77,7 +77,7 @@
 (defn handle-game-start
   [{{{:keys [username] :as user} :user} :ring-req
     client-id                           :client-id}]
-  (when-let [{:keys [players gameid started messages] :as game} (lobby/game-for-client client-id)]
+  (when-let [{:keys [players gameid started messages format] :as game} (lobby/game-for-client client-id)]
     (when (and (lobby/first-player? client-id gameid)
                (not started))
       (let [strip-deck (fn [player] (-> player

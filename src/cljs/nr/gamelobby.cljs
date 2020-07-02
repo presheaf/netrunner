@@ -344,21 +344,23 @@
 (defn pending-game
   [s decks games gameid password-gameid sets user]
   (let [game (some #(when (= @gameid (:gameid %)) %) @games)
-        players (:players game)]
+        players (:players game)
+        is-js (= (:format game) "jumpstart")]
     (when game
       [:div
        [:div.button-bar
         (when (first-user? players @user)
           [cond-button
            "Start"
-           (every? :deck players)
+           (or (every? :deck players)
+               (and is-js (= (count players) 2)))
            #(ws/ws-send! [:netrunner/start @gameid])])
         [:button {:on-click #(leave-lobby s)} "Leave"]
         (when (first-user? players @user)
           [:button {:on-click #(ws/ws-send! [:lobby/swap @gameid])} "Swap sides"])]
        [:div.content
         [:h2 (:title game)]
-        (when-not (every? :deck players)
+        (when-not (or (every? :deck players) is-js)
           [:div.flash-message "Waiting players deck selection"])
         [:h3 "Players"]
         [:div.players
@@ -377,7 +379,7 @@
                     "Deck selected")]])
               (when-let [deck (:deck player)]
                 [:div.float-right [deck-format-status-span deck (:format game "reboot") true]])
-              (when this-player
+              (when (and this-player (not is-js))
                 [:span.fake-link.deck-load
                  {:on-click #(reagent-modals/modal!
                                [deckselect-modal user {:games games :gameid gameid

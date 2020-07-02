@@ -305,6 +305,7 @@
     {:format (:format deck)
      :casual valid
      :reboot (build-format-legality valid :reboot deck)
+     :jumpstart (build-format-legality valid :jumpstart deck)
      :everything (build-format-legality valid :everything deck)}))
 
 (defn trusted-deck-status
