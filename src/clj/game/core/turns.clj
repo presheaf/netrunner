@@ -3,6 +3,7 @@
 (declare all-active card-flag-fn? clear-turn-register! create-deck create-js-deck hand-size keep-hand mulligan
          make-card turn-message add-sub create-basic-action-cards)
 
+
 (defn- card-implemented
   "Checks if the card is implemented. Looks for a valid return from `card-def`.
   If implemented also looks for `:implementation` key which may contain special notes.
@@ -45,10 +46,13 @@
   [{:keys [players gameid spectatorhands room format] :as game}]
   (let [corp (some #(when (corp? %) %) players)
         runner (some #(when (runner? %) %) players)
-        corp-deck (create-deck (:deck corp) (:user corp))
-        runner-deck ((if (= format "jumpstart")
-                       create-js-deck
-                       create-deck) (:deck runner) (:user runner))
+        ;; corp-deck (create-deck (:deck corp) (:user corp))
+        corp-deck (if (= format "jumpstart")
+                    (create-js-deck (:user corp) :corp)
+                    (create-deck (:deck corp) (:user corp)))
+        runner-deck (if (= format "jumpstart")
+                      (create-js-deck (:user runner) :runner)
+                      (create-deck (:deck runner) (:user runner)))
         corp-deck-id (get-in corp [:deck :_id])
         runner-deck-id (get-in runner [:deck :_id])
         corp-options (get-in corp [:options])
@@ -129,12 +133,15 @@
 (defn create-js-deck
   "Creates a shuffled draw deck (R&D/Stack) from the given list of cards.
   Loads card data from the server-card map if available."
-  ([deck] (create-js-deck deck nil))
-  ([deck user]
-   (create-deck {:cards [
-                         {:qty 5 :card {:title "Sure Gamble"}}
-                         ]
-                 } user)))
+  ([user side]
+   (create-deck
+    ;; {:cards [
+    ;;          {:qty 5 :card {:title "Sure Gamble"}}
+    ;;          ]}
+    (let [d (deckgen/generate-deck side)]
+      ;; (prn d)
+      {:cards d})
+    user)))
 
 (defn make-rid
   "Returns a progressively-increasing integer to identify a new remote server."
