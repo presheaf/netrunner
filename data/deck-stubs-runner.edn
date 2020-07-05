@@ -1,0 +1,41 @@
+[{:name "Pawnshop"
+  :cards
+  ["Aesop's Pawnshop"
+   "Hostage"
+   "Levy AR Lab Access"
+   {3 #{"Cache" "Harbinger"}}
+   #{"Sahasrara" "Scheherazade" "Cybsoft MacroDrive"}
+   "Brahman"
+   "Cerberus \"Lady\" H1"
+   "Cerberus \"Rex\" H2"
+   "Cerberus \"Cuj.0\" H3"
+   #{"Nyashia" "Imp" "D4v1d"}
+   "Self-modifying Code"
+   #{"Clone Chip" "Test Run"}
+   #{"Maya" "Box-E"}]}
+ {:name "Stimshop"
+  :cards
+  [{3 "Stimhack"}
+   #{"Box-E" "Logos"}
+   "Self-modifying Code"
+   "Clone Chip"
+   {2 "Personal Workshop"}
+   {2 "R&D Interface"}
+   #{"Diesel" "Sure Gamble" "Quality Time" "Lucky Find"}
+   #{"Femme Fatale" "Garrote"}
+   "Torch"
+   #{["Morning Star"
+      "Dedicated Processor"]
+     ["Corroder"
+      #{"Same Old Thing" "Clone Chip"}]}]}
+ {:name "Virus"
+  :cards
+  ["Darwin"
+   {2 "Djinn"}
+   "Grimoire"
+   "Déjà Vu"
+   #{"Déjà Vu" "Surge" "Virus Breeding Ground" "Clone Chip"}
+   {4 #{"Cyberfeeder" "Sure Gamble" "Queen's Gambit" "Inject" "Diesel" "Dirty Laundry"}}
+   {5 #{"Nerve Agent" "Medium" "Parasite" "Datasucker" "Lamprey"}}
+   
+   ]}]

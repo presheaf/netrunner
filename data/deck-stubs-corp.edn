@@ -1,0 +1,62 @@
+[{:name "Spiky"
+  :cards
+  ["Jackson Howard"
+   {2 "House of Knives"}
+   #{["The Future Perfect"
+      "Ben Musashi"
+      "House of Knives"]
+     [{2 "Fetal AI"}
+      "Marcus Batty"]
+     ["Philotic Entanglement"
+      {2 #{"Hostile Takeover"
+           "House of Knives"}}]}
+   {3 #{"Medical Research Fundraiser"
+        "Sweeps Week"
+        "Too Big to Fail"
+        "Hedge Fund"}}
+   {2 #{"Cortex Lock"
+        "Tsurugi"
+        "Neural Katana"
+        "Cobra"
+        "Komainu"}}
+   {2 #{#{"Wall of Thorns"
+          "Heimdall 1.0"}
+        #{"Chum"
+          "Pup"
+          "Yagura"}}}
+   {2 #{"Shock!"
+        "Neural EMP"
+        "Snare!"
+        "Hokusai Grid"
+        "Data Mine"}}]}
+ {:name "Taggy"
+  :cards
+  ["Jackson Howard"
+   "Global Food Initiative"
+   {3 #{"Breaking News" "TGTBT" "Quantum Predictive Model" "15 Minutes"}}
+   {3 #{"Sweeps Week" "Private Contracts" "Marked Accounts"}}
+   #{"K. P. Lynn" "Bernice Mai" "Prisec"}
+   {2 #{"Data Raven" "Shadow" "Turnpike" "Pop-up Window"}}
+   #{"Resistor" "IP Block" "Wraparound"}
+   #{"Tollbooth" "Hydra"}
+   #{"Universal Connectivity Fee" "Closed Accounts" "Archived Memories"}
+   "Exchange of Information"]}
+ {:name "Never advance"
+  :cards
+  ["Jackson Howard"
+   {3 #{"Project Vitruvius" "Accelerated Beta Test" "Braintrust"}}
+   {3 #{"Adonis Campaign" "Marilyn Campaign" "Launch Campaign"
+        "Eve Campaign" "Alix T4LB07" "Melange Mining Corp."}}
+   #{"Fenris" "Rototurret" "Sagittarius"}
+   #{"Hudson 1.0" "Eli 1.0" "Markus 1.0" "Architect" "Caduceus"}
+   #{"Viktor 2.0" "Heimdall 2.0" "Heimdall 1.0" "Tollbooth"}
+   {2 #{"Enigma" "Datapike" "Quandary" "Viktor 1.0" "Quicksand"
+        "Bastion" "Wall of Static" "Seidr Adaptive Barrier"}}
+   #{"Ash 2X3ZB9CY" "Red Herrings" "Caprice Nisei" "Strongbox"}
+   #{"Biotic Labor" "SanSan City Grid" "Director Haas"}
+   #{"Domestic Sleepers" "Interns"}
+
+   
+   ]}
+
+ ]
