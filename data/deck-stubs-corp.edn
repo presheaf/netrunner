@@ -29,34 +29,161 @@
         "Snare!"
         "Hokusai Grid"
         "Data Mine"}}]}
+
  {:name "Taggy"
   :cards
   ["Jackson Howard"
    "Global Food Initiative"
-   {3 #{"Breaking News" "TGTBT" "Quantum Predictive Model" "15 Minutes"}}
-   {3 #{"Sweeps Week" "Private Contracts" "Marked Accounts"}}
-   #{"K. P. Lynn" "Bernice Mai" "Prisec"}
-   {2 #{"Data Raven" "Shadow" "Turnpike" "Pop-up Window"}}
-   #{"Resistor" "IP Block" "Wraparound"}
-   #{"Tollbooth" "Hydra"}
-   #{"Universal Connectivity Fee" "Closed Accounts" "Archived Memories"}
+   {3 #{"Breaking News"
+        "TGTBT"
+        "Quantum Predictive Model"
+        "15 Minutes"}}
+   {3 #{"Sweeps Week"
+        "Private Contracts"
+        "Marked Accounts"}}
+   #{"K. P. Lynn"
+     "Bernice Mai"
+     "Prisec"}
+   {2 #{"Data Raven"
+        "Shadow"
+        "Turnpike"
+        "Pop-up Window"}}
+   #{"Resistor"
+     "IP Block"
+     "Wraparound"}
+   #{"Tollbooth"
+     "Hydra"}
+   #{"Universal Connectivity Fee"
+     "Closed Accounts"
+     "Archived Memories"}
    "Exchange of Information"]}
+
  {:name "Never advance"
   :cards
   ["Jackson Howard"
-   {3 #{"Project Vitruvius" "Accelerated Beta Test" "Braintrust"}}
-   {3 #{"Adonis Campaign" "Marilyn Campaign" "Launch Campaign"
-        "Eve Campaign" "Alix T4LB07" "Melange Mining Corp."}}
-   #{"Fenris" "Rototurret" "Sagittarius"}
-   #{"Hudson 1.0" "Eli 1.0" "Markus 1.0" "Architect" "Caduceus"}
-   #{"Viktor 2.0" "Heimdall 2.0" "Heimdall 1.0" "Tollbooth"}
-   {2 #{"Enigma" "Datapike" "Quandary" "Viktor 1.0" "Quicksand"
-        "Bastion" "Wall of Static" "Seidr Adaptive Barrier"}}
-   #{"Ash 2X3ZB9CY" "Red Herrings" "Caprice Nisei" "Strongbox"}
-   #{"Biotic Labor" "SanSan City Grid" "Director Haas"}
-   #{"Domestic Sleepers" "Interns"}
+   {3 #{"Project Vitruvius"
+        "Accelerated Beta Test"
+        "Braintrust"}}
+   {3 #{"Adonis Campaign"
+        "Marilyn Campaign"
+        "Launch Campaign"
+        "Eve Campaign"
+        "Alix T4LB07"
+        "Melange Mining Corp."
+        "Rashida Jaheem"}}
+   #{"Fenris"
+     "Rototurret"
+     "Sagittarius"}
+   #{"Hudson 1.0"
+     "Eli 1.0"
+     "Markus 1.0"
+     "Architect"
+     "Caduceus"}
+   #{"Viktor 2.0"
+     "Heimdall 2.0"
+     "Heimdall 1.0"
+     "Tollbooth"}
+   {2 #{"Enigma"
+        "Datapike"
+        "Quandary"
+        "Viktor 1.0"
+        "Quicksand"
+        "Bastion"
+        "Wall of Static"
+        "Seidr Adaptive Barrier"}}
+   #{"Ash 2X3ZB9CY"
+     "Red Herrings"
+     "Caprice Nisei"
+     "Strongbox"}
+   #{"Biotic Labor"
+     "SanSan City Grid"
+     "Director Haas"}
+   #{"Domestic Sleepers"
+     "Interns"}]}
 
-   
-   ]}
+ {:name "Scorchy"
+  :cards
+  ["Jackson Howard"
+   {3 #{"Too Big to Fail"
+        "Hedge Fund"
+        "Beanstalk Royalties"
+        "Blue Level Clearance"
+        "Restructure"
+        "Rashida Jaheem"}}
+   {3 #{"Project Atlas"
+        "Posted Bounty"}}
+   {2 #{"Ice Wall"
+        "Vanilla"
+        "Quandary"
+        "Enigma"
+        "Wall of Static"
+        "Wraparound"
+        "Magnet"}}
+   #{"Grim"
+     "Rototurret"
+     "Cobra"}
+   #{"Data Raven"
+     "Shadow"
+     "Hunter"}
+   #{"Snare!"
+     "Prisec"}
+   {2 "Scorched Earth"}
+   "SEA Source"]}
 
- ]
+ {:name "Advancable ice"
+  :cards
+  ["Jackson Howard"
+   {4 #{"Hedge Fund"
+        "Shipment from Kaguya"
+        "Simone Diego"
+        "Beanstalk Royalties"
+        "Lateral Growth"
+        "Celebrity Gift"}}
+   {2 "Firmware Updates"}
+   {2 "AstroScript Pilot Program"}
+   {3 #{"Ice Wall"
+        "Fire Wall"
+        "Hadrian's Wall"}}
+   {2 #{"Nebula"
+        "Wormhole"
+        "Asteroid Belt"}}
+   "Trick of Light"]}
+
+ {:name "NEXT"
+  :cards
+  ["Jackson Howard"
+   {2 "Elective Upgrade"}
+   {2 #{"Hedge Fund"
+        "Blue Level Clearance"
+        "Beanstalk Royalties"
+        "Lateral Growth"
+        "Celebrity Gift"}}
+   {2 "Thomas Haas"}
+   {5 #{"NEXT Bronze"
+        "NEXT Silver"}}
+   {2 #{"NEXT Gold"
+        "NEXT Diamond"
+        "NEXT Sapphire"}}
+   #{"Strongbox"
+     "Red Herrings"
+     "Caprice Nisei"
+     "Corporate Troubleshooter"}]}
+
+ {:name "EtR"
+  :cards
+  ["Jackson Howard"]
+  {3 "Nisei MK II"}
+  {3 #{"Marilyn Campaign"
+       "Launch Campaign"
+       "Melange Mining Corp."
+       "Celebrity Gift"}}
+  {2 "Caprice Nisei"}
+  {3 #{"Border Control"
+       "Eli 1.0"
+       "Enigma"
+       "Wall of Thorns"
+       "Himitsu-Bako"}}
+  {2 #{"Pop-up Window"
+       "Pup"
+       "Yagura"}}
+  "Interns"}]
