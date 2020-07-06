@@ -607,9 +607,9 @@
                 :choices {:card #(and (ice? %)
                                       (can-be-advanced? %))}
                 :req (req (pos? (get-counters card :agenda)))
-                :msg (msg "place 2 advancement tokens on " (card-str state target))
+                :msg (msg "place 1 advancement tokens on " (card-str state target))
                 :once :per-turn
-                :effect (effect (add-prop target :advance-counter 2))}]})
+                :effect (effect (add-prop target :advance-counter 1))}]})
 
 (define-card "Flower Sermon"
   {:silent (req true)
