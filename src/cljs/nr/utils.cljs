@@ -95,10 +95,12 @@
 
 (def slug->format
   {"reboot" "Reboot"
+   "jumpstart" "Jumpstart"
    "everything" "Everything"})
 
 (def format->slug
   {"Reboot" "reboot"
+   "Jumpstart" "jumpstart"
    "Everything" "everything"})
 
 (defn regex-escape [string]

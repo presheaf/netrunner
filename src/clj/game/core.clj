@@ -4,7 +4,7 @@
             [game.core.card-defs :refer [card-def]]
             [game.core.prompts :refer :all]
             [game.core.toasts :refer [toast show-error-toast]]
-            [game.utils :refer :all]
+            [game.utils :as utils :refer :all]
             [game.macros :refer [effect req msg wait-for continue-ability]]
             [game.core.state :refer :all]
             [game.core.player :refer :all]
@@ -21,7 +21,8 @@
             [jinteki.cards :refer [all-cards]]
             [tasks.nrdb :refer [replace-collection update-config]]
             [tasks.altart :refer [add-art]]
-            [game.quotes :as quotes])
+            [game.quotes :as quotes]
+            [game.deckgen :as deckgen])
   (:import [game.core.state State]
            [game.core.player Corp Runner]
            [game.core.card Card]))

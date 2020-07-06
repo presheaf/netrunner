@@ -1,0 +1,117 @@
+[{:name "Pawnshop"
+  :cards
+  ["Aesop's Pawnshop"
+   "Hostage"
+   "Levy AR Lab Access"
+   {3 #{"Cache" "Harbinger"}}
+   #{"Sahasrara" "Scheherazade" "Cybsoft MacroDrive"}
+   "Brahman"
+   "Cerberus \"Lady\" H1"
+   "Cerberus \"Rex\" H2"
+   "Cerberus \"Cuj.0\" H3"
+   #{"Nyashia" "Imp" "D4v1d"}
+   "Self-modifying Code"
+   #{"Clone Chip" "Test Run"}
+   #{"Maya" "Box-E"}]}
+ {:name "Stimshop"
+  :cards
+  [{3 "Stimhack"}
+   #{"Box-E" "Logos"}
+   "Self-modifying Code"
+   "Clone Chip"
+   {2 "Personal Workshop"}
+   {2 "R&D Interface"}
+   #{"Diesel"
+     "Sure Gamble"
+     "Quality Time"
+     "Lucky Find"}
+   #{"Femme Fatale"
+     "Garrote"}
+   "Torch"
+   #{["Morning Star"
+      "Dedicated Processor"]
+     ["Corroder"
+      #{"Same Old Thing"
+        "Clone Chip"}]}]}
+ {:name "Virus"
+  :cards
+  ["Darwin"
+   {2 "Djinn"}
+   "Grimoire"
+   "Déjà Vu"
+   #{"Déjà Vu"
+     "Surge"
+     "Virus Breeding Ground"
+     "Clone Chip"}
+   {4 #{"Cyberfeeder"
+        "Sure Gamble"
+        "Queen's Gambit"
+        "Inject"
+        "Diesel"
+        "Dirty Laundry"}}
+   {5 #{"Nerve Agent"
+        "Medium"
+        "Parasite"
+        "Datasucker"
+        "Lamprey"}}]}
+ {:name "Desperadosucker"
+  :cards
+  [{3 #{"Desperado"
+        "Security Testing"}}
+   {2 "Dirty Laundry"}
+   {2 "Datasucker"}
+   "Yog.0"
+   "Mimic"
+   "Corroder"
+   #{"Special Order"
+     "Self-modifying Code"}
+   {2 #{"Medium"
+        "Account Siphon"}}
+   {2 #{"Parasite"
+        "Inside Job"}}]}
+ {:name "Mopus"
+  :cards
+  [{2 "Magnum Opus"}
+   {3 #{"Test Run"
+        "Self-modifying Code"}}
+   #{"Gordian Blade"
+     "ZU.13 Key Master"}
+   #{"Corroder"
+     "Snowball"}
+   #{"Femme Fatale"
+     "Garrote"}
+   {3 #{"R&D Interface"
+        "HQ Interface"
+        "Legwork"
+        "The Maker's Eye"
+        "Vamp"}}
+   {2 #{"Sure Gamble"
+        "Lucky Find"
+        "Dirty Laundry"
+        "Daily Casts"
+        "Day Job"}}
+   {2 #{"Dinosaurus"
+        "The Toolbox"}}]}
+
+ {:name "PPVP"
+  :cards
+  [{3 "Prepaid VoicePAD"}
+   {5 #{"Dirty Laundry"
+        "Sure Gamble"
+        "Lucky Find"
+        "Quality Time"
+        "Stimhack"
+        "Diesel"}}
+   {2 #{"Indexing"
+        "Legwork"
+        "The Maker's Eye"
+        "Stimhack"}}
+   #{"Test Run"
+     "Self-modifying Code"}
+   #{"Corroder"
+     "Snowball"}
+   #{"Gordian Blade"
+     "ZU.13 Key Master"}
+   #{"Femme Fatale"
+     "Garrote"}
+   "Levy AR Lab Access"]}]
