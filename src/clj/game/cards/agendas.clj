@@ -100,13 +100,13 @@
      :effect (effect (show-wait-prompt :runner "Corp to use Advanced Concept Hopper")
                      (continue-ability
                        {:player :corp
-                        :prompt "Use Advanced Concept Hopper to draw 1 card or gain 1 [Credits]?"
+                        :prompt "Use Advanced Concept Hopper to draw 1 card or gain 2 [Credits]?"
                         :once :per-turn
-                        :choices ["Draw 1 card" "Gain 1 [Credits]" "No action"]
+                        :choices ["Draw 1 card" "Gain 2 [Credits]" "No action"]
                         :effect (req (case target
-                                       "Gain 1 [Credits]"
-                                       (do (gain-credits state :corp 1)
-                                           (system-msg state :corp (str "uses Advanced Concept Hopper to gain 1 [Credits]")))
+                                       "Gain 2 [Credits]"
+                                       (do (gain-credits state :corp 2)
+                                           (system-msg state :corp (str "uses Advanced Concept Hopper to gain 2 [Credits]")))
                                        "Draw 1 card"
                                        (do (draw state :corp)
                                            (system-msg state :corp (str "uses Advanced Concept Hopper to draw 1 card")))
@@ -418,7 +418,7 @@
            :msg "gain 1 [Credits]"
            :effect (req (gain-credits state :corp 1)
                         (add-counter state side card :credit -1))}]
-    {:effect (effect (add-counter card :credit 10))
+    {:effect (effect (add-counter card :credit 7))
      :silent (req true)
      :events [(assoc e :event :runner-turn-begins)
               (assoc e :event :corp-turn-begins)]}))
@@ -791,11 +791,11 @@
                             (effect-completed state side eid))))})
 
 (define-card "Improved Protein Source"
-  {:msg "make the Runner gain 4 [Credits]"
-   :effect (effect (gain-credits :runner 4))
+  {:msg "make the Runner gain 2 [Credits]"
+   :effect (effect (gain-credits :runner 2))
    :interactive (req true)
-   :stolen {:msg "make the Runner gain 4 [Credits]"
-            :effect (effect (gain-credits :runner 4))}})
+   :stolen {:msg "make the Runner gain 2 [Credits]"
+            :effect (effect (gain-credits :runner 2))}})
 
 (define-card "Improved Tracers"
   {:silent (req true)
@@ -1007,10 +1007,10 @@
 (define-card "Personality Profiles"
   (let [pp {:req (req (pos? (count (:hand runner))))
             :async true
-            :effect (req (let [c (first (shuffle (:hand runner)))]
+            :effect (req (let [cards (take 3 (shuffle (:hand runner)))]
                            (system-msg state side (str "uses Personality Profiles to force the Runner to trash "
-                                                       (:title c) " from their Grip at random"))
-                           (trash state side eid c nil)))}]
+                                                       (join ", " (map :title cards)) " from their Grip "))
+                           (trash-cards state side eid cards nil)))}]
     {:events [(assoc pp :event :searched-stack)
               (assoc pp
                      :event :runner-install
@@ -1037,7 +1037,9 @@
                          (not (rezzed? %))
                          (installed? %))
              :max 2}
-   :effect (effect (rez target {:ignore-cost :all-costs}))})
+   :msg (msg "rez " (join ", " (map :title targets)) ", ignoring all costs")
+   :effect (req (doseq [ice targets]
+                  (rez state side ice {:ignore-cost :all-costs})))})
 
 (define-card "Private Security Force"
   {:abilities [{:req (req tagged)
@@ -1673,7 +1675,7 @@
 
 (define-card "Voting Machine Initiative"
   {:silent (req true)
-   :effect (effect (add-counter card :agenda 3))
+   :effect (effect (add-counter card :agenda 5))
    :events [{:event :runner-turn-begins
              :async true
              :req (req (pos? (get-counters card :agenda)))

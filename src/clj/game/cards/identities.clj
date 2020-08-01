@@ -935,6 +935,7 @@
 (define-card "Leela Patel: Trained Pragmatist"
   (let [leela {:interactive (req true)
                :prompt "Select an unrezzed card to return to HQ"
+               :player :corp
                :choices {:card #(and (not (rezzed? %))
                                      (installed? %)
                                      (corp? %))}

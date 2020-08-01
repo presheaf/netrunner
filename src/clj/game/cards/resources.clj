@@ -1568,10 +1568,10 @@
                           :effect (effect (rez target {:ignore-cost :rez-cost :no-msg true})
                                           (system-say (str (:title card) " allows the Corp to rez " (:title target) " at no cost")))}
                          card nil))
-   :abilities [{:msg "draw 1 card"
+   :abilities [{:msg "draw 2 cards"
                 :async true
                 :cost [:trash]
-                :effect (effect (draw eid 1 nil))}]})
+                :effect (effect (draw eid 2 nil))}]})
 
 (define-card "Mystic Maemi"
   (assoc
@@ -2393,11 +2393,11 @@
              :effect (effect (draw :runner eid 2 nil))}]})
 
 (define-card "Tallie Perrault"
-  {:abilities [{:label "Draw 3 cards for each Corp bad publicity"
+  {:abilities [{:label "Draw 2 cards for each Corp bad publicity"
                 :async true
                 :cost [:trash]
-                :effect (effect (draw eid (* 3 (count-bad-pub state)) nil))
-                :msg (msg "draw " (* 3 (count-bad-pub state)) " cards")}]
+                :effect (effect (draw eid (* 2 (count-bad-pub state)) nil))
+                :msg (msg "draw " (* 2 (count-bad-pub state)) " cards")}]
    :events [{:event :play-operation
              :req (req (or (has-subtype? target "Black Ops")
                            (has-subtype? target "Gray Ops")))

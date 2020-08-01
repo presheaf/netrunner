@@ -1675,7 +1675,7 @@
 (define-card "Information Overload"
   (let [ef (effect (reset-variable-subs card (count-tags state) runner-trash-installed-sub))
         ability {:effect ef}]
-    {:on-encounter (tag-trace 3)
+    {:on-encounter (tag-trace 1)
      :effect ef
      :events [(assoc ability :event :runner-gain-tag)
               (assoc ability :event :runner-lose-tag)]}))

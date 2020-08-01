@@ -749,7 +749,7 @@
    :effect (effect (make-run eid target nil card))
    :events [{:event :run-ends
              :req (req (:successful target))
-             :silent (req true)
+             :once :per-turn
              :msg "gain 5 [Credits]"
              :effect (effect (gain-credits :runner 5))}]})
 
@@ -1010,9 +1010,16 @@
                      card))})
 
 (define-card "Express Delivery"
-  {:prompt "Choose a card to add to your Grip" :choices (req (take 4 (:deck runner)))
-   :msg "look at the top 4 cards of their Stack and add 1 of them to their Grip"
-   :effect (effect (move target :hand) (shuffle! :deck))})
+  (letfn [(deliver [n cards]
+            {:prompt "Choose a card to add to your Grip"
+             :choices cards
+             :effect (req (move state side target :hand)
+                          (if (> n 1)
+                            (continue-ability state side (deliver (- n 1) (remove #{target} cards)) card nil)
+                            (shuffle! state side :deck)))})]
+    {:prompt "Choose a card to add to your Grip"
+     :msg "look at the top 6 cards of their Stack and add 2 of them to their Grip"
+     :effect (effect (continue-ability (deliver 2 (take 6 (:deck runner))) card nil))}))
 
 (define-card "Falsified Credentials"
   {:prompt "Choose a type"
@@ -1287,7 +1294,7 @@
    :effect (effect (make-run eid target nil card))
    :events [{:event :run-ends
              :req (req (:successful target))
-             :silent (req true)
+             ;; :silent (req true)
              :msg "gain 12 [Credits]"
              :effect (effect (gain-credits :runner 12))}]})
 

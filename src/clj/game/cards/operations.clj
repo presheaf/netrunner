@@ -585,9 +585,9 @@
                   count
                   pos?))
    :async true
-   :msg (msg "trash all cards in HQ and draw 5 cards")
+   :msg (msg "trash all cards in HQ and draw 7 cards")
    :effect (req (wait-for (trash-cards state side (get-in @state [:corp :hand]))
-                          (draw state side eid 5 nil)))})
+                          (draw state side eid 7 nil)))})
 
 (define-card "Enforced Curfew"
   {:msg "reduce the Runner's maximum hand size by 1"

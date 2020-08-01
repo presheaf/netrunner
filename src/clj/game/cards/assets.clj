@@ -866,9 +866,11 @@
                         :req (req (seq (:hand runner)))
                         :prompt "Choose a card type"
                         :choices ["Event" "Hardware" "Program" "Resource"]
-                        :msg (msg "reveal " (join ", " (map :title (:hand runner))))
+                        :msg (msg "name " target " and reveal " (join ", " (map :title (:hand runner))))
                         :async true
-                        :effect (effect (continue-ability (trash-ability target) card nil))}]
+                        :effect (effect (continue-ability (combine-abilities (trash-ability target)
+                                                                             (trash-ability target))
+                                                          card nil))}]
     {:additional-cost [:forfeit]
      :flags {:corp-phase-12 (constantly true)}
      :derezzed-events [corp-rez-toast]
@@ -1697,23 +1699,24 @@
                 :effect (effect (lose-credits :runner (* 4 (get-counters card :advancement))))}]})
 
 (define-card "Rex Campaign"
-  (let [ability {:once :per-turn
+  (let [payout-ab {:prompt "Remove 1 bad publicity or gain 7 [Credits]?"
+                   :choices ["Remove 1 bad publicity" "Gain 7 [Credits]"]
+                   :msg (msg (if (= target "Remove 1 bad publicity")
+                               "remove 1 bad publicity" "gain 7 [Credits]"))
+                   :effect (req (if (= target "Remove 1 bad publicity")
+                                  (lose-bad-publicity state side 1)
+                                  (gain-credits state side 7)))}
+        ability {:once :per-turn
                  :req (req (:corp-phase-12 @state))
                  :label "Remove 1 counter (start of turn)"
-                 :effect (effect (add-counter card :power -1))}]
+                 :effect (req (add-counter state side card :power -1)
+                              (if (zero? (get-counters (get-card state card) :power))
+                                (wait-for (trash state side card nil)
+                                          (continue-ability state side payout-ab card nil))))}]
     {:effect (effect (add-counter card :power 3))
      :derezzed-events [corp-rez-toast]
-     :events [(trash-on-empty :power)
-              (assoc ability :event :corp-turn-begins)]
-     :ability [ability]
-     :trash-effect {:req (req (zero? (get-counters card :power)))
-                    :prompt "Remove 1 bad publicity or gain 7 [Credits]?"
-                    :choices ["Remove 1 bad publicity" "Gain 7 [Credits]"]
-                    :msg (msg (if (= target "Remove 1 bad publicity")
-                                "remove 1 bad publicity" "gain 7 [Credits]"))
-                    :effect (req (if (= target "Remove 1 bad publicity")
-                                   (lose-bad-publicity state side 1)
-                                   (gain-credits state side 7)))}}))
+     :events [(assoc ability :event :corp-turn-begins)]
+     :ability [ability]}))
 
 (define-card "Ronald Five"
   (let [ability {:req (req (and (some corp? targets)
@@ -1787,10 +1790,10 @@
 (define-card "Sensie Actors Union"
   {:derezzed-events [corp-rez-toast]
    :flags {:corp-phase-12 (req unprotected)}
-   :abilities [{:label "Draw 3 cards and add 1 card in HQ to the bottom of R&D"
+   :abilities [{:label "Draw 2 cards and add 1 card in HQ to the bottom of R&D"
                 :once :per-turn
-                :msg "draw 3 cards"
-                :effect (effect (draw 3)
+                :msg "draw 2 cards"
+                :effect (effect (draw 2)
                                 (resolve-ability
                                   {:prompt "Select a card in HQ to add to the bottom of R&D"
                                    :choices {:card #(and (corp? %)
