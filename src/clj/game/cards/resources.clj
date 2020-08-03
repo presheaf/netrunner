@@ -205,7 +205,7 @@
                   :effect (req (move state side (first (:deck runner)) :deck))}}}]})
 
 (define-card "Armitage Codebusting"
-  {:data {:counter {:credit 14}}
+  {:data {:counter {:credit 16}}
    :events [(trash-on-empty :credit)]
    :abilities [{:cost [:click 1]
                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")

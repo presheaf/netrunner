@@ -910,7 +910,7 @@
    :events [{:event :purge
              :effect (effect (update-breaker-strength card))}]
    :abilities [(break-sub 2 1)
-               {:label "Place 2 virus counter (start of turn)"
+               {:label "Place 1 virus counter (start of turn)"
                 :once :per-turn
                 :cost [:credit 1]
                 :msg "place 1 virus counter"
