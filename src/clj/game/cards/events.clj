@@ -1293,6 +1293,7 @@
                    (zones->sorted-names (remove (set bad-zones) (get-runnable-zones state side eid card nil)))))
    :effect (effect (make-run eid target nil card))
    :events [{:event :run-ends
+             :once :per-turn
              :req (req (:successful target))
              ;; :silent (req true)
              :msg "gain 12 [Credits]"
@@ -1724,6 +1725,7 @@
    :req (req hq-runnable)
    :effect (effect (make-run eid :hq nil card))
    :events [{:event :successful-run
+             :unregister-once-resolved true
              :silent (req true)
              :effect (effect (access-bonus :hq 2))}]})
 
