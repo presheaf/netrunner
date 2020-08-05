@@ -6,6 +6,20 @@
 
 (declare load-deck-stubs!)
 
+(def jumpstart-tags-filename "data/jumpstart-cardtags.edn")
+(def jumpstart-templates-filename "data/jumpstart-templates.edn")
+(def all-card-tags (load-file jumpstart-tags-filename))
+(def templates-by-side (load-file jumpstart-templates-filename))
+
+(def my-template (first (:corp templates-by-side)))
+
+(def cards-by-tag
+  ;; map tag -> [c1, c2, ...] of all such tagged cards
+  (reduce-kv (fn [coll cardname tags]
+               ;; want (assoc coll t1 cardname t2 cardname ...)
+               (reduce (fn [m tag] (update coll tag #(conj % cardname))) coll tags))
+             {} all-card-tags))
+
 (def stubs-corp-filename "data/deck-stubs-corp.edn")
 (def stubs-runner-filename "data/deck-stubs-runner.edn")
 
@@ -15,52 +29,78 @@
 (defn gen-template
   "Given a template, randomly choose an ID, then fill it with cards. Remove stuff from the template as you go."
   ([template]
-   (gen-template (dissoc :identity template) {:identity (get @all-cards (rand-nth (:identity template)))
+   (gen-template (dissoc template :identity) {:identity (get @all-cards (rand-nth (:identity template)))
                                               :cards []}))
   ([template partial-deck]
+
+   (prn "")
+   (prn template)
    (let [deck-id               (:identity partial-deck)
-         target-decksize       (+ (:minimum-deck-size deck-id) (if (= :corp (:side deck-id))
-                                                                  4 0))
+         target-decksize       (+ (:minimumdecksize deck-id) (if (= "Corp" (:side deck-id))
+                                                               4 0))
          target-ap              (+ 2 (* 2 (quot target-decksize 5)))
-         inf-limit             (:influence-limit deck-id)
-         current-ap            (reduce + (filter some? (map :agenda-points (:cards partial-deck))))
-         spent-inf             (reduce + (filter some? (map :influence-cost (:cards partial-deck))))
+         inf-limit             (:influencelimit deck-id)
+         current-ap            (reduce + (filter some? (map :agendapoints (:cards partial-deck))))
+         spent-inf             (reduce + (filter some? (map :influencecost (:cards partial-deck))))
          remaining-inf         (- inf-limit spent-inf)
          remaining-ap          (- target-ap current-ap)]
-     (if (<= 0 (- target-decksize (count (:cards partial-deck))))
+     (if (<= target-decksize (count (:cards partial-deck)))
        ;; if we're done, then we're done
        partial-deck
        
        ;; choose a new random card matching one of the tags in our deck which doesn't take us over inf and keep going
-       (let [admissible-card (if (and (= :corp (:side deck-id))
-                                      remaining-ap)
-                               ;; ensure we fill up agenda points first, so only look at agendas we can play which aren't 0 pts or takes us over 20
-                               (fn [card] (and (= :agenda (:type card))
-                                              (#{:neutral-corp (:faction deck-id)} (:faction card))
-                                              (:agenda-points card)
-                                              (<= (:agenda-points card) remaining-ap)))
-                               
-                               ;; we're free to do whatever we want now, so choose a random tag in the template and go nuts
-                               (let [desired-tags (filter #(< 0 (% (:tags template)))
-                                                          (keys (:tags template)))
-                                     target-tag (when desired-tags (rand-nth desired-tags))] ;TODO: ensure this isn't weird - does rand-nth work on sets?
-                                 ;; TODO: write logic making a predicate which is true iff the card has that tag
-                                 nil))
-             chosen-card     (rand-nth (filter (fn [card] (and (admissible-card card)
-                                                              (or (= (:faction card) (:faction deck-id))
-                                                                  (and (:influence-cost card)
-                                                                       (<= (:influence-cost card) remaining-inf)))))
-                                               @all-cards))
-             ;; TODO: add logic making a set of the tags of a card here
-             card-tags       nil]
-
+       (let [admissible-card 
+             (if (and (= "Corp" (:side deck-id))
+                      (< 0 remaining-ap))
+               ;; ensure we fill up agenda points first, so only look at agendas we can play which aren't 0 pts or takes us over 20
+               (fn [card] (and (= "Agenda" (:type card))
+                              (#{"Neutral" (:faction deck-id)} (:faction card))
+                              (get all-card-tags (:title card)) ; ensures we don't grab from outside cardpool
+                              (< 0 (:agendapoints card))
+                              (<= (:agendapoints card) remaining-ap)))
+               
+               ;; we're free to do whatever we want now, so choose a random tag in the template and go nuts
+               (let [desired-tags (filter #(< 0 (get template %))
+                                          (keys template))
+                     target-tag (do (when (not (empty? desired-tags))
+                                      (rand-nth desired-tags)))] ;TODO: ensure this isn't weird - does rand-nth work on sets?
+                 (if target-tag
+                   (do (prn (str "choosing a " target-tag))
+                     (fn [card]
+                         (some #(= target-tag %) (get all-card-tags (:title card)))
+                         ;; (some? #(= % (:title card)) (get target-tag cards-by-tag))
+                       ))
+                   (do (prn "choosing anything?!")
+                       (fn [card] (get all-card-tags (:title card)))))))
+             chosen-card (rand-nth (filter (fn [card]
+                                             (and (= (:side deck-id) (:side card))
+                                                  (admissible-card card)
+                                                  (do (or (= (:faction card) (:faction deck-id))
+                                                          (and (:factioncost card)
+                                                               (<= (:factioncost card) remaining-inf))))))
+                                           (vals @all-cards)))
+             card-tags       (get all-card-tags (:title chosen-card))]
+         (prn (str "chose " (:title chosen-card) " with tags " card-tags))
          ;; having chosen a random card, add it to the deck, decrement all the tags it satisfies in the template by 1 and move on
-         (let [new-deck     (conj (:cards partial-deck))
-               new-template (update template :tags (fn [tagmap]
-                                                     (reduce-kv (fn [coll tag num] (if (card-tags tag) (dec num) num))
-                                                                {} tagmap)))])
-         (gen-template new-template new-deck))))))
+         (let [new-deck     (update partial-deck :cards #(conj % chosen-card))
+               new-template (reduce (fn [tmpl tag]
+                                      (if (get tmpl tag)
+                                        ;; (prn tmpl)
+                                        ;; (prn tag)
+                                        ;; (prn (update tmpl tag dec))
+                                        (update tmpl tag dec)
+                                        tmpl))
+                                    template (get all-card-tags (:title chosen-card)))
+                            ;; (update template :tags (fn [tagmap]
+                            ;;                          (reduce-kv (fn [coll tag num] (if (card-tags tag) (dec num) num))
+                            ;;                                     {} tagmap)))
+               ]
+           (gen-template new-template new-deck)))))))
 
+;; (prn my-template)
+(def my-deck (gen-template my-template))
+(prn (sort (map :title (:cards my-deck))))
+(prn (count (:cards my-deck)))
 
 (defn parse-stub
   [stub]
