@@ -1,0 +1,22 @@
+{:corp [
+        {:identity ["Haas-Bioroid: Engineering the Future"]
+         :tags {"Hedge"          3
+                "Jackson"        3
+                "Economy"        5
+                "Ice"           17
+                "Barrier"        4
+                "Sentry"         4
+                "Code Gate"      4
+                "Small"          7
+                "Midrange"       3
+                "Big"            2
+                "Remote Support" 3
+                "Wincon"         3
+                "Utility"        2}
+         :steps [#{"Hedge" "Jackson"}
+                 #{"Economy"}
+                 #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
+                 #{"Ice"}
+                 #{"Remote Support" "Wincon" "Utility"}]}]
+
+ :runner []}
