@@ -32,9 +32,6 @@
    (gen-template (dissoc template :identity) {:identity (get @all-cards (rand-nth (:identity template)))
                                               :cards []}))
   ([template partial-deck]
-
-   (prn "")
-   (prn template)
    (let [deck-id               (:identity partial-deck)
          target-decksize       (+ (:minimumdecksize deck-id) (if (= "Corp" (:side deck-id))
                                                                4 0))
@@ -60,17 +57,19 @@
                               (<= (:agendapoints card) remaining-ap)))
                
                ;; we're free to do whatever we want now, so choose a random tag in the template and go nuts
-               (let [desired-tags (filter #(< 0 (get template %))
-                                          (keys template))
-                     target-tag (do (when (not (empty? desired-tags))
-                                      (rand-nth desired-tags)))] ;TODO: ensure this isn't weird - does rand-nth work on sets?
+               (let [desired-tags (filter #(< 0 (get (:tags template) %))
+                                          (keys (:tags template)))
+                     current-step (first (filter #(some (set desired-tags) %) (:steps template)))
+                     target-tag (do (prn (str "current step: " current-step))
+                                    
+                                    (when current-step
+                                      (rand-nth (filter (set desired-tags)
+                                                        current-step))))]
                  (if target-tag
-                   (do (prn (str "choosing a " target-tag))
+                   (do ;; (prn (str "choosing a " target-tag))
                      (fn [card]
-                         (some #(= target-tag %) (get all-card-tags (:title card)))
-                         ;; (some? #(= % (:title card)) (get target-tag cards-by-tag))
-                       ))
-                   (do (prn "choosing anything?!")
+                         (some #(= target-tag %) (get all-card-tags (:title card)))))
+                   (do ;; (prn "choosing anything?!")
                        (fn [card] (get all-card-tags (:title card)))))))
              chosen-card (rand-nth (filter (fn [card]
                                              (and (= (:side deck-id) (:side card))
@@ -80,24 +79,17 @@
                                                                (<= (:factioncost card) remaining-inf))))))
                                            (vals @all-cards)))
              card-tags       (get all-card-tags (:title chosen-card))]
-         (prn (str "chose " (:title chosen-card) " with tags " card-tags))
+         ;; (prn (str "chose " (:title chosen-card) " with tags " card-tags))
          ;; having chosen a random card, add it to the deck, decrement all the tags it satisfies in the template by 1 and move on
          (let [new-deck     (update partial-deck :cards #(conj % chosen-card))
-               new-template (reduce (fn [tmpl tag]
+               new-tags     (reduce (fn [tmpl tag]
                                       (if (get tmpl tag)
-                                        ;; (prn tmpl)
-                                        ;; (prn tag)
-                                        ;; (prn (update tmpl tag dec))
                                         (update tmpl tag dec)
                                         tmpl))
-                                    template (get all-card-tags (:title chosen-card)))
-                            ;; (update template :tags (fn [tagmap]
-                            ;;                          (reduce-kv (fn [coll tag num] (if (card-tags tag) (dec num) num))
-                            ;;                                     {} tagmap)))
-               ]
-           (gen-template new-template new-deck)))))))
+                                    (:tags template)
+                                    (get all-card-tags (:title chosen-card)))]
+           (gen-template (assoc template :tags new-tags) new-deck)))))))
 
-;; (prn my-template)
 (def my-deck (gen-template my-template))
 (prn (sort (map :title (:cards my-deck))))
 (prn (count (:cards my-deck)))
