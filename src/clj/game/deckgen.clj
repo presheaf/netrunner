@@ -38,7 +38,9 @@
          target-ap              (+ 2 (* 2 (quot target-decksize 5)))
          inf-limit             (:influencelimit deck-id)
          current-ap            (reduce + (filter some? (map :agendapoints (:cards partial-deck))))
-         spent-inf             (reduce + (filter some? (map :influencecost (:cards partial-deck))))
+         spent-inf             (reduce + (filter some? (map #(if (= (:faction deck-id) (:faction %))
+                                                               0 (:factioncost %))
+                                                            (:cards partial-deck))))
          remaining-inf         (- inf-limit spent-inf)
          remaining-ap          (- target-ap current-ap)]
      (if (<= target-decksize (count (:cards partial-deck)))
@@ -60,7 +62,7 @@
                (let [desired-tags (filter #(< 0 (get (:tags template) %))
                                           (keys (:tags template)))
                      current-step (first (filter #(some (set desired-tags) %) (:steps template)))
-                     target-tag (do (prn (str "current step: " current-step))
+                     target-tag (do ;; (prn (str "current step: " current-step))
                                     
                                     (when current-step
                                       (rand-nth (filter (set desired-tags)
@@ -91,7 +93,10 @@
            (gen-template (assoc template :tags new-tags) new-deck)))))))
 
 (def my-deck (gen-template my-template))
-(prn (sort (map :title (:cards my-deck))))
+(prn (:identity my-deck))
+(prn (map :title (:cards my-deck)))
+(prn (map #(vector (:faction %)
+                   (:factioncost %)) (:cards my-deck)))
 (prn (count (:cards my-deck)))
 
 (defn parse-stub
