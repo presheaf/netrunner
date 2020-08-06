@@ -46,11 +46,12 @@
   [{:keys [players gameid spectatorhands room format] :as game}]
   (let [corp (some #(when (corp? %) %) players)
         runner (some #(when (runner? %) %) players)
+        is-jumpstart? (= format "jumpstart")
         ;; corp-deck (create-deck (:deck corp) (:user corp))
-        corp-deck (if (= format "jumpstart")
+        corp-deck (if is-jumpstart?
                     (create-js-deck (:user corp) :corp)
                     (create-deck (:deck corp) (:user corp)))
-        runner-deck (if (= format "jumpstart")
+        runner-deck (if is-jumpstart?
                       (create-js-deck (:user runner) :runner)
                       (create-deck (:deck runner) (:user runner)))
         corp-deck-id (get-in corp [:deck :_id])
@@ -58,9 +59,13 @@
         corp-options (get-in corp [:options])
         runner-options (get-in runner [:options])
         corp-identity (make-card (or (get-in corp [:deck :identity])
-                                 {:side "Corp" :type "Identity" :title "Custom Biotics: Engineered for Success"}))
+                                     {:side "Corp" :type "Identity" :title (if is-jumpstart?
+                                                                             (:identity corp-deck)
+                                                                             "Custom Biotics: Engineered for Success")}))
         runner-identity (make-card (or (get-in runner [:deck :identity])
-                                   {:side "Runner" :type "Identity" :title "The Professor: Keeper of Knowledge"}))
+                                       {:side "Runner" :type "Identity" :title (if is-jumpstart?
+                                                                                 (:identity runner-deck)
+                                                                                 "The Professor: Keeper of Knowledge")}))
         corp-quote (quotes/make-quote corp-identity runner-identity)
         runner-quote (quotes/make-quote runner-identity corp-identity)]
     (atom
@@ -69,8 +74,14 @@
         room
         (t/now)
         spectatorhands
-        (new-corp (:user corp) corp-identity corp-options (zone :deck corp-deck) corp-deck-id corp-quote)
-        (new-runner (:user runner) runner-identity runner-options (zone :deck runner-deck) runner-deck-id runner-quote)))))
+        (new-corp (:user corp) corp-identity corp-options (zone :deck (if is-jumpstart?
+                                                                        (:cards corp-deck)
+                                                                        corp-deck))
+                  corp-deck-id corp-quote)
+        (new-runner (:user runner) runner-identity runner-options (zone :deck (if is-jumpstart?
+                                                                                (:cards runner-deck)
+                                                                                runner-deck))
+                    runner-deck-id runner-quote)))))
 
 (defn init-game
   "Initializes a new game with the given players vector."
