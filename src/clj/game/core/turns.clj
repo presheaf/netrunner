@@ -145,15 +145,9 @@
   "Creates a shuffled draw deck (R&D/Stack) from the given list of cards.
   Loads card data from the server-card map if available."
   ([user side]
-   
-    ;; {:cards [
-    ;;          {:qty 5 :card {:title "Sure Gamble"}}
-    ;;          ]}
    (let [d (deckgen/generate-deck side)]
-     ;; (prn d)
      {:identity (:identity d)
-      :cards (create-deck {:cards d}
-                          user)})))
+      :cards (create-deck {:cards (:cards d)} user)})))
 
 (defn make-rid
   "Returns a progressively-increasing integer to identify a new remote server."
