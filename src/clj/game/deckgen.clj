@@ -4,14 +4,12 @@
 
             [game.utils :refer [server-card]]))
 
-(declare load-deck-stubs!)
+;; (declare load-deck-stubs!)
 
 (def jumpstart-tags-filename "data/jumpstart-cardtags.edn")
 (def jumpstart-templates-filename "data/jumpstart-templates.edn")
 (def all-card-tags (load-file jumpstart-tags-filename))
 (def templates-by-side (load-file jumpstart-templates-filename))
-
-(def my-template (first (:corp templates-by-side)))
 
 (def cards-by-tag
   ;; map tag -> [c1, c2, ...] of all such tagged cards
@@ -20,16 +18,16 @@
                (reduce (fn [m tag] (update coll tag #(conj % cardname))) coll tags))
              {} all-card-tags))
 
-(def stubs-corp-filename "data/deck-stubs-corp.edn")
-(def stubs-runner-filename "data/deck-stubs-runner.edn")
+;; (def stubs-corp-filename "data/deck-stubs-corp.edn")
+;; (def stubs-runner-filename "data/deck-stubs-runner.edn")
 
-(def deck-stubs (atom {}))
+;; (def deck-stubs (atom {}))
 
 
-(defn gen-template
+(defn generate-from-template
   "Given a template, randomly choose an ID, then fill it with cards. Remove stuff from the template as you go."
   ([template]
-   (gen-template (dissoc template :identity) {:identity (get @all-cards (rand-nth (:identity template)))
+   (generate-from-template (dissoc template :identity) {:identity (get @all-cards (rand-nth (:identity template)))
                                               :cards []}))
   ([template partial-deck]
    (let [deck-id               (:identity partial-deck)
@@ -90,72 +88,76 @@
                                         tmpl))
                                     (:tags template)
                                     (get all-card-tags (:title chosen-card)))]
-           (gen-template (assoc template :tags new-tags) new-deck)))))))
+           (generate-from-template (assoc template :tags new-tags) new-deck)))))))
 
-(def my-deck (gen-template my-template))
-(prn (:identity my-deck))
-(prn (map :title (:cards my-deck)))
-(prn (map #(vector (:faction %)
-                   (:factioncost %)) (:cards my-deck)))
-(prn (count (:cards my-deck)))
+;; (defn parse-stub
+;;   [stub]
+;;   (cond (string? stub)
+;;         (list stub)
 
-(defn parse-stub
-  [stub]
-  (cond (string? stub)
-        (list stub)
+;;         (vector? stub)
+;;         (apply concat (map parse-stub stub))
 
-        (vector? stub)
-        (apply concat (map parse-stub stub))
+;;         (map? stub)              ;in this case, stub is {num: subtmpl}
+;;         (parse-stub (apply vector (repeat (first (first stub))
+;;                                               (second (first stub)))))
 
-        (map? stub)              ;in this case, stub is {num: subtmpl}
-        (parse-stub (apply vector (repeat (first (first stub))
-                                              (second (first stub)))))
+;;         (set? stub)
+;;         (parse-stub (rand-nth (seq stub)))
 
-        (set? stub)
-        (parse-stub (rand-nth (seq stub)))
-
-        :else '()))
+;;         :else '()))
 
 
 (defn generate-deck
   [side]
-  (if (= 0 (count @deck-stubs))
-    (load-deck-stubs!))                 ;TODO: move this to start time so wrong names can be detected
-  (let [cardlist (sort (apply concat (map (fn [stub] (parse-stub (:cards stub)))
-                                          (take 3 (shuffle (side @deck-stubs))))))]
-    (apply vector (map (fn [[title qty]] {:qty qty :card {:title title}})
-                       (frequencies cardlist)))))
+  (let [template (rand-nth (side templates-by-side))]
+    (prn (str "Generating deck from template with IDs" (:identity template)))
+    (let [deck        (generate-from-template template)
+          deck-id     (:title (:identity deck))
+          card-titles (map :title (:cards deck))]
+      {:identity deck-id
+       :cards (apply vector (map (fn [[title qty]] {:qty qty :card {:title title}})
+                                 (frequencies card-titles)))})))
+
+;; (defn generate-deck-old
+;;   [side]
+;;   (if (= 0 (count @deck-stubs))
+;;     (load-deck-stubs!))                 ;TODO: move this to start time so wrong names can be detected
+;;   (let [cardlist (sort (apply concat (map (fn [stub] (parse-stub (:cards stub)))
+;;                                           (take 3 (shuffle (side @deck-stubs))))))]
+;;     (apply vector (map (fn [[title qty]] {:qty qty :card {:title title}})
+;;                        (frequencies cardlist)))))
 
 
-(defn verify-stub
-  [stub]
-  (cond (string? stub)
-        (let [is-valid (get @all-cards stub)]
-          (when-not is-valid
-            (prn (str "Invalid card title " stub)))
-          (list is-valid))
+;; (defn verify-stub
+;;   [stub]
+;;   (cond (string? stub)
+;;         (let [is-valid (get @all-cards stub)]
+;;           (when-not is-valid
+;;             (prn (str "Invalid card title " stub)))
+;;           (list is-valid))
 
-        (map? stub)
-        (verify-stub (second (first stub)))
+;;         (map? stub)
+;;         (verify-stub (second (first stub)))
 
-        :else
-        (apply concat (map verify-stub stub))))
+;;         :else
+;;         (apply concat (map verify-stub stub))))
 
-(defn load-deck-stubs!
-  []
-  ;; TODO: replace load-file here by EDN loader and consider using hawk to watch the stuff
-  ;; TODO: clean up verification method so it prints the name of the offending file
-  (let [stubs-corp   (when (.exists (io/file stubs-corp-filename))
-                       (load-file stubs-corp-filename))
-        stubs-runner (when (.exists (io/file stubs-runner-filename))
-                       (load-file stubs-runner-filename))]
-    (if (every? #(every? boolean
-                         (flatten (map (fn [d] (verify-stub (:cards d))) %)))
-                [stubs-corp stubs-runner])
-      (do (prn "Successfully loaded stubs!")
-          (reset! deck-stubs {:corp stubs-corp
-                              :runner stubs-runner}))
-      (prn "Error loading stubs"))))
+;; (defn load-deck-stubs!
+;;   []
+;;   ;; TODO: replace load-file here by EDN loader and consider using hawk to watch the stuff
+;;   ;; TODO: clean up verification method so it prints the name of the offending file
+;;   (let [stubs-corp   (when (.exists (io/file stubs-corp-filename))
+;;                        (load-file stubs-corp-filename))
+;;         stubs-runner (when (.exists (io/file stubs-runner-filename))
+;;                        (load-file stubs-runner-filename))]
+;;     (if (every? #(every? boolean
+;;                          (flatten (map (fn [d] (verify-stub (:cards d))) %)))
+;;                 [stubs-corp stubs-runner])
+;;       (do (prn "Successfully loaded stubs!")
+;;           (reset! deck-stubs {:corp stubs-corp
+;;                               :runner stubs-runner}))
+;;       (prn "Error loading stubs"))))
 
 
 
