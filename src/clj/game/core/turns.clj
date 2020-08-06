@@ -1,7 +1,7 @@
 (in-ns 'game.core)
 
 (declare all-active card-flag-fn? clear-turn-register! create-deck create-js-deck hand-size keep-hand mulligan
-         make-card turn-message add-sub create-basic-action-cards)
+         make-card turn-message add-sub create-basic-action-cards build-card)
 
 
 (defn- card-implemented
@@ -59,13 +59,14 @@
         corp-options (get-in corp [:options])
         runner-options (get-in runner [:options])
         corp-identity (make-card (or (get-in corp [:deck :identity])
-                                     {:side "Corp" :type "Identity" :title (if is-jumpstart?
-                                                                             (:identity corp-deck)
-                                                                             "Custom Biotics: Engineered for Success")}))
+                                     ;; TODO: build-card here? in jumpstart?
+                                     (build-card {:side "Corp" :type "Identity" :title (if is-jumpstart?
+                                                                                         (:identity corp-deck)
+                                                                                         "Custom Biotics: Engineered for Success")})))
         runner-identity (make-card (or (get-in runner [:deck :identity])
-                                       {:side "Runner" :type "Identity" :title (if is-jumpstart?
-                                                                                 (:identity runner-deck)
-                                                                                 "The Professor: Keeper of Knowledge")}))
+                                       (build-card {:side "Runner" :type "Identity" :title (if is-jumpstart?
+                                                                                             (:identity runner-deck)
+                                                                                             "The Professor: Keeper of Knowledge")})))
         corp-quote (quotes/make-quote corp-identity runner-identity)
         runner-quote (quotes/make-quote runner-identity corp-identity)]
     (atom
