@@ -27,9 +27,11 @@
 (defn generate-from-template
   "Given a template, randomly choose an ID, then fill it with cards. Remove stuff from the template as you go."
   ([template]
-   (generate-from-template (dissoc template :identity) {:identity (get @all-cards (rand-nth (:identity template)))
-                                              :cards []}))
-  ([template partial-deck]
+   (generate-from-template (dissoc template :identity)
+                           {:identity (get @all-cards (rand-nth (:identity template)))
+                            :cards []}
+                           10))
+  ([template partial-deck num-retries]
    (let [deck-id               (:identity partial-deck)
          target-decksize       (+ (:minimumdecksize deck-id) (if (= "Corp" (:side deck-id))
                                                                4 0))
@@ -40,10 +42,15 @@
          ;;                                                       0 (:factioncost %))
          ;;                                                    (:cards partial-deck))))
          ;; remaining-inf         (- inf-limit spent-inf)
-         remaining-ap          (- target-ap current-ap)]
+         remaining-ap          (- target-ap current-ap)
+         desired-tags          (filter #(< 0 (get (:tags template) %))
+                                       (keys (:tags template)))]
      (if (<= target-decksize (count (:cards partial-deck)))
-       ;; if we're done, then we're done
-       partial-deck
+       ;; if we're done, check if we got all the tags we needed, and if not maybe start over
+       (if (and desired-tags (< 0 num-retries))
+         (do (prn "Retrying...")
+             (generate-from-template template (assoc partial-deck :cards []) (dec num-retries)))
+         partial-deck)
        
        ;; choose a new random card matching one of the tags in our deck which doesn't take us over inf and keep going
        (let [admissible-card 
@@ -56,14 +63,13 @@
                                   ;;       (<= 0 (rand-int 6)))
                                   (get all-card-tags (:title card)) ; ensures we don't grab from outside cardpool
                                   (< 0 (:agendapoints card))
+                                  (or (= 2 (:agendapoints card)) ; make 2-pointers twice as likely
+                                      (= 0 (rand-int 2)))
                                   (<= (:agendapoints card) remaining-ap))))
                
                ;; we're free to do whatever we want now, so choose a random tag in the template and go nuts
-               (let [desired-tags (filter #(< 0 (get (:tags template) %))
-                                          (keys (:tags template)))
-                     current-step (first (filter #(some (set desired-tags) %) (:steps template)))
+               (let [current-step (first (filter #(some (set desired-tags) %) (:steps template)))
                      target-tag (do ;; (prn (str "current step: " current-step))
-                                  
                                   (when current-step
                                     (rand-nth (filter (set desired-tags)
                                                       current-step))))]
@@ -108,8 +114,8 @@
                                           tmpl))
                                       (:tags template)
                                       (get all-card-tags (:title chosen-card)))]
-             (generate-from-template (assoc template :tags new-tags) new-deck))
-           (generate-from-template template partial-deck)))))))
+             (generate-from-template (assoc template :tags new-tags) new-deck num-retries))
+           (generate-from-template template partial-deck num-retries)))))))
 
 ;; (defn parse-stub
 ;;   [stub]
