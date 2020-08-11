@@ -19,6 +19,7 @@
                  #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
                  #{"Ice"}
                  #{"Remote Support" "Wincon" "Utility"}]}
+
         {:identity ["NBN: Making News"
                     "Near-Earth Hub: Broadcast Center"
                     "Argus Security: Protection Guaranteed"]
@@ -39,8 +40,8 @@
          :steps [#{"Hedge" "Jackson"}
                  #{"Economy"}
                  #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
-                 #{"Ice"}
-                 #{"Remote Support" "Wincon" "Utility"}]}
+                 #{"Ice" "Tagging" "Tag Punishment"}
+                 #{"Wincon" "Utility"}]}
         ]
 
  :runner [{:identity ["Kate \"Mac\" McCaffrey: Digital Tinker"
