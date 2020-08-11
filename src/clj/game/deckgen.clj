@@ -47,8 +47,9 @@
                                        (keys (:tags template)))]
      (if (<= target-decksize (count (:cards partial-deck)))
        ;; if we're done, check if we got all the tags we needed, and if not maybe start over
-       (if (and desired-tags (< 0 num-retries))
-         (do (prn "Retrying...")
+       (if (and (not (empty? desired-tags))
+                (< 0 num-retries))
+         (do (prn (str (count desired-tags) " not filled - retrying..."))
              (generate-from-template template (assoc partial-deck :cards []) (dec num-retries)))
          partial-deck)
        
