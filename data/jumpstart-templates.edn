@@ -84,7 +84,7 @@
                   "Disruption"         4
                   "Multiaccess"        3
                   "Utility"            2}
-           :steps [#{"Gamble" "Crypsis}
+           :steps [#{"Gamble" "Crypsis"}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
                    #{"Console"}
