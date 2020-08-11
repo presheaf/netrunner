@@ -41,12 +41,12 @@
                  #{"Economy"}
                  #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
                  #{"Ice" "Tagging" "Tag Punishment"}
-                 #{"Wincon" "Utility"}]}
-        ]
+                 #{"Wincon" "Utility"}]}]
 
  :runner [{:identity ["Kate \"Mac\" McCaffrey: Digital Tinker"
                       "Rielle \"Kit\" Peddler: Transhuman"]
-           :tags {"Gamble"             3
+           :tags {"Crypsis"            1
+                  "Gamble"             3
                   "Console"            2
                   "Economy"           12
                   "Draw"               6
@@ -59,7 +59,7 @@
                   "Multiaccess"        6
                   "Utility"            1
                   "Memory"             1}
-           :steps [#{"Gamble"}
+           :steps [#{"Gamble" "Crypsis"}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
                    #{"Console"}
@@ -70,7 +70,8 @@
           {:identity ["Gabriel Santiago: Consummate Professional"
                       "Andromeda: Dispossessed Ristie"
                       "Leela Patel: Trained Pragmatist"]
-           :tags {"Gamble"             3
+           :tags {"Crypsis"            1
+                  "Gamble"             3
                   "Console"            2
                   "Economy"           15
                   "Draw"               2
@@ -83,7 +84,7 @@
                   "Disruption"         4
                   "Multiaccess"        3
                   "Utility"            2}
-           :steps [#{"Gamble"}
+           :steps [#{"Gamble" "Crypsis}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
                    #{"Console"}
@@ -94,7 +95,8 @@
           {:identity ["Whizzard: Master Gamer"
                       "Reina Roja: Freedom Fighter"
                       "Edward Kim: Humanity's Hammer"]
-           :tags {"Gamble"             3
+           :tags {"Crypsis"            1
+                  "Gamble"             3
                   "Console"            2
                   "Economy"           11
                   "Draw"               4
@@ -108,7 +110,7 @@
                   "Breaker Support"    2
                   "Multiaccess"        4
                   "Utility"            1}
-           :steps [#{"Gamble"}
+           :steps [#{"Gamble" "Crypsis"}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
                    #{"Console"}
