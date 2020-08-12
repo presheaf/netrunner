@@ -139,7 +139,7 @@
 (defn generate-deck
   [side]
   (let [template (rand-nth (side templates-by-side))]
-    (prn (str "Generating new-style deck from template with IDs" (:identity template)))
+    (prn (str "Generating new-style deck from template" template))
     (let [deck        (generate-from-template template)
           deck-id     (:title (:identity deck))
           card-titles (map :title (:cards deck))]
