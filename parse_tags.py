@@ -12,7 +12,9 @@ with open(csvpath) as f:
     for (cardname, _, *tags) in rdr:
         if not cardname:
             continue
-        cardtags[cardname] = list([t for t in tags if t])
+        cardtags[cardname] = list(
+            [t for t in tags if t and t.lower() != "x"]
+        )
     
 
 # alltags = set(sum([[t for t in _tags]
