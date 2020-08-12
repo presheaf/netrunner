@@ -85,6 +85,7 @@
              admissible-cards (filter (fn [card]
                                         (and (= (:side deck-id) (:side card))
                                              (not= (:type card) "Identity")
+                                             (not= (:type card) "Agenda") ;added these guys already
                                              (admissible-card card)
                                              ;; (do (or (= (:faction card) (:faction deck-id))
                                              ;;         ;; (and true ;; (:factioncost card);; (<= (:factioncost card) remaining-inf)
