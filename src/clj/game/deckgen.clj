@@ -13,7 +13,8 @@
   (let [raw-all-card-tags (load-file jumpstart-tags-filename)]
     (apply hash-map (interleave (map lower-case (keys raw-all-card-tags))
                                 (vals raw-all-card-tags)))))
-(def all-card-names (set (map lower-case (keys @all-cards))))
+
+;; (def all-card-names (set (map lower-case (keys @all-cards))))
 ;; (def weird-card-tags
 ;;   (filter #(not (contains? all-card-names (lower-case %))) (keys all-card-tags)))
 
