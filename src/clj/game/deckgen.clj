@@ -77,15 +77,16 @@
                  (if target-tag
                    (do ;; (prn (str "choosing a " target-tag))
                      (fn [card]
-                       (let [ret (some #(= target-tag %) (get all-card-tags (:title card)))]
+                       (let [ret (and (some #(= target-tag %) (get all-card-tags (:title card)))
+                                      (not= (:type card) "Agenda"))]
                          ;; (prn (str "for " (:title card) ": " ret))
                          ret)))
                    (do ;; (prn "choosing anything?!")
-                     (fn [card] (get all-card-tags (:title card)))))))
+                     (fn [card] (and (get all-card-tags (:title card))
+                                    (not= (:type card) "Agenda")))))))
              admissible-cards (filter (fn [card]
                                         (and (= (:side deck-id) (:side card))
                                              (not= (:type card) "Identity")
-                                             (not= (:type card) "Agenda") ;added these guys already
                                              (admissible-card card)
                                              ;; (do (or (= (:faction card) (:faction deck-id))
                                              ;;         ;; (and true ;; (:factioncost card);; (<= (:factioncost card) remaining-inf)
