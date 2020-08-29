@@ -8,18 +8,18 @@
                 "Barrier"              4
                 "Sentry"               4
                 "Code Gate"            4
-                "Small"                7
-                "Midrange"             3
-                "Big"                  2
-                "Remote Support"       3
-                "Wincon"               3
-                "Utility"              2}
+                "Small"                6
+                "Midrange"             4
+                "Big"                  3
+                "Wincon"               4
+                "Utility"              4}
          :steps [#{"Hedge" "Jackson"}
                  #{"Economy"}
                  #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
                  #{"Ice"}
-                 #{"Remote Support" "Wincon" "Utility"}]
-         :filler ["Jank"]}
+                 #{"Wincon" "Utility"}]
+         :filler ["Jank"]
+         :never ["Tagging" "Tag Punishment" "X"]}
 
         {:identity ["NBN: Making News"
                     "Near-Earth Hub: Broadcast Center"
@@ -27,23 +27,52 @@
          :tags {"Hedge"                3
                 "Jackson"              3
                 "Economy"              9
-                "Tagging"             11
-                "Tag Punishment"       5
-                "Ice"                 13
-                "Barrier"              3
-                "Sentry"               3
-                "Code Gate"            3
-                "Small"                6
-                "Midrange"             3
-                "Big"                  1
-                "Wincon"               1
-                "Utility"              1}
+                "Tagging"             10
+                "Tag Punishment"       7
+                "Primary"              2
+                "Secondary"            2
+                "Ice"                 15
+                "Barrier"              4
+                "Sentry"               4
+                "Code Gate"            4
+                "Small"                5
+                "Midrange"             4
+                "Big"                  2}
          :steps [#{"Hedge" "Jackson"}
-                 #{"Economy" "Tagging" "Tag Punishment"}
+                 #{"Economy"}
+                 #{"Primary" "Secondary"}
+                 #{"Tag Punishment" "Tagging"}
+                 #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
+                 #{"Ice"}]
+         :filler ["Jank" "Tagging" "Tag Punishment"]
+         :never ["X"]}
+
+        {:identity ["Haas-Bioroid: Engineering the Future"
+                    "Jinteki: Replicating Perfection"]
+         :tags {"Hedge"                3
+                "Jackson"              3
+                "Economy"              9
+                "Ice"                 17
+                "Barrier"              3
+                "Sentry"               5
+                "Code Gate"            4
+                "Small"                6
+                "Midrange"             4
+                "Big"                  2
+                "Wincon"               1
+                "Utility"              1
+                "Trap Support"         1
+                "Trap"                 4}
+         :steps [#{"Hedge" "Jackson"}
+                 #{"Economy"}
+                 #{"Trap" "Trap Support"}
                  #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
                  #{"Ice"}
                  #{"Wincon" "Utility"}]
-         :filler ["Jank" "Tagging" "Tag Punishment"]}]
+         :filler ["Jank" "Tagging" "Tag Punishment"]
+         :never ["X"]}
+
+        ]
 
  :runner [{:identity ["Kate \"Mac\" McCaffrey: Digital Tinker"
                       "Rielle \"Kit\" Peddler: Transhuman"]
@@ -68,7 +97,8 @@
                    #{"Memory" "Breaker Support"}
                    #{"Economy" "Draw"}
                    #{"Disruption" "Remote Bust" "Multiaccess" "Utility"}]
-           :filler ["Jank"]}
+           :filler ["Jank"]
+           :never ["X"]}
 
           {:identity ["Gabriel Santiago: Consummate Professional"
                       "Andromeda: Dispossessed Ristie"
@@ -86,7 +116,8 @@
                   "Breaker Support"    2
                   "Disruption"         4
                   "Multiaccess"        3
-                  "Utility"            2}
+                  "Utility"            2
+                  "Memory"             1}
            :steps [#{"Gamble" "Crypsis"}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
@@ -94,7 +125,8 @@
                    #{"Memory" "Breaker Support"}
                    #{"Economy" "Draw"}
                    #{"Disruption" "Remote Bust" "Multiaccess" "Utility"}]
-           :filler ["Jank"]}
+           :filler ["Jank"]
+           :never ["X"]}
 
           {:identity ["Whizzard: Master Gamer"
                       "Reina Roja: Freedom Fighter"
@@ -113,7 +145,8 @@
                   "Disruption"         7
                   "Breaker Support"    2
                   "Multiaccess"        4
-                  "Utility"            1}
+                  "Utility"            1
+                  "Memory"             2}
            :steps [#{"Gamble" "Crypsis"}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
@@ -121,4 +154,5 @@
                    #{"Memory" "Breaker Support"}
                    #{"Economy" "Draw"}
                    #{"Disruption" "Remote Bust" "Multiaccess" "Utility"}]
-           :filler ["Jank"]}]}
+           :filler ["Jank"]
+           :never ["X"]}]}

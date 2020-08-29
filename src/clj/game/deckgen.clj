@@ -66,7 +66,11 @@
              partial-deck))
        
        ;; choose a new random card matching one of the tags in our deck which doesn't take us over inf and keep going
-       (let [admissible-card 
+       (let [inadmissible-card
+             (fn [card] (not (some (set (:never template))
+                                  (get all-card-tags (lower-case (:title card))))))
+
+             admissible-card
              (if (and (= "Corp" (:side deck-id))
                       (< 0 remaining-ap))
                ;; ensure we fill up agenda points first, so only look at agendas we can play which aren't 0 pts or takes us over 20
@@ -101,6 +105,8 @@
                                         (and (= (:side deck-id) (:side card))
                                              (not= (:type card) "Identity")
                                              (admissible-card card)
+                                             (not (inadmissible-card card))
+
                                              ;; (do (or (= (:faction card) (:faction deck-id))
                                              ;;         ;; (and true ;; (:factioncost card);; (<= (:factioncost card) remaining-inf)
                                              ;;         ;;      )
