@@ -1,4 +1,5 @@
-{:corp [{:identity ["Haas-Bioroid: Engineering the Future"
+{:corp [{:odds 6
+         :identity ["Haas-Bioroid: Engineering the Future"
                     "Near-Earth Hub: Broadcast Center"
                     "Jinteki: Replicating Perfection"]
          :tags {"Hedge"                3
@@ -21,7 +22,8 @@
          :filler ["Jank"]
          :never ["Tagging" "Tag Punishment" "X"]}
 
-        {:identity ["NBN: Making News"
+        {:odds 3
+         :identity ["NBN: Making News"
                     "Near-Earth Hub: Broadcast Center"
                     "Argus Security: Protection Guaranteed"]
          :tags {"Hedge"                3
@@ -47,7 +49,8 @@
          :filler ["Jank" "Tagging" "Tag Punishment"]
          :never ["X"]}
 
-        {:identity ["Haas-Bioroid: Engineering the Future"
+        {:odds 1
+         :identity ["Haas-Bioroid: Engineering the Future"
                     "Jinteki: Replicating Perfection"]
          :tags {"Hedge"                3
                 "Jackson"              3
@@ -74,7 +77,8 @@
 
         ]
 
- :runner [{:identity ["Kate \"Mac\" McCaffrey: Digital Tinker"
+ :runner [{:odds 1
+           :identity ["Kate \"Mac\" McCaffrey: Digital Tinker"
                       "Rielle \"Kit\" Peddler: Transhuman"]
            :tags {"Crypsis"            1
                   "Gamble"             3
@@ -100,7 +104,8 @@
            :filler ["Jank"]
            :never ["X"]}
 
-          {:identity ["Gabriel Santiago: Consummate Professional"
+          {:odds 1
+           :identity ["Gabriel Santiago: Consummate Professional"
                       "Andromeda: Dispossessed Ristie"
                       "Leela Patel: Trained Pragmatist"]
            :tags {"Crypsis"            1
@@ -128,7 +133,8 @@
            :filler ["Jank"]
            :never ["X"]}
 
-          {:identity ["Whizzard: Master Gamer"
+          {:odds 1
+           :identity ["Whizzard: Master Gamer"
                       "Reina Roja: Freedom Fighter"
                       "Edward Kim: Humanity's Hammer"]
            :tags {"Crypsis"            1

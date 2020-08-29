@@ -161,7 +161,8 @@
 
 (defn generate-deck
   [side]
-  (let [template (rand-nth (side templates-by-side))]
+  (let [;; template (rand-nth (side templates-by-side))
+        template (rand-nth (concat (map (fn [template] (repeat (:odds template) template)) (side templates-by-side))))]
     (prn (str "Generating deck from template" template))
     (let [deck        (generate-from-template template)
           deck-id     (:title (:identity deck))
