@@ -76,8 +76,8 @@
                ;; ensure we fill up agenda points first, so only look at agendas we can play which aren't 0 pts or takes us over 20
                (do ;; (prn "picking agenda")
                    (fn [card] (and (= "Agenda" (:type card))
-                                  ;; (or (#{"Neutral" (:faction deck-id)} (:faction card))
-                                  ;;       (<= 0 (rand-int 6)))
+                                  (or (#{"Neutral" (:faction deck-id)} (:faction card))
+                                      (= 0 (rand-int 6)))
                                   (get all-card-tags (lower-case (:title card))) ; ensures we don't grab from outside cardpool
                                   (< 0 (:agendapoints card))
                                   (or (= 2 (:agendapoints card)) ; make 2-pointers twice as likely
