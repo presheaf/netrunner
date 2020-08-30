@@ -85,7 +85,7 @@
                                   (get all-card-tags (lower-case (:title card))) ; ensures we don't grab from outside cardpool
                                   (< 0 (:agendapoints card))
                                   (or (= 2 (:agendapoints card)) ; make 2-pointers twice as likely
-                                      (= 0 (rand-int 2)))
+                                      (= 0 (rand-int 3)))
                                   (<= (:agendapoints card) remaining-ap))))
                
                ;; we're free to do whatever we want now, so choose a random tag in the template and go nuts
