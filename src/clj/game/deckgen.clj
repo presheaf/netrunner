@@ -78,7 +78,7 @@
                    (fn [card] (and (= "Agenda" (:type card))
                                   (or (#{"Neutral" (:faction deck-id)} (:faction card))
                                       (= 0 (rand-int 6)))
-                                  (or (!= (lower-case (:title card))
+                                  (or (not= (lower-case (:title card))
                                           "government takeover")
                                       (= 0 rand-int 10))
 
