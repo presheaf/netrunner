@@ -67,8 +67,8 @@
        
        ;; choose a new random card matching one of the tags in our deck which doesn't take us over inf and keep going
        (let [inadmissible-card
-             (fn [card] (not (some (set (:never template))
-                                  (get all-card-tags (lower-case (:title card))))))
+             (fn [card] (some (set (:never template))
+                             (get all-card-tags (lower-case (:title card)))))
 
              admissible-card
              (if (and (= "Corp" (:side deck-id))
@@ -165,8 +165,8 @@
 
 (defn generate-deck
   [side]
-  (let [;; template (rand-nth (side templates-by-side))
-        template (rand-nth (concat (map (fn [template] (repeat (:odds template) template)) (side templates-by-side))))]
+  (let [template (rand-nth (apply concat (map (fn [tmpl] (repeat (:odds tmpl) tmpl))
+                                              (side templates-by-side))))]
     (prn (str "Generating deck from template" template))
     (let [deck        (generate-from-template template)
           deck-id     (:title (:identity deck))
@@ -217,3 +217,4 @@
 
 
 
+;; (def test-deck (generate-deck :runner))
