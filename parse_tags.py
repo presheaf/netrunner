@@ -13,7 +13,7 @@ with open(csvpath) as f:
         if not cardname:
             continue
         cardtags[cardname] = list(
-            [t for t in tags if t and t.lower() != "x"]
+            [t for t in tags if t]
         )
     
 

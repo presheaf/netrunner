@@ -73,9 +73,7 @@
                  #{"Ice"}
                  #{"Wincon" "Utility"}]
          :filler ["Jank"]
-         :never ["X" "Tagging" "Tag Punishment"]}
-
-        ]
+         :never ["X" "Tagging" "Tag Punishment"]}]
 
  :runner [{:odds 1
            :identity ["Kate \"Mac\" McCaffrey: Digital Tinker"
