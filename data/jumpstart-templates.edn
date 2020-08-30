@@ -72,8 +72,8 @@
                  #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
                  #{"Ice"}
                  #{"Wincon" "Utility"}]
-         :filler ["Jank" "Tagging" "Tag Punishment"]
-         :never ["X"]}
+         :filler ["Jank"]
+         :never ["X" "Tagging" "Tag Punishment"]}
 
         ]
 
