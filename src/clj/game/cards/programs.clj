@@ -1270,7 +1270,7 @@
                                 (strength-pump 1 1)]}))
 
 (define-card "Garrote"
-  (auto-icebreaker {:implementation "Strength 2->3"
+  (auto-icebreaker {:implementation "Cost 7 -> 6"
                     :abilities [(break-sub 1 1 "Sentry")
                                 (strength-pump 1 1)]}))
 

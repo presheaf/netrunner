@@ -573,6 +573,7 @@
 
 (define-card "Director Haas"
   {:in-play [:click-per-turn 1]
+   :effect (req (gain state :corp :click 1))
    :trash-effect (make-executive-trash-effect 1)})
 
 (define-card "Docklands Crackdown"
