@@ -1,10 +1,11 @@
 import edn_format
 import csv
 import pathlib
+import sys
 from collections import defaultdict
 
-csvpath = '/home/karlerik/Downloads/cardtags.csv'
-outpath = '/home/karlerik/Downloads/cardtags.edn'
+csvpath = sys.argv[1]
+outpath = sys.argv[2]
 cardtags = defaultdict(set)
 
 with open(csvpath) as f:
