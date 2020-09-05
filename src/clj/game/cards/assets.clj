@@ -579,8 +579,9 @@
   {:abilities [{:cost [:click 2]
                 :msg "add 1 power counter"
                 :effect (effect (add-counter card :power 1))}]
-   :constant-effects [{:type :install-cost
-                       :req (req (and (pos? (get-counters card :power))
+   :constant-effects [{:type :install-cost ; oops - hits corp installs too
+                       :req (req (and (runner? target)
+                                      (pos? (get-counters card :power))
                                       (not (get-in @state [:per-turn (:cid card)]))))
                        :value (req (* 2 (get-counters card :power)))}]
    :events [{:event :runner-install
