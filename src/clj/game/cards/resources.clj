@@ -191,7 +191,7 @@
                       :once :per-turn)]})
 
 (define-card "Angel Arena"
-  {:prompt "How many power counters?"
+  {:prompt "Choose the value of X"
    :choices :credit
    :msg (msg "add " (* 2 target) " power counters")
    :effect (effect (add-counter card :power (* 2 target)))

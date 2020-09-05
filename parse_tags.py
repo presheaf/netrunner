@@ -10,7 +10,7 @@ cardtags = defaultdict(set)
 
 with open(csvpath) as f:
     rdr = csv.reader(f.readlines())
-    for (cardname, _, *tags) in rdr:
+    for (cardname, *tags) in rdr:
         if not cardname:
             continue
         cardtags[cardname] = list(
@@ -18,6 +18,12 @@ with open(csvpath) as f:
         )
     
 
+for cname, ctag in {'Sure Gamble': 'Gamble',
+                    'Hedge Fund': 'Hedge',
+                    'Jackson Howard': 'Jackson',
+                    'Crypsis': 'Crypsis'}.items():
+    cardtags[cname].append(ctag)
+        
 # alltags = set(sum([[t for t in _tags]
 #                    for _tags in cardtags.values()], start=[]))
 
