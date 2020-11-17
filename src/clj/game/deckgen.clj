@@ -78,7 +78,8 @@
 
                                   (get all-card-tags (lower-case (:title card))) ; ensures we don't grab from outside cardpool
                                   (< 0 (:agendapoints card))
-                                  (or (= 2 (:agendapoints card)) ; make 2-pointers twice as likely
+                                  (or (and (= 2 (:agendapoints card)) ; make 3/2, 4/2, 5/2 twice as likely
+                                           (#{3 4 5} (:advancementcost card)))
                                       (= 0 (rand-int 3)))
                                   (<= (:agendapoints card) remaining-ap))))
                
