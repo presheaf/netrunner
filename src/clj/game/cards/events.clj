@@ -1181,7 +1181,7 @@
              (+ 2 (* 2 (count targets))) " [Credits]")
    :async true
    :cancel-effect (effect (gain-credits eid 2 nil)
-                          (system-msg "trash 0 cards and gain 2 [Credits]"))
+                          (system-msg "uses Freelance Coding Contracts to trash 0 cards and gain 2 [Credits]"))
    :effect (req (wait-for (trash-cards state side targets {:unpreventable true})
                           (gain-credits state side eid (+ 2 (* 2 (count targets))) nil)))})
 

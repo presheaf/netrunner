@@ -70,8 +70,10 @@
                ;; ensure we fill up agenda points first, so only look at agendas we can play which aren't 0 pts or takes us over 20
                (do ;; (prn "picking agenda")
                    (fn [card] (and (= "Agenda" (:type card))
-                                  (or (#{"Neutral" (:faction deck-id)} (:faction card))
-                                      (= 0 (rand-int 10)))
+                                  (or (= (:faction deck-id) (:faction card))
+                                      (and (= "Neutral" (:faction card))
+                                           (= 0 (rand-int 3)))
+                                      (= 0 (rand-int 8)))
                                   (or (not= (lower-case (:title card))
                                           "government takeover")
                                       (= 0 rand-int 10))
