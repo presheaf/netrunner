@@ -21,11 +21,11 @@
                  #{"Ice"}
                  #{"Wincon" "Utility"}]
          :filler ["Jank"]
-         :never ["Tagging" "Tag Punishment" "X"]}
+         :never ["Tagging" "Tag Punishment" "X"]
+         :unless ["Trap"]}
 
         {:odds 3
          :identity ["NBN: Making News"
-                    "Near-Earth Hub: Broadcast Center"
                     "Argus Security: Protection Guaranteed"]
          :tags {"Hedge"                3
                 "Jackson"              3
