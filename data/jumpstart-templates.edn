@@ -52,6 +52,32 @@
          :never ["X"]}
 
         {:odds 10
+         :identity ["Jinteki: Personal Evolution"]
+         :tags {"Hedge"                3
+                "Jackson"              3
+                "Economy"             11
+                "Net"                 22
+                "Ice"                 14
+                "Barrier"              3
+                "Sentry"               5
+                "Code Gate"            3
+                "Small"                7
+                "Midrange"             4
+                "Big"                  1
+                "Wincon"               1
+                "Trap"                 4
+                "Utility"              3}
+         :steps [#{"Hedge" "Jackson"}
+                 #{"Economy", "Wincon"}
+                 #{"Barrier" "Sentry" "Code Gate"}
+                 #{"Small" "Midrange" "Big"}
+                 #{"Ice"}
+                 #{"Utility" "Trap"}]
+         :filler ["Jank"]
+         :never ["X" "Tagging" "Tag Punishment"]
+         :unless ["Trap"]}
+
+        {:odds 10
          :identity ["Haas-Bioroid: Engineering the Future"
                     "Jinteki: Replicating Perfection"]
          :tags {"Hedge"                3
