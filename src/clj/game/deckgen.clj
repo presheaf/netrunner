@@ -38,7 +38,7 @@
    (generate-from-template (dissoc template :identity) (dissoc template :identity)
                            {:identity (get @all-cards (rand-nth (:identity template)))
                             :cards []}
-                           30))
+                           20))
   ([orig-template templ p-deck n-retries]
    (loop [template templ
           partial-deck p-deck
