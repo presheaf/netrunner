@@ -353,7 +353,9 @@
           [cond-button
            "Start"
            (or (every? :deck players)
-               (and is-js (= (count players) 2)))
+               is-js
+               ;; (and is-js (= (count players) 2))
+               )
            #(ws/ws-send! [:netrunner/start @gameid])])
         [:button {:on-click #(leave-lobby s)} "Leave"]
         (when (first-user? players @user)
