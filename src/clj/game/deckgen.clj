@@ -1,5 +1,6 @@
 (ns game.deckgen
   (:require [clojure.java.io :as io]
+            [clojure.set :refer [subset?]]
             [jinteki.cards :refer [all-cards]]
             [clojure.string :refer [lower-case]]
             [game.utils :refer [server-card]]))
@@ -11,7 +12,7 @@
 
 (defn  matches-tag [tag cardtags]
   (if (set? tag)
-    (clojure.set/subset? tag (into (hash-set) cardtags))
+    (subset? tag (into (hash-set) cardtags))
     (some #(= tag %) cardtags)))
 
 (def all-card-tags
