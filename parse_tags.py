@@ -27,6 +27,10 @@ for cname, ctag in {'Sure Gamble': 'Gamble',
 # alltags = set(sum([[t for t in _tags]
 #                    for _tags in cardtags.values()], start=[]))
 
+# case
+cardtags["TMI"] = ["Jank"]
+
+
 with open(outpath, 'w') as f:
     f.write(edn_format.dumps(cardtags))
 

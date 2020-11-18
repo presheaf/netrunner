@@ -56,26 +56,40 @@
          :tags {"Hedge"                3
                 "Jackson"              3
                 "Economy"             11
-                "Net"                 22
+                ;; #{"Net", "Ice"}        8
+                "Nasty"                8
+                "Net"                 19
                 "Ice"                 14
+                #{"Small" "Barrier"}   1
+                #{"Small" "Code Gate"} 1
+                #{"Small" "Sentry"}    1
+                #{"Net" "Trap"}        3
                 "Barrier"              3
                 "Sentry"               5
                 "Code Gate"            3
-                "Small"                7
-                "Midrange"             4
+                "Small"                5
+                "Midrange"             2
                 "Big"                  1
                 "Wincon"               1
                 "Trap"                 4
-                "Utility"              3}
+                "Utility"              2}
          :steps [#{"Hedge" "Jackson"}
                  #{"Economy", "Wincon"}
-                 #{"Barrier" "Sentry" "Code Gate"}
-                 #{"Small" "Midrange" "Big"}
+                 ;; #{#{"Net", "Ice"}}
+                 #{"Nasty"}
+                 #{#{"Net" "Trap"}
+                  #{"Small" "Barrier"}
+                  #{"Small" "Code Gate"}
+                  #{"Small" "Sentry"}}
+                 #{#{"Net" "Ice"}}
+                 #{"Net"}
+                 #{"Barrier" "Sentry" "Code Gate" "Small" "Midrange" "Big"}
                  #{"Ice"}
-                 #{"Utility" "Trap"}]
+                 #{"Utility" "Trap"}
+                 ]
          :filler ["Jank"]
          :never ["X" "Tagging" "Tag Punishment"]
-         :unless ["Trap"]}
+         :unless ["Net"]}
 
         {:odds 10
          :identity ["Haas-Bioroid: Engineering the Future"
