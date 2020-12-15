@@ -3016,7 +3016,7 @@
                                 :effect (effect (remove-subs! (get-card state new-card) #(= cid (:from-cid %))))}]))))}]))}]})
 
 (define-card "TMI"
-  {:trace {:base 3
+  {:trace {:base 4
            :msg "keep TMI rezzed"
            :label "Keep TMI rezzed"
            :unsuccessful {:effect (effect (derez card))}}
@@ -3075,7 +3075,7 @@
 
 (define-card "Troll"
   {:on-encounter
-   (trace-ability 2 {:msg "force the Runner to lose [Click] or end the run"
+   (trace-ability 3 {:msg "force the Runner to lose [Click] or end the run"
                      :player :runner
                      :prompt "Choose one"
                      :choices ["Lose [Click]" "End the run"]

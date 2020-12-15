@@ -301,9 +301,9 @@
    :effect (effect (gain :click 2))})
 
 (define-card "Blue Level Clearance"
-  {:msg "gain 5 [Credits] and draw 2 cards"
+  {:msg "gain 6 [Credits] and draw 2 cards"
    :async true
-   :effect (effect (gain-credits 5)
+   :effect (effect (gain-credits 6)
                    (draw eid 2 nil))})
 
 (define-card "BOOM!"
@@ -864,10 +864,10 @@
                           (shuffle-into-rd-effect state side eid card 4 false)))})
 
 (define-card "Green Level Clearance"
-  {:msg "gain 3 [Credits] and draw 1 card"
+  {:msg "gain 3 [Credits] and draw 2 cards"
    :async true
    :effect (effect (gain-credits 3)
-                   (draw eid 1 nil))})
+                   (draw eid 2 nil))})
 
 (define-card "Hangeki"
   {:req (req (last-turn? state :runner :trashed-card))

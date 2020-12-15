@@ -540,11 +540,13 @@
 
 (define-card "Haarpsichord Studios: Entertainment Unleashed"
   (let [haarp (fn [state side card]
-                (if (agenda? card)
+                (if (and (agenda? card)
+                         (not= (first (:zone card)) :discard))
                   ((constantly false)
                    (toast state :runner "Cannot steal due to Haarpsichord Studios." "warning"))
                   true))]
     {:events [{:event :agenda-stolen
+               :req (req (not= (first (:zone target)) :discard))
                :effect (effect (register-turn-flag! card :can-steal haarp))}]
      :effect (req (when-not (first-event? state side :agenda-stolen)
                     (register-turn-flag! state side card :can-steal haarp)))
@@ -1101,8 +1103,8 @@
                                 :type :recurring}}})
 
 (define-card "NBN: The World is Yours*"
-  {:effect (effect (gain :hand-size 2))
-   :leave-play (effect (lose :hand-size 2))})
+  {:effect (effect (gain :hand-size 3))
+   :leave-play (effect (lose :hand-size 3))})
 
 (define-card "Near-Earth Hub: Broadcast Center"
   {:events [{:event :server-created

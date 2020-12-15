@@ -418,7 +418,7 @@
            :msg "gain 1 [Credits]"
            :effect (req (gain-credits state :corp 1)
                         (add-counter state side card :credit -1))}]
-    {:effect (effect (add-counter card :credit 7))
+    {:effect (effect (add-counter card :credit 6))
      :silent (req true)
      :events [(assoc e :event :runner-turn-begins)
               (assoc e :event :corp-turn-begins)]}))
@@ -538,7 +538,7 @@
 
 (define-card "Efficiency Committee"
   {:silent (req true)
-   :effect (effect (add-counter card :agenda 2))
+   :effect (effect (add-counter card :agenda 3))
    :abilities [{:cost [:click 1 :agenda 1]
                 :effect (effect (gain :click 2)
                                 (register-turn-flag!
@@ -638,10 +638,12 @@
    :effect (req (gain-tags state :runner eid 1))})
 
 (define-card "Genetic Resequencing"
-  {:choices {:card #(= (last (:zone %)) :scored)}
-   :msg (msg "add 2 agenda counters on " (:title target))
-   :effect (effect (add-counter target :agenda 2)
-                   (update-all-agenda-points))
+  {:choices {:card #(= (last (:zone %)) :scored)
+             :max (req (count (:scored corp)))}
+   :msg (msg "add 2 agenda counters on " (join ", " (map :title targets)))
+   :effect (req (doseq [c targets]
+                  (add-counter state side c :agenda 1))
+                (update-all-agenda-points state side))
    :silent (req true)})
 
 (define-card "Geothermal Fracking"
