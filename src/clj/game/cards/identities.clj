@@ -541,12 +541,12 @@
 (define-card "Haarpsichord Studios: Entertainment Unleashed"
   (let [haarp (fn [state side card]
                 (if (and (agenda? card)
-                         (not= (first (:zone card)) :discard))
+                         (not= (first (:previous-zone card)) :discard))
                   ((constantly false)
                    (toast state :runner "Cannot steal due to Haarpsichord Studios." "warning"))
                   true))]
     {:events [{:event :agenda-stolen
-               :req (req (not= (first (:zone target)) :discard))
+               :req (req (not (some #{:discard} (:previous-zone target))))
                :effect (effect (register-turn-flag! card :can-steal haarp))}]
      :effect (req (when-not (first-event? state side :agenda-stolen)
                     (register-turn-flag! state side card :can-steal haarp)))
