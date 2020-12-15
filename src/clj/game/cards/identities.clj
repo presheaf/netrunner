@@ -541,7 +541,7 @@
 (define-card "Haarpsichord Studios: Entertainment Unleashed"
   (let [haarp (fn [state side card]
                 (if (and (agenda? card)
-                         (not= (first (:previous-zone card)) :discard))
+                         (not= (:zone card) :discard))
                   ((constantly false)
                    (toast state :runner "Cannot steal due to Haarpsichord Studios." "warning"))
                   true))]
