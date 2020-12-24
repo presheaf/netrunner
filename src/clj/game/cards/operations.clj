@@ -1328,6 +1328,28 @@
    :msg "do 1 net damage"
    :effect (effect (damage eid :net 1 {:card card}))})
 
+(define-card "Naughty or Nice"
+  {:async true
+   :effect
+   (req (let [top (take 1 (:deck corp))]
+          (wait-for (mill state :corp :corp 1)
+                    (system-msg state side (str " trashes " (:title target) " from the top of R&D"))
+                    (continue-ability
+                     state :corp
+                     (if (or (agenda? target)
+                             (some? (map #(has-subtype? target %)
+                                         ["AP" "Illicit" "Black Ops" "Gray Ops"])))
+                       {:async true
+                        :prompt "Choose a card to trash"
+                        :choices {:card installed?}
+                        :msg (msg "trash " (card-str state target))
+                        :effect (effect (trash eid target nil))}
+                       {:prompt "Choose a card to add to HQ"
+                        :choices (req (cancellable (:deck corp) :sorted))
+                        :effect (effect (move target :hand))}
+                       card nil))))
+        card nil)})
+
 (define-card "NEXT Activation Command"
   {:trash-after-resolving false
    :constant-effects [{:type :ice-strength

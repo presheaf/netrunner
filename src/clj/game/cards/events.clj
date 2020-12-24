@@ -1576,6 +1576,21 @@
    :leave-play (req (remove-watch state :itin)
                     (change-hand-size state :corp (count-bad-pub state)))})
 
+(define-card "Jingle Bells"
+  {:req (req (or hq-runnable
+                 rd-runnable))
+   :makes-run true
+   :async true
+   :choices ["HQ" "R&D"]
+   :effect (effect (make-run eid target nil card))
+   :events [{:event :successful-run
+             :unregister-once-resolved true
+             :silent (req true)
+             :async true
+             :req (req (#{:rd :hq} target))
+             :effect (req (draw state :corp eid 3 nil)
+                      (access-bonus state side target 2))}]})
+
 (define-card "Khusyuk"
   (let [access-revealed (fn [revealed]
                           {:async true

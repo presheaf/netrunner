@@ -690,6 +690,52 @@
                            (= (:title target) "Hivemind")))
              :effect (effect (update-all-ice))}]})
 
+(define-card "Christmas Tree"
+  {:implementation "Faction requirement not enforced"
+   :effect (req
+            (let [rand-program (take 1 (shuffle (vec (filter program? (:deck runner)))))]
+              (move state side rand-program :hand)
+              (system-msg state side (str "adds " (:title rand-program)) " to their grip")))
+
+   :abilities [{:label "Install a program on Christmas Tree"
+                ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
+                :async true
+                :effect (effect (continue-ability
+                                  {:cost [:click 1]
+                                   :prompt "Choose a program in your Grip to install on Christmas Tree"
+                                   :choices {:card #(and (program? %)
+                                                         (runner-can-install? state side % false)
+                                                         (in-hand? %))}
+                                   :msg (msg "host " (:title target))
+                                   :async true
+                                   :effect (req (wait-for (runner-install state side target {:host-card card :no-mu true})
+                                                          (update! state side (assoc-in (get-card state card)
+                                                                                        [:special :hosted-programs]
+                                                                                        (cons (:cid target)
+                                                                                              (get-in card [:special :hosted-programs]))))
+                                                          (effect-completed state side eid)))}
+                                  card nil))}
+               {:label "Host an installed program on Christmas Tree"
+                ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
+                :prompt "Choose an installed program to host on Christmas Tree"
+                :choices {:card #(and (program? %)
+                                      (installed? %))}
+                :msg (msg "host " (:title target))
+                :effect (effect (free-mu (:memoryunits target))
+                                (update-breaker-strength target)
+                                (host card (get-card state target))
+                                (update! (assoc-in (get-card state card)
+                                                   [:special :hosted-programs]
+                                                   (cons (:cid target)
+                                                         (get-in card [:special :hosted-programs])))))}]
+   :events [{:event :card-moved
+             :req (req (some #{(:cid target)} (get-in card [:special :hosted-programs])))
+             :effect (effect (update! (assoc-in card
+                                                [:special :hosted-programs]
+                                                (remove #(= (:cid target) %)
+                                                        (get-in card [:special :hosted-programs]))))
+                             (use-mu (:memoryunits target)))}]})
+
 (define-card "Cloak"
   {:recurring 1
    :interactions {:pay-credits {:req (req (and (= :ability (:source-type eid))
@@ -748,6 +794,18 @@
                                    (str " (and " hivemind-virus " from Hivemind)")))))}
                (set-autoresolve :auto-accept "adding virus counters")]})
 
+(define-card "Cookies"
+  {:hosting {:card #(and (ice? %)
+                         ;; (can-host? %)  ;; ???
+                         (not (rezzed? %)))}
+   :data {:counter {:power 2}}
+   :effect (req (when-let [host-ice (:host card)]
+                  (req (rez state :corp host-ice {:ignore-cost :all-costs}))))
+   :events [{:event :encounter-ice
+             :req (req )                ; TODO: add counter
+             :effect {:msg (msg "bypass " (:title target))
+                      :effect (req (bypass-ice state))}}]})
+ 
 (define-card "Copycat"
   {:abilities [{:async true
                 :req (req (and run
