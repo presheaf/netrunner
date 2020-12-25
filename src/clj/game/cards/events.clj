@@ -1588,8 +1588,8 @@
              :silent (req true)
              :async true
              :req (req (#{:rd :hq} target))
-             :effect (req (draw state :corp eid 3 nil)
-                      (access-bonus state side target 2))}]})
+             :effect (req (access-bonus state side target 2)
+                          (draw state :corp eid 3 nil))}]})
 
 (define-card "Khusyuk"
   (let [access-revealed (fn [revealed]

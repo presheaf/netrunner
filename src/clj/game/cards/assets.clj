@@ -344,15 +344,13 @@
                           :msg (msg (let [chosen-card (nth (:deck runner) target)]
                                       "reveal " (:title chosen-card)
                                       (if (is-type? chosen-card chosen-type)
-                                        " and gain 2[Credit]")))})
-        choose-ability {:prompt "Choose a card type"
-                        :choices ["Event" "Hardware" "Program" "Resource"]
-                        :async true
-                        :effect (effect (continue-ability (reveal-ability target) card nil))}]
+                                        " and gain 2[Credit]")))})]
     {:events [{:event :corp-turn-begins
                :req (req (pos? (count (:deck runner))))
                :async true
-               :effect choose-ability}]}))
+               :prompt "Choose a card type"
+               :choices ["Event" "Hardware" "Program" "Resource"]
+               :effect (effect (continue-ability (reveal-ability target) card nil))}]}))
 
 (define-card "City Surveillance"
   {:derezzed-events [corp-rez-toast]
@@ -1791,7 +1789,8 @@
              :effect (req
                       (system-msg state side (str " uses Santa Claus to reveal "
                                                   (join ", " (map :title (:hand runner)))))
-                      (let [num-missing (count (filter #(some (fn [card] (is-type? card %)) (:hand runner))
+                      (let [num-missing (count (filter #(not (some (fn [card] (is-type? card %))
+                                                                   (:hand runner)))
                                                        ["Event" "Hardware" "Program" "Resource"]))]
                         (system-msg state side  (str " uses Santa Claus to gain " num-missing
                                                      "[credit] and make each player draw " num-missing " cards"))

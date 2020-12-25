@@ -544,7 +544,7 @@
                          (not= (:zone card) :discard))
                   ((constantly false)
                    (toast state :runner "Cannot steal due to Haarpsichord Studios." "warning"))
-                  true))]
+                  (constantly true)))]
     {:events [{:event :agenda-stolen
                :req (req (not (some #{:discard} (:previous-zone target))))
                :effect (effect (register-turn-flag! card :can-steal haarp))}]

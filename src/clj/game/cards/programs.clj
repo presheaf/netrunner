@@ -695,7 +695,7 @@
    :effect (req (shuffle! state :runner :deck)
                 (let [rand-program (first (filter program? (:deck runner)))]
                   (move state side rand-program :hand)
-                  (system-msg state side (str "adds " (:title rand-program)) " to their grip and shuffles their stack"))
+                  (system-msg state side (str "adds " (:title rand-program) " to their grip and shuffles their stack")))
                 (shuffle! state :runner :deck))
    :abilities [{:label "Install a program on Christmas Tree"
                 ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
@@ -802,10 +802,11 @@
    :effect (req (when-let [host-ice (:host card)]
                   (rez state :corp host-ice {:ignore-cost :all-costs})))
    :events [{:event :encounter-ice
-             :req (req (pos? (get-counters (get-card state card) :power)))                ; TODO: add counter
-             :effect {:msg (msg "remove a hosted power counter and bypass " (:title target))
-                      :effect (req (add-counter card :power -1)
-                                   (bypass-ice state))}}]})
+             :req (req (and (same-card? (:host card) target)
+                            (pos? (get-counters (get-card state card) :power))))
+             :msg (msg "remove a hosted power counter and bypass " (:title target))
+             :effect (req (add-counter card :power -1)
+                          (bypass-ice state))}]})
  
 (define-card "Copycat"
   {:abilities [{:async true

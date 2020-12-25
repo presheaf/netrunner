@@ -1331,7 +1331,7 @@
 (define-card "Naughty or Nice"
   {:async true
    :effect
-   (req (let [top (take 1 (:deck corp))]
+   (req (let [top (first (:deck corp))]
           (wait-for (mill state :corp :corp 1)
                     (system-msg state side (str " trashes " (:title top) " from the top of R&D"))
                     (continue-ability
@@ -1346,7 +1346,8 @@
                         :effect (effect (trash eid target nil))}
                        {:prompt "Choose a card to add to HQ"
                         :choices (req (cancellable (:deck corp) :sorted))
-                        :effect (effect (move target :hand))})
+                        :effect (effect (move target :hand)
+                                        (effect-completed eid))})
                      card nil))))})
 
 (define-card "NEXT Activation Command"
