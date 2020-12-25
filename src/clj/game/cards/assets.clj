@@ -341,7 +341,7 @@
                           :async true
                           :effect (req (when (is-type? (nth (:deck runner) target) chosen-type)
                                          (gain-credits state :corp 2))
-                        l               (effect-completed state side eid))
+                                       (effect-completed state side eid))
                           :msg (msg (let [chosen-card (nth (:deck runner) target)]
                                       "reveal " (:title chosen-card)
                                       (if (is-type? chosen-card chosen-type)
