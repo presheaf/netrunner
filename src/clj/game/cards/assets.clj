@@ -336,7 +336,7 @@
 (define-card "Christmas Sales"
   (let [reveal-ability (fn [chosen-type]
                          {:prompt "Choose a card to reveal (1 is top card)"
-                          :choices (req (map str (range 1 (inc (count (:deck runner))))))
+                          :choices (req (map str (range 1 (inc (min 3 (count (:deck runner)))))))
                           ;; {:number (req (min (count (:deck runner)) 3))
                                    ;;  :min 1}
                           :async true
@@ -344,7 +344,7 @@
                                                        chosen-type)
                                          (gain-credits state :corp 2))
                                        (effect-completed state side eid))
-                          :msg (msg (let [chosen-card (nth (:deck runner) target)]
+                          :msg (msg (let [chosen-card (nth (:deck runner) (dec (str->int target)))]
                                       (str "reveal " (:title chosen-card)
                                            (if (is-type? chosen-card chosen-type)
                                              " and gain 2[Credit]"))))})]

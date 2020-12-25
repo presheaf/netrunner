@@ -1345,6 +1345,7 @@
                         :msg (msg "trash " (card-str state target))
                         :effect (effect (trash eid target nil))}
                        {:prompt "Choose a card to add to HQ"
+                        :msg "add a card to HQ"
                         :choices (req (cancellable (:deck corp) :sorted))
                         :effect (effect (move target :hand)
                                         (effect-completed eid))})
