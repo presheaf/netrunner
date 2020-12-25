@@ -1791,7 +1791,7 @@
              :effect (req
                       (system-msg (str " uses Santa Claus to reveal " (join ", " (map :title (:hand runner)))))
                       (let [num-missing
-                            (count (filter #(#(is-type? % card-type) (:hand runner))
+                            (count (filter #(some (fn [card] (is-type? card %)) (:hand runner))
                                            ["Event" "Hardware" "Program" "Resource"]))]
                         (system-msg (str " uses Santa Claus to gain " num-missing
                                          "[credit] and make each player draw " num-missing " cards"))
