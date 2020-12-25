@@ -701,7 +701,7 @@
                 ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
                 :async true
                 :effect (effect (continue-ability
-                                 (let [hosted-factions (hash-set (map #(:faction (first %))
+                                 (let [hosted-factions (hash-set (map #(:faction (second %))
                                                                       (get-in (get-card state card) [:special :hosted-programs])))] 
                                    {:cost [:click 1]
                                     :prompt "Choose a program in your Grip to install on Christmas Tree"
@@ -721,7 +721,7 @@
                {:label "Host an installed program on Christmas Tree"
                 :async true
                 :effect (effect (continue-ability
-                                 (let [hosted-factions (hash-set (map #(:faction (first %))
+                                 (let [hosted-factions (hash-set (map #(:faction (second %))
                                                                       (get-in (get-card state card) [:special :hosted-programs])))]
                                    {:prompt "Choose an installed program to host on Christmas Tree"
                                     :choices {:card #(and (program? %)
