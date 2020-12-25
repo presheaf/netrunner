@@ -704,37 +704,43 @@
                   ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
                   :async true
                   :effect (effect (continue-ability
-                                   {:cost [:click 1]
-                                    :prompt "Choose a program in your Grip to install on Christmas Tree"
-                                    :choices {:card #(and (program? %)
-                                                          (runner-can-install? state side % false)
-                                                          (in-hand? %)
-                                                          ;; (different-faction-from-hosted (get-card state card) %)
-                                                          )}
-                                    :msg (msg "host " (:title target))
-                                    :async true
-                                    :effect (req (wait-for (runner-install state side target {:host-card card :no-mu true})
-                                                           (update! state side (assoc-in (get-card state card)
-                                                                                         [:special :hosted-programs]
-                                                                                         (cons (:cid target)
-                                                                                               (get-in card [:special :hosted-programs]))))
-                                                           (effect-completed state side eid)))}
+                                   (let [hosted-factions (hash-set (map :faction (get-in card [:special :hosted-programs])))] 
+                                     {:cost [:click 1]
+                                      :prompt "Choose a program in your Grip to install on Christmas Tree"
+                                      :choices {:card #(and (program? %)
+                                                            (runner-can-install? state side % false)
+                                                            (in-hand? %)
+                                                            (not (hosted-factions (:faction %)))
+                                                            (different-faction-from-hosted (get-card state card) %))}
+                                      :msg (msg "host " (:title target))
+                                      :async true
+                                      :effect (req (wait-for (runner-install state side target {:host-card card :no-mu true})
+                                                             (update! state side (assoc-in (get-card state card)
+                                                                                           [:special :hosted-programs]
+                                                                                           (cons (:cid target)
+                                                                                                 (get-in card [:special :hosted-programs]))))
+                                                             (effect-completed state side eid)))})
                                    card nil))}
                  {:label "Host an installed program on Christmas Tree"
+                  :async true
+                  :effect (effect (continue-ability
+                                   (let [hosted-factions (hash-set (map :faction (get-in card [:special :hosted-programs])))]
+                                     {:prompt "Choose an installed program to host on Christmas Tree"
+                                      :choices {:card #(and (program? %)
+                                                            (installed? %)
+                                                            ;; (different-faction-from-hosted (get-card state card) %)
+                                                            )}
+                                      :msg (msg "host " (:title target))
+                                      :effect (effect (free-mu (:memoryunits target))
+                                                      (update-breaker-strength target)
+                                                      (host card (get-card state target))
+                                                      (update! (assoc-in (get-card state card)
+                                                                         [:special :hosted-programs]
+                                                                         (cons (:cid target)
+                                                                               (get-in card [:special :hosted-programs])))))})
+                                   card nil))
                   ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
-                  :prompt "Choose an installed program to host on Christmas Tree"
-                  :choices {:card #(and (program? %)
-                                        (installed? %)
-                                        ;; (different-faction-from-hosted (get-card state card) %)
-                                        )}
-                  :msg (msg "host " (:title target))
-                  :effect (effect (free-mu (:memoryunits target))
-                                  (update-breaker-strength target)
-                                  (host card (get-card state target))
-                                  (update! (assoc-in (get-card state card)
-                                                     [:special :hosted-programs]
-                                                     (cons (:cid target)
-                                                           (get-in card [:special :hosted-programs])))))}]
+                  }]
      :events [{:event :card-moved
                :req (req (some #{(:cid target)} (get-in card [:special :hosted-programs])))
                :effect (effect (update! (assoc-in card
