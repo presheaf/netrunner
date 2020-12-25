@@ -1337,8 +1337,8 @@
                     (continue-ability
                      state :corp
                      (if (or (agenda? top)
-                             (some (map #(has-subtype? top %)
-                                        ["AP" "Illicit" "Black Ops" "Gray Ops"])))
+                             (some #(has-subtype? top %)
+                                   ["AP" "Illicit" "Black Ops" "Gray Ops"]))
                        {:async true
                         :prompt "Choose a card to trash"
                         :choices {:card installed?}
