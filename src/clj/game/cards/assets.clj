@@ -335,16 +335,16 @@
 
 (define-card "Christmas Sales"
   (let [reveal-ability (fn [chosen-type]
-                        {:prompt (str "Choose a card to reveal (1 is top card)")
-                         :choices (req (filter #(<= % (count (:deck runner))) [1 2 3]))
-                         :async true
-                         :effect (req (when (is-type? (nth (:deck runner) target) chosen-type)
-                                        (gain-credits state :corp 2))
-                                      (effect-completed state side eid))
-                         :msg (msg (let [chosen-card (nth (:deck runner) target)]
-                                     "reveal " (:title chosen-card)
-                                     (if (is-type? chosen-card chosen-type)
-                                       " and gain 2[Credit]")))})
+                         {:prompt (str "Choose a card to reveal (1 is top card)")
+                          :choices (req (filter #(<= % (count (:deck runner))) [1 2 3]))
+                          :async true
+                          :effect (req (when (is-type? (nth (:deck runner) target) chosen-type)
+                                         (gain-credits state :corp 2))
+                                       (effect-completed state side eid))
+                          :msg (msg (let [chosen-card (nth (:deck runner) target)]
+                                      "reveal " (:title chosen-card)
+                                      (if (is-type? chosen-card chosen-type)
+                                        " and gain 2[Credit]")))})
         choose-ability {:prompt "Choose a card type"
                         :choices ["Event" "Hardware" "Program" "Resource"]
                         :async true
@@ -1789,12 +1789,12 @@
   {:events [{:event :corp-turn-begins
              :async true
              :effect (req
-                      (system-msg (str " uses Santa Claus to reveal " (join ", " (map :title (:hand runner)))))
-                      (let [num-missing
-                            (count (filter #(some (fn [card] (is-type? card %)) (:hand runner))
-                                           ["Event" "Hardware" "Program" "Resource"]))]
-                        (system-msg (str " uses Santa Claus to gain " num-missing
-                                         "[credit] and make each player draw " num-missing " cards"))
+                      (system-msg state side (str " uses Santa Claus to reveal "
+                                                  (join ", " (map :title (:hand runner)))))
+                      (let [num-missing (count (filter #(some (fn [card] (is-type? card %)) (:hand runner))
+                                                       ["Event" "Hardware" "Program" "Resource"]))]
+                        (system-msg state side  (str " uses Santa Claus to gain " num-missing
+                                                     "[credit] and make each player draw " num-missing " cards"))
                         (if (pos? num-missing)
                           (do (gain-credits state :corp num-missing)
                               (wait-for (draw state :corp num-missing nil)

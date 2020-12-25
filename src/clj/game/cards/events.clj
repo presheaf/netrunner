@@ -1577,11 +1577,11 @@
                     (change-hand-size state :corp (count-bad-pub state)))})
 
 (define-card "Jingle Bells"
-  {:req (req (or hq-runnable
-                 rd-runnable))
+  {:req (req (or hq-runnable rd-runnable))
+   :prompt "Choose a server"
+   :choices ["HQ" "R&D"]
    :makes-run true
    :async true
-   :choices ["HQ" "R&D"]
    :effect (effect (make-run eid target nil card))
    :events [{:event :successful-run
              :unregister-once-resolved true
@@ -2442,7 +2442,7 @@
      :prompt "Choose a server"
      :choices (req runnable-servers)
      :effect (effect (update! (assoc-in card [:special :run-amok] (get-rezzed-cids (all-installed state :corp))))
-               (make-run eid target nil (get-card state card)))
+                     (make-run eid target nil (get-card state card)))
      :events [{:event :run-ends
                :async true
                :effect (req (let [new (set (get-rezzed-cids (all-installed state :corp)))

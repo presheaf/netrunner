@@ -1333,11 +1333,11 @@
    :effect
    (req (let [top (take 1 (:deck corp))]
           (wait-for (mill state :corp :corp 1)
-                    (system-msg state side (str " trashes " (:title target) " from the top of R&D"))
+                    (system-msg state side (str " trashes " (:title top) " from the top of R&D"))
                     (continue-ability
                      state :corp
-                     (if (or (agenda? target)
-                             (some? (map #(has-subtype? target %)
+                     (if (or (agenda? top)
+                             (some? (map #(has-subtype? top %)
                                          ["AP" "Illicit" "Black Ops" "Gray Ops"])))
                        {:async true
                         :prompt "Choose a card to trash"
@@ -1347,8 +1347,7 @@
                        {:prompt "Choose a card to add to HQ"
                         :choices (req (cancellable (:deck corp) :sorted))
                         :effect (effect (move target :hand))})
-                     card nil)))
-        card nil)})
+                     card nil))))})
 
 (define-card "NEXT Activation Command"
   {:trash-after-resolving false
