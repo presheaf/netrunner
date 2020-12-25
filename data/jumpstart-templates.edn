@@ -13,9 +13,10 @@
                 "Midrange"             4
                 "Big"                  3
                 "Wincon"               4
-                "Utility"              3}
+                "Utility"              2
+                "Christmas"            1}
          :steps [#{"Hedge" "Jackson"}
-                 #{"Economy"}
+                 #{"Economy" "Christmas"}
                  #{"Barrier" "Sentry" "Code Gate"}
                  #{"Small" "Midrange" "Big"}
                  #{"Ice"}
@@ -30,7 +31,7 @@
          :tags {"Hedge"                3
                 "Jackson"              3
                 "Economy"             10
-                "Tagging"             10
+                "Tagging"              9
                 "Tag Punishment"       7
                 "Primary"              3
                 "Secondary"            3
@@ -40,9 +41,10 @@
                 "Code Gate"            4
                 "Small"                5
                 "Midrange"             4
-                "Big"                  2}
+                "Big"                  2
+                "Christmas"            1}
          :steps [#{"Hedge" "Jackson"}
-                 #{"Economy"}
+                 #{"Economy" "Christmas"}
                  #{"Primary" "Secondary"}
                  #{"Tag Punishment" "Tagging"}
                  #{"Barrier" "Sentry" "Code Gate"}
@@ -72,9 +74,10 @@
                 "Big"                  1
                 "Wincon"               1
                 "Trap"                 4
-                "Utility"              2}
+                "Utility"              1
+                "Christmas"            1}
          :steps [#{"Hedge" "Jackson"}
-                 #{"Economy", "Wincon"}
+                 #{"Economy" "Wincon" "Christmas"}
                  ;; #{#{"Net", "Ice"}}
                  #{"Nasty"}
                  #{#{"Net" "Trap"}
@@ -96,7 +99,7 @@
                     "Jinteki: Replicating Perfection"]
          :tags {"Hedge"                3
                 "Jackson"              3
-                "Economy"             10
+                "Economy"              9
                 "Ice"                 16
                 "Barrier"              3
                 "Sentry"               5
@@ -107,9 +110,10 @@
                 "Wincon"               1
                 "Utility"              1
                 "Trap Support"         1
-                "Trap"                 4}
+                "Trap"                 4
+                "Christmas"            1}
          :steps [#{"Hedge" "Jackson"}
-                 #{"Economy"}
+                 #{"Economy" "Christmas"}
                  #{"Trap" "Trap Support"}
                  #{"Barrier" "Sentry" "Code Gate"}
                  #{"Small" "Midrange" "Big"}
@@ -131,11 +135,12 @@
                   "Killer"             2
                   "Decoder"            3
                   "Remote Bust"        1
-                  "Breaker Support"    3
+                  "Breaker Support"    2
                   "Multiaccess"        6
                   "Utility"            1
-                  "Memory"             2}
-           :steps [#{"Gamble" "Crypsis"}
+                  "Memory"             2
+                  "Christmas"          1}
+           :steps [#{"Gamble" "Crypsis" "Christmas"}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
                    #{"Console"}
@@ -159,12 +164,13 @@
                   "Killer"             3
                   "Decoder"            2
                   "Remote Bust"        4
-                  "Breaker Support"    2
+                  "Breaker Support"    1
                   "Disruption"         3
                   "Multiaccess"        3
                   "Utility"            1
-                  "Memory"             1}
-           :steps [#{"Gamble" "Crypsis"}
+                  "Memory"             1
+                  "Christmas"          1}
+           :steps [#{"Gamble" "Crypsis" "Christmas"}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
                    #{"Console"}
@@ -193,8 +199,9 @@
                   "Breaker Support"    3
                   "Multiaccess"        4
                   "Utility"            1
-                  "Memory"             2}
-           :steps [#{"Gamble" "Crypsis"}
+                  "Memory"             1
+                  "Christmas"          1}
+           :steps [#{"Gamble" "Crypsis" "Christmas"}
                    #{"AI" "Fracter" "Killer" "Decoder"}
                    #{"Icebreaker" }
                    #{"Console"}
