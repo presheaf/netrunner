@@ -691,63 +691,58 @@
              :effect (effect (update-all-ice))}]})
 
 (define-card "Christmas Tree"
-  (letfn [(different-faction-from-hosted [host card]
-            (not ((hash-set (map :faction (get-in host [:special :hosted-programs])))
-                  (:faction card))))]
-    {:implementation "Faction requirement not enforced"
-     :effect (req (shuffle! state :runner :deck)
-                  (let [rand-program (first (filter program? (:deck runner)))]
-                    (move state side rand-program :hand)
-                    (system-msg state side (str "adds " (:title rand-program) " to their grip and shuffles their stack")))
-                  (shuffle! state :runner :deck))
-     :abilities [{:label "Install a program on Christmas Tree"
-                  ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
-                  :async true
-                  :effect (effect (continue-ability
-                                   (let [hosted-factions (hash-set (map :faction (get-in card [:special :hosted-programs])))] 
-                                     {:cost [:click 1]
-                                      :prompt "Choose a program in your Grip to install on Christmas Tree"
-                                      :choices {:card #(and (program? %)
-                                                            (runner-can-install? state side % false)
-                                                            (in-hand? %)
-                                                            (not (hosted-factions (:faction %)))
-                                                            (different-faction-from-hosted (get-card state card) %))}
-                                      :msg (msg "host " (:title target))
-                                      :async true
-                                      :effect (req (wait-for (runner-install state side target {:host-card card :no-mu true})
-                                                             (update! state side (assoc-in (get-card state card)
-                                                                                           [:special :hosted-programs]
-                                                                                           (cons (:cid target)
-                                                                                                 (get-in card [:special :hosted-programs]))))
-                                                             (effect-completed state side eid)))})
-                                   card nil))}
-                 {:label "Host an installed program on Christmas Tree"
-                  :async true
-                  :effect (effect (continue-ability
-                                   (let [hosted-factions (hash-set (map :faction (get-in card [:special :hosted-programs])))]
-                                     {:prompt "Choose an installed program to host on Christmas Tree"
-                                      :choices {:card #(and (program? %)
-                                                            (installed? %)
-                                                            ;; (different-faction-from-hosted (get-card state card) %)
-                                                            )}
-                                      :msg (msg "host " (:title target))
-                                      :effect (effect (free-mu (:memoryunits target))
-                                                      (update-breaker-strength target)
-                                                      (host card (get-card state target))
-                                                      (update! (assoc-in (get-card state card)
-                                                                         [:special :hosted-programs]
-                                                                         (cons (:cid target)
-                                                                               (get-in card [:special :hosted-programs])))))})
-                                   card nil))
-                  ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
-                  }]
-     :events [{:event :card-moved
-               :req (req (some #{(:cid target)} (get-in card [:special :hosted-programs])))
-               :effect (effect (update! (assoc-in card
-                                                  [:special :hosted-programs]
-                                                  (remove #(= (:cid target) %)
-                                                          (get-in card [:special :hosted-programs]))))
-                               (use-mu (:memoryunits target)))}]}))
+  {:implementation "Faction requirement not enforced"
+   :effect (req (shuffle! state :runner :deck)
+                (let [rand-program (first (filter program? (:deck runner)))]
+                  (move state side rand-program :hand)
+                  (system-msg state side (str "adds " (:title rand-program) " to their grip and shuffles their stack")))
+                (shuffle! state :runner :deck))
+   :abilities [{:label "Install a program on Christmas Tree"
+                ;; :req (req (< (count (get-in card [:special :hosted-programs])) 2))
+                :async true
+                :effect (effect (continue-ability
+                                 (let [hosted-factions (hash-set (map #(:faction (first %))
+                                                                      (get-in (get-card state card) [:special :hosted-programs])))] 
+                                   {:cost [:click 1]
+                                    :prompt "Choose a program in your Grip to install on Christmas Tree"
+                                    :choices {:card #(and (program? %)
+                                                          (runner-can-install? state side % false)
+                                                          (in-hand? %)
+                                                          (not (hosted-factions (:faction %))))}
+                                    :msg (msg "host " (:title target))
+                                    :async true
+                                    :effect (req (wait-for (runner-install state side target {:host-card card :no-mu true})
+                                                           (update! state side (assoc-in (get-card state card)
+                                                                                         [:special :hosted-programs]
+                                                                                         (cons [(:cid target) (:faction target)]
+                                                                                               (get-in card [:special :hosted-programs]))))
+                                                           (effect-completed state side eid)))})
+                                 card nil))}
+               {:label "Host an installed program on Christmas Tree"
+                :async true
+                :effect (effect (continue-ability
+                                 (let [hosted-factions (hash-set (map #(:faction (first %))
+                                                                      (get-in (get-card state card) [:special :hosted-programs])))]
+                                   {:prompt "Choose an installed program to host on Christmas Tree"
+                                    :choices {:card #(and (program? %)
+                                                          (installed? %)
+                                                          (not (hosted-factions (:faction %))))}
+                                    :msg (msg "host " (:title target))
+                                    :effect (effect (free-mu (:memoryunits target))
+                                                    (update-breaker-strength target)
+                                                    (host card (get-card state target))
+                                                    (update! (assoc-in (get-card state card)
+                                                                       [:special :hosted-programs]
+                                                                       (cons [(:cid target) (:faction target)]
+                                                                             (get-in card [:special :hosted-programs])))))})
+                                 card nil))}]
+   :events [{:event :card-moved
+             :req (req (some #{(:cid target)} (map first (get-in card [:special :hosted-programs]))))
+             :effect (effect (update! (assoc-in card
+                                                [:special :hosted-programs]
+                                                (remove #(= (:cid target) %)
+                                                        (get-in card [:special :hosted-programs]))))
+                             (use-mu (:memoryunits target)))}]})
 
 (define-card "Cloak"
   {:recurring 1
