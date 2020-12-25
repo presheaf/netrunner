@@ -335,12 +335,13 @@
 
 (define-card "Christmas Sales"
   (let [reveal-ability (fn [chosen-type]
-                         {:prompt (str "Choose a card to reveal (1 is top card)")
-                          :choices {:number (req (filter #(<= % (count (:deck runner))) [1 2 3]))}
+                         {:prompt "Choose a card to reveal (1 is top card)"
+                          :choices {:number (min (count (:deck runner)) 3)
+                                    :min 1}
                           :async true
                           :effect (req (when (is-type? (nth (:deck runner) target) chosen-type)
                                          (gain-credits state :corp 2))
-                                       (effect-completed state side eid))
+                        l               (effect-completed state side eid))
                           :msg (msg (let [chosen-card (nth (:deck runner) target)]
                                       "reveal " (:title chosen-card)
                                       (if (is-type? chosen-card chosen-type)
@@ -348,7 +349,7 @@
     {:events [{:event :corp-turn-begins
                :req (req (pos? (count (:deck runner))))
                :async true
-               :prompt "Choose a card type"
+               :prompt "Choose a card type for Christmas Sales"
                :choices ["Event" "Hardware" "Program" "Resource"]
                :effect (effect (continue-ability (reveal-ability target) card nil))}]}))
 
