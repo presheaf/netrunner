@@ -332,6 +332,28 @@
                 :msg "do 5 meat damage"
                 :effect (effect (damage eid :meat 5 {:card card}))}]})
 
+
+(define-card "Christmas Sales"
+  (let [reveal-ability (fn [chosen-type]
+                        {:prompt (str "Choose a card to reveal (1 is top card)")
+                         :choices (filter #(<= % (count (:deck runner))) [1 2 3])
+                         :async true
+                         :effect (req (when (is-type? (nth (:deck runner) target) chosen-type)
+                                        (gain-credits state :corp 2))
+                                      (effect-completed state side eid))
+                         :msg (msg (let [chosen-card (nth (:deck runner) target)])
+                                   "reveal " (:title chosen-card)
+                                   (if (is-type? chosen-card chosen-type)
+                                     " and gain 2[Credit]"))})
+        choose-ability {:prompt "Choose a card type"
+                        :choices ["Event" "Hardware" "Program" "Resource"]
+                        :async true
+                        :effect (effect (continue-ability (reveal-ability target) card nil))}]
+    {:events [{:event :corp-turn-begins
+               :req (req (pos? (count (:deck runner))))
+               :async true
+               :effect choose-ability}]}))
+
 (define-card "City Surveillance"
   {:derezzed-events [corp-rez-toast]
    :flags {:runner-phase-12 (req (pos? (:credit runner)))}
@@ -1762,6 +1784,22 @@
              :req (req (= :credit (first target)))
              :effect (effect (update-all-ice))}]
    :leave-play (effect (update-all-ice))})
+
+(define-card "Santa Claus"
+  {:events [{:event :corp-turn-begins
+             :async true
+             :effect (req
+                      (system-msg (str " uses Santa Claus to reveal " (join ", " (map :title (:hand runner)))))
+                      (let [num-missing
+                            (count (filter #(#(is-type? % card-type) (:hand runner))
+                                           ["Event" "Hardware" "Program" "Resource"]))]
+                        (system-msg (str " uses Santa Claus to gain " num-missing
+                                         "[credit] and make each player draw " num-missing " cards"))
+                        (if (pos? num-missing)
+                          (do (gain-credits state :corp num-missing)
+                              (wait-for (draw state :corp num-missing nil)
+                                        (draw state :runner eid num-missing nil)))
+                          (effect-completed state side eid))))}]})
 
 (define-card "Sealed Vault"
   {:abilities [{:label "Store any number of [Credits] on Sealed Vault"
