@@ -336,7 +336,7 @@
 (define-card "Christmas Sales"
   (let [reveal-ability (fn [chosen-type]
                          {:prompt "Choose a card to reveal (1 is top card)"
-                          :choices {:number (min (count (:deck runner)) 3)
+                          :choices {:number (req (min (count (:deck runner)) 3))
                                     :min 1}
                           :async true
                           :effect (req (when (is-type? (nth (:deck runner) target) chosen-type)
