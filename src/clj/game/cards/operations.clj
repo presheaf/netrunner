@@ -1346,8 +1346,8 @@
                         :effect (effect (trash eid target nil))}
                        {:prompt "Choose a card to add to HQ"
                         :choices (req (cancellable (:deck corp) :sorted))
-                        :effect (effect (move target :hand))}
-                       card nil))))
+                        :effect (effect (move target :hand))})
+                     card nil)))
         card nil)})
 
 (define-card "NEXT Activation Command"
