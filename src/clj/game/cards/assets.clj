@@ -341,10 +341,10 @@
                          :effect (req (when (is-type? (nth (:deck runner) target) chosen-type)
                                         (gain-credits state :corp 2))
                                       (effect-completed state side eid))
-                         :msg (msg (let [chosen-card (nth (:deck runner) target)])
-                                   "reveal " (:title chosen-card)
-                                   (if (is-type? chosen-card chosen-type)
-                                     " and gain 2[Credit]"))})
+                         :msg (msg (let [chosen-card (nth (:deck runner) target)]
+                                     "reveal " (:title chosen-card)
+                                     (if (is-type? chosen-card chosen-type)
+                                       " and gain 2[Credit]")))})
         choose-ability {:prompt "Choose a card type"
                         :choices ["Event" "Hardware" "Program" "Resource"]
                         :async true
