@@ -709,7 +709,8 @@
                                     :choices {:card #(and (program? %)
                                                           (runner-can-install? state side % false)
                                                           (in-hand? %)
-                                                          (different-faction-from-hosted (get-card state card) %))}
+                                                          ;; (different-faction-from-hosted (get-card state card) %)
+                                                          )}
                                     :msg (msg "host " (:title target))
                                     :async true
                                     :effect (req (wait-for (runner-install state side target {:host-card card :no-mu true})
@@ -724,7 +725,8 @@
                   :prompt "Choose an installed program to host on Christmas Tree"
                   :choices {:card #(and (program? %)
                                         (installed? %)
-                                        (different-faction-from-hosted (get-card state card) %))}
+                                        ;; (different-faction-from-hosted (get-card state card) %)
+                                        )}
                   :msg (msg "host " (:title target))
                   :effect (effect (free-mu (:memoryunits target))
                                   (update-breaker-strength target)
