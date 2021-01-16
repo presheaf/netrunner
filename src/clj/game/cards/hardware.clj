@@ -203,7 +203,7 @@
   {:in-play [:memory 2 :hand-size 2]})
 
 (define-card "Brain Cage"
-  {:in-play [:hand-size 3]
+  {:in-play [:hand-size 4]
    :effect (effect (damage eid :brain 1 {:card card}))})
 
 (define-card "Brain Chip"

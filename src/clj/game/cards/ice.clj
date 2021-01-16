@@ -1855,8 +1855,8 @@
 
 (define-card "Little Engine"
   {:subroutines [end-the-run end-the-run
-                 {:msg "make the Runner gain 5 [Credits]"
-                  :effect (effect (gain-credits :runner 5))}]})
+                 {:msg "make the Runner gain 4 [Credits]"
+                  :effect (effect (gain-credits :runner 4))}]})
 
 (define-card "Lockdown"
   {:subroutines [{:label "The Runner cannot draw cards for the remainder of this turn"
