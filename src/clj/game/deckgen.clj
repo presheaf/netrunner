@@ -98,6 +98,10 @@
                                             "government takeover")
                                       (= 0 rand-int 10))
 
+                                  (or (not= (lower-case (:title card))
+                                            "vanity project")
+                                      (= 0 rand-int 10))
+
                                   (tags-of card) ; ensures we don't grab from outside cardpool
                                   (< 0 (:agendapoints card))
                                   (or (and (= 2 (:agendapoints card)) ; make 3/2, 4/2, 5/2 twice as likely
