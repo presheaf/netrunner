@@ -3016,7 +3016,7 @@
                                 :effect (effect (remove-subs! (get-card state new-card) #(= cid (:from-cid %))))}]))))}]))}]})
 
 (define-card "TMI"
-  {:trace {:base 4
+  {:trace {:base 3
            :msg "keep TMI rezzed"
            :label "Keep TMI rezzed"
            :unsuccessful {:effect (effect (derez card))}}

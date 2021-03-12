@@ -1286,7 +1286,8 @@
                         card target)))}}}]})
 
 (define-card "Faust"
-  {:abilities [(break-sub [:trash-from-hand 1] 1)]})
+  {:abilities [(break-sub [:trash-from-hand 1] 1)
+               (strength-pump [:trash-from-hand 3] 2)]})
 
 (define-card "Fawkes"
   {:implementation "Stealth credit restriction not enforced"
