@@ -2374,7 +2374,8 @@
                                (gain-credits state side 1)))}]})
 
 (define-card "Self-modifying Code"
-  {:abilities [{:req (req (not (install-locked? state side)))
+  {:abilities [{:label "Search your stack for a program and install it"
+                :req (req (not (install-locked? state side)))
                 :cost [:trash :credit 2]
                 :async true
                 :effect (effect (continue-ability

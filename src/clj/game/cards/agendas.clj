@@ -183,10 +183,11 @@
                                    :value [:trash-from-hand 1]}))}]})
 
 (define-card "AstroScript Pilot Program"
-  {:implementation "Target restriction not implemented"
+  {:implementation "Target restriction not fully implemented"
    :effect (effect (add-counter card :agenda 1))
    :silent (req true)
    :abilities [{:cost [:agenda 1]
+                :label "Place 1 advancement token on a card that can be advanced that was not installed this turn"
                 :msg (msg "place 1 advancement token on " (card-str state target))
                 :choices {:req (req (and (can-be-advanced? target)
                                          (not= :this-turn (installed? target))))}
