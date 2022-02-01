@@ -121,7 +121,7 @@
              :async true
              :effect (req (show-wait-prompt state :corp "Runner to choose starting directives")
                           (let [directives (->> (server-cards)
-                                                (filter #((and (not= "Find the Truth" (:title target))
+                                                (filter #((and (not= "Find the Truth" (:title %))
                                                                (has-subtype? % "Directive"))))
                                                 (map make-card)
                                                 (zone :play-area))]
