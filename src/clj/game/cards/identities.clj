@@ -121,8 +121,8 @@
              :async true
              :effect (req (show-wait-prompt state :corp "Runner to choose starting directives")
                           (let [directives (->> (server-cards)
-                                                (filter #((and (has-subtype? % "Directive")
-                                                               (not= (:title %) "Find the Truth"))))
+                                                (filter #(and (has-subtype? % "Directive")
+                                                              (not= (:title %) "Find the Truth")))
                                                 ;; (#(concat (take 1 %) (drop 2 %))) ;TODO: Hardcoded that FtT has position 2...
                                                 (map make-card)
                                                 (zone :play-area))]
