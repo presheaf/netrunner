@@ -121,7 +121,8 @@
              :async true
              :effect (req (show-wait-prompt state :corp "Runner to choose starting directives")
                           (let [directives (->> (server-cards)
-                                                (take 3 (filter #((and (has-subtype? % "Directive")))))
+                                                (filter #(has-subtype? % "Directive"))
+                                                (take 3)
                                                 (map make-card)
                                                 (zone :play-area))]
                             ;; Add directives to :play-area - assumed to be empty
