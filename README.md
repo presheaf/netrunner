@@ -1,90 +1,12 @@
-[![Build status](https://circleci.com/gh/mtgred/netrunner/tree/master.svg?style=shield)](https://circleci.com/gh/mtgred/netrunner)
+Source code for the [Jinteki mirror](https://reteki.fun) used for the Reboot project. For card data and proxy generator tools, see my fork of the [netrunner-data](https://github.com/presheaf/netrunner-data/) repo.
 
-Play Android: Netrunner in the browser.
+Most of what I have done is patch together existing open source community tools written by other Netrunner community members. I'd like to put this a more discoverable place, but until I do, here is a list of projects I've used to run the Reteki server mentioned above, to whose creators I am grateful.
 
+- [Jinteki.net](https://github.com/mtgred/netrunner/)
+- [NetrunnerDB](https://github.com/NetrunnerDB/netrunnerdb)
+- [Proxy Nexus](https://github.com/axmccx/proxynexus/tree/master/misc) - used their script to generate bleed borders on proxies, not to generate the proxies themselves
+- [GRNDL Netrunner card creator](https://github.com/yonbergman/self-modifying-card) - used their proxy templates as starting point for proxy generator
+- Stimslack user Skippan: assisted in cleanup and enhancement of proxy templates
+- Probably others I am forgetting - please notify me if you know who!
 
-## Live server
-
-http://www.jinteki.net
-
-[Gameplay videos](https://www.youtube.com/results?search_query=jinteki.net)
-
-![screenshot](http://i.imgur.com/xkxOMHc.jpg)
-
-
-## Card implementation status
-
-[Card rules implementation status](https://docs.google.com/spreadsheets/d/1ICv19cNjSaW9C-DoEEGH3iFt09PBTob4CAutGex0gnE/pubhtml)
-
-
-## Development
-### Quickstart
-
-Install [Leiningen](https://leiningen.org/), [NodeJS](https://nodejs.org/en/download/package-manager/#macos) and
-[MongoDB](https://docs.mongodb.com/manual/installation/).
-
-This project runs on Java 8. If you're on OSX or Linux, we recommend using
-[jenv](https://github.com/jenv/jenv/blob/master/README.md) to manage your java environment.
-
-You can check your setup by running
-
-    $ lein version # Your exact version numbers below may vary, but we expect Java 1.8.X
-    Leiningen 2.9.1 on Java 1.8.0_222 OpenJDK 64-Bit Server VM
-
-Populate the database using:
-
-    $ lein fetch
-
-You can optionally pass `--no-card-images` if you don't want to download images from
-[NetrunnerDB](https://netrunnerdb.com/), as this takes a while. See `lein fetch help` for further options.
-
-To install frontend dependencies, run:
-
-    $ npm install -g bower
-    $ npm install -g stylus
-    $ bower install
-
-To compile CSS:
-
-    $ stylus src/css -o resources/public/css/
-
-Optionally you can pass `-w` to `stylus` to watch for changes and automatically recompile.
-
-Compile ClojureScript frontend:
-
-    $ lein cljsbuild once dev
-
-Alternatively, to watch ClojureScript files for changes and for access to a ClojureScript REPL, use `lein figwheel`.
-
-Finally, launch the webserver and the Clojure REPL:
-
-    $ lein repl
-
-and open http://localhost:1042/
-
-
-### Tests
-
-To run all tests:
-
-    $ lein test
-
-To run a single test file:
-
-    $ lein test game.cards.agendas-test
-
-Or a single test:
-
-    $ lein test :only game.cards.agendas-test/fifteen-minutes
-
-For more information refer to the [development guide](https://github.com/mtgred/netrunner/wiki/Getting-Started-with-Development).
-
-
-### Further reading
-
- - [Development Tips and Tricks](https://github.com/mtgred/netrunner/wiki/Development-Tips-and-Tricks)
- - [Writing Tests](https://github.com/mtgred/netrunner/wiki/Tests)
-
-## License
-
-Jinteki.net is released under the [MIT License](http://www.opensource.org/licenses/MIT).
+All modifications I have made to assist in the setup of a Reteki mirror are open source in that they are available from my forks of the corresponding repositories, but I will be the first to admit they are frequently hacky and rarely easy to read. I am hopeful that I'll one day clean up my changes and make them easier to use for anyone wishing to set up their own Netrunner mirror with card changes, but because I doubt such usecases are very common, I don't feel too bad about postponing it for now. In case you *do* want to do this, please get in touch with me (Stimslack username: presheaf, or make an issue here), and I'll make a best effort to either get my act together or at least try to assist you in how to go about it. 
