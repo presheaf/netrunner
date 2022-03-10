@@ -535,7 +535,7 @@
 (define-card "GRNDL: Power Unleashed"
   {:events [{:event :pre-start-game
              :req (req (= :corp side))
-             :effect (req (gain-credits state :corp 8)
+             :effect (req (gain-credits state :corp 7)
                           (when (zero? (count-bad-pub state))
                             (gain-bad-publicity state :corp 1)))}]})
 

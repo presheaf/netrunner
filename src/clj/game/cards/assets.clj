@@ -608,7 +608,7 @@
                        :req (req (and (runner? target)
                                       (pos? (get-counters card :power))
                                       (not (get-in @state [:per-turn (:cid card)]))))
-                       :value (req (* 2 (get-counters card :power)))}]
+                       :value (req (get-counters card :power))}]
    :events [{:event :runner-install
              :silent (req true)
              :req (req (and (pos? (get-counters card :power))
