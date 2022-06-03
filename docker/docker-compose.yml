@@ -6,6 +6,7 @@ services:
       dockerfile: docker/Dockerfile
     volumes:
       - ./config.edn:/netrunner/config.edn
+      - resources:/netrunner/resources
     ports:
       - 1042:1042
     depends_on:
@@ -17,13 +18,15 @@ services:
       dockerfile: docker/Dockerfile_fetch
     volumes:
       - ./config.edn:/netrunner/config.edn
+      - netrunner_data_raw_data_edn: /netrunner/edn/raw_data.edn
     depends_on:
       - mongodb
   mongodb:
     image: mongo:3.6.8
     volumes:
-      # former is local path to mongodb
       - mongodb_dir:/data/db 
 
 volumes:
   mongodb_dir: /user_data/jnet_mongodb_dir
+  jnet_resources: /service_data/jnet_resources
+  netrunner_data_raw_data_edn: /netrunner-data/edn/raw_data.edn
