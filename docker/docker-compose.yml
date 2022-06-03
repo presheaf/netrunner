@@ -10,5 +10,12 @@ services:
       - 1042:1042
     depends_on:
       - mongodb
+      - jnet_card_fetch
+  jnet_card_fetch:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile_fetch
+    depends_on:
+      - mongodb
   mongodb:
     image: mongo:3.6.8

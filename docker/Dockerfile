@@ -12,7 +12,7 @@ COPY . .
 RUN bower --allow-root install
 RUN stylus src/css -o resources/public/css/
 RUN lein deps
-RUN lein fetch --no-card-images --local ./netrunner_data_edn.edn
+RUN lein fetch --no-card-images --no-db --local .
 RUN lein cljsbuild once prod
 RUN lein uberjar
 

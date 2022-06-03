@@ -85,7 +85,7 @@
     (doseq [[k data] edn
             :let [filename (str "data/" (name k) ".edn")]]
       (write-to-file filename data)
-      (println (str "Wrote data/" filename ".edn to disk")))
+      (println (str "Wrote " filename " to disk")))
     (when db
       (webdb/connect)
       (try
