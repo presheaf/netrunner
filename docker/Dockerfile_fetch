@@ -12,4 +12,5 @@ COPY . .
 # RUN bower --allow-root install
 RUN lein deps
 RUN lein compile
+# TODO: This can have card edn mounted in as a volume.
 ENTRYPOINT ["lein", "fetch", "--no-card-images", "--local", "."]
