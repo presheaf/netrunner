@@ -19,3 +19,6 @@ services:
       - mongodb
   mongodb:
     image: mongo:3.6.8
+    volumes:
+      # former is local path to mongodb
+      - mongodb_dir/:/data/db 
