@@ -1,0 +1,15 @@
+FROM clojure:lein-alpine as builder
+
+# RUN apk --no-cache add \
+    # git
+    # nodejs \
+    # nodejs-npm
+
+# RUN npm install -g bower stylus
+
+WORKDIR /netrunner
+COPY . .
+# RUN bower --allow-root install
+RUN lein deps
+RUN lein compile
+ENTRYPOINT ["lein", "fetch", "--no-card-images", "--local", "."]
