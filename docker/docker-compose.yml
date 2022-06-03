@@ -23,4 +23,7 @@ services:
     image: mongo:3.6.8
     volumes:
       # former is local path to mongodb
-      - mongodb_dir/:/data/db 
+      - mongodb_dir:/data/db 
+
+volumes:
+  mongodb_dir: /user_data/jnet_mongodb_dir
