@@ -7,7 +7,7 @@ services:
       dockerfile: docker/Dockerfile
     volumes:
       - ./config.edn:/netrunner/config.edn
-      - resources:/netrunner/resources
+      - /service_data/jnet_resources:/netrunner/resources
     networks:
       - db_network
       - web_network
