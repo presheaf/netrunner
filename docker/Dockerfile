@@ -12,7 +12,9 @@ COPY . .
 RUN bower --allow-root install
 RUN stylus src/css -o resources/public/css/
 RUN lein deps
-RUN lein fetch --no-card-images --no-db --local .
+
+# TODO: does this really do anything?
+# RUN lein fetch --no-card-images --no-db --local .
 RUN lein cljsbuild once prod
 RUN lein uberjar
 
