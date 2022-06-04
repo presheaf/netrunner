@@ -18,7 +18,7 @@ services:
       dockerfile: docker/Dockerfile_fetch
     volumes:
       - ./config.edn:/netrunner/config.edn
-      - /netrunner-data/edn/raw_data.edn:/netrunner/edn/raw_data.edn
+      - /root/netrunner-data/edn/:/netrunner/edn/
     depends_on:
       - mongodb
   mongodb:
