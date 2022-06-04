@@ -196,10 +196,10 @@
    :prompt "Select an installed card in a server to trash"
    :choices {:card #(and (= (last (:zone %)) :content)
                          (is-remote? (second (:zone %))))}
-   :effect (effect (gain-credits (* 3 (get-counters target :advancement)))
+   :effect (effect (gain-credits (* 4 (get-counters target :advancement)))
                    (trash eid target nil))
    :msg (msg "trash " (card-str state target) " and gain "
-             (* 3 (get-counters target :advancement)) " [Credits]")})
+             (* 4 (get-counters target :advancement)) " [Credits]")})
 
 (define-card "Bad Times"
   {:implementation "Any required program trashing is manual"
