@@ -246,8 +246,7 @@
                [:h4 "Channels"]
                (doall
                  (for
-                   [ch [:general :america :europe :asia-pacific :united-kingdom :français :español :italia :polska
-                        :português :sverige :stimhack-league :русский]]
+                   [ch [:general :looking-for-game]]
                    ^{:key ch}
                    [channel-view {:channel ch :active-channel (:channel @s)} s]))]
               [:div.chat-container

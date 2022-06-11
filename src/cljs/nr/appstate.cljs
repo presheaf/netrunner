@@ -33,6 +33,5 @@
            :decks [] :decks-loaded false
            :stats (:stats (js->clj js/user :keywordize-keys true))
            :games [] :gameid nil :messages []
-           :channels {:general [] :america [] :europe [] :asia-pacific [] :united-kingdom [] :français []
-                      :español [] :italia [] :polska [] :português [] :sverige [] :stimhack-league [] :русский []}
+           :channels {:general []  :looking-for-game []}
            }))
