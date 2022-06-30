@@ -10,7 +10,7 @@
          reset-all-subs! resolve-subroutine! resolve-unbroken-subs! break-subroutine!
          update-all-ice update-all-icebreakers continue play-ability
          play-heap-breaker-auto-pump-and-break installable-servers get-runnable-zones
-         pump get-current-ice)
+         pump get-current-ice make-sfx-card-info)
 
 ;;; Neutral actions
 (defn play
@@ -683,8 +683,8 @@
                                     {:time-out 0 :close-button true}))
                            (if (ice? card)
                              (do (update-ice-strength state side card)
-                                 (play-sfx state side "rez-ice"))
-                             (play-sfx state side "rez-other"))
+                                 (play-sfx state side "rez-ice" (make-sfx-card-info state card)))
+                             (play-sfx state side "rez-other" (make-sfx-card-info state card)))
                            (swap! state update-in [:stats :corp :cards :rezzed] (fnil inc 0))
                            (trigger-event-sync state side eid :rez (get-card state card))
                            (when press-continue
@@ -730,7 +730,8 @@
                      (system-msg state side message))
                    (update-advancement-cost state side card)
                    (add-prop state side (get-card state card) :advance-counter 1)
-                   (play-sfx state side "click-advance")))))))
+                   (play-sfx state side "click-advance" (assoc (make-sfx-card-info state card)
+                                                               :num-advancements (get-counters (get-card state card) :advancement)))))))))
 
 (defn score
   "Score an agenda. It trusts the card data passed to it."
@@ -762,7 +763,7 @@
                                       (swap! state dissoc-in [:corp :disable-id])
                                       (update-all-agenda-points state side)
                                       (check-winner state side)
-                                      (play-sfx state side "agenda-score")))}}
+                                      (play-sfx state side "agenda-score" (make-sfx-card-info state card))))}}
                      c))
                  (effect-completed state side eid))))))
 

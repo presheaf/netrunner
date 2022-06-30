@@ -63,15 +63,28 @@
          "info"
          {:time-out 5000 :close-button true}))
 
+(defn make-sfx-card-info
+  "WIP method for making necessary info about a card."
+  [state card]
+  (let [card (get-card state card)]
+    (if (rezzed? card)
+      ;; TODO: not quite the right check - want to avoid facedown cards, but e.g. scored agendas or oaktown is fine to care about
+      {:title (:title card)
+       :subtypes (seq (:subtype card))
+       :type (:type card)}
+      {})))
+
 (defn play-sfx
+  ;; TODO: pass the optional argument along somehow
   "Adds a sound effect to play to the sfx queue.
   Each SFX comes with a unique ID, so each client can track for themselves which sounds have already been played.
-  The sfx queue has size limited to 3 to limit the sound torrent tabbed out or lagged players will experience."
-  [state side sfx]
-  (when-let [current-id (get-in @state [:sfx-current-id])]
-    (do
-      (swap! state update-in [:sfx] #(take 3 (conj % {:id (inc current-id) :name sfx})))
-      (swap! state update-in [:sfx-current-id] inc))))
+  The sfx queue has size limited to 3 to limit the sound torrent tabbed out or lagged players will experience. Event-data is an (optional) map of information about the event causing sound to play."
+  ([state side sfx] (play-sfx state side sfx nil))
+  ([state side sfx event-data]
+   (when-let [current-id (get-in @state [:sfx-current-id])]
+     (do
+       (swap! state update-in [:sfx] #(take 3 (conj % {:id (inc current-id) :name sfx})))
+       (swap! state update-in [:sfx-current-id] inc)))))
 
 ;;; "ToString"-like methods
 (defn card-str
