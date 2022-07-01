@@ -223,6 +223,8 @@
   (doseq [s [:runner :corp]]
     (swap! state assoc-in [s :register] nil))
 
+  (play-sfx state side "start-turn" {:side side})
+
   (let [phase (if (= side :corp) :corp-phase-12 :runner-phase-12)
         start-cards (filter #(card-flag-fn? state side % phase true)
                             (concat (all-active state side)
@@ -280,6 +282,7 @@
        (flatline state))
      (wait-for (trigger-event-simult state side (if (= side :runner) :runner-turn-ends :corp-turn-ends) nil nil)
                (trigger-event state side (if (= side :runner) :post-runner-turn-ends :post-corp-turn-ends))
+               (play-sfx state side "end-turn" {:side side})
                (swap! state assoc-in [side :register-last-turn] (-> @state side :register))
                (unregister-floating-effects state side :end-of-turn)
                (unregister-floating-events state side :end-of-turn)

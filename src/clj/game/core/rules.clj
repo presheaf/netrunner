@@ -410,6 +410,7 @@
   (if (pos? n)
     (do (gain state :corp :bad-publicity n)
         (toast state :corp (str "Took " n " bad publicity!") "info")
+        (play-sfx state side "gain-bad-publicity")
         (trigger-event-sync state side (make-result eid n) :corp-gain-bad-publicity n))
     (effect-completed state side eid)))
 
@@ -672,7 +673,7 @@
     (let [started (get-in @state [:stats :time :started])
           now (t/now)]
       (system-msg state side "wins the game")
-      (play-sfx state side "game-end")
+      (play-sfx state side "game-end" {:winner side :win-reason reason})
       (swap! state assoc-in [:stats :time :ended] now)
       (swap! state assoc-in [:stats :time :elapsed] (t/in-minutes (t/interval started now)))
       (swap! state assoc

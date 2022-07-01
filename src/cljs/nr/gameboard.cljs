@@ -1289,6 +1289,50 @@
                     [card-view c]]))]))
      (when is-me centrals)]))
 
+(defn- weighted-random-choice
+  "Given a map of the form {:k1 N1 :k2 N2 ...}, where N1, .. are integers, return a random key, where the probability of ki is N1/(N1+...)"
+  [keys-and-weights-map]
+  (let [kw-pairs (vec keys-and-weights-map)
+        k-seq (map first kw-pairs)
+        w-seq (map second kw-pairs)
+        partial-sums (reductions + w-seq)
+        rand-idx (rand-int (last partial-sums))
+        enumerated-ws (map vector (range) partial-sums) ; (i, sum_j<i wj)
+        chosen-idx (first (first (drop-while #(>= rand-idx (second %)) enumerated-ws)))]
+
+    (nth k-seq chosen-idx)))
+
+(defn- octgn-special-cased-sfx
+  [title subtypes]
+
+  ;; TODO: it seems sometimes subtypes "keeps" the old ones, e.g. scoring hostile and then playing hedge fund fails to play transaction sound because it gets hostile subtypes instead. but purging seems to fix it. would be very puzzling if subtypes "hung around" here, so maybe just a dev artifact - check if it happens in prod, and if so, see if you can replicate the purging effect?!?!
+  (let [special-titles {"Archer" "archer"}
+        special-subtypes {"Daemon" "daemon"
+                          "Chip" "chip"
+                          "Gear" "gear"
+                          "Console" "console"
+                          "Virus" "virus"
+                          "Code Gate" "code-gate"
+                          "Barrier" "barrier"
+                          "Sentry" "sentry"
+                          "Trap" "trap"
+                          "Mythic" "mythic"
+                          "Transaction" "transaction"}
+        first-special-subtype (first (intersection (set (keys special-subtypes))
+                                                   (set (or subtypes []))))]
+    (println "check for special case")
+    (println title)
+    (println subtypes)
+    (println first-special-subtype)
+
+    (cond
+      (special-titles title)
+      (special-titles title)
+
+      first-special-subtype
+      (special-subtypes first-special-subtype)
+
+      :else nil)))
 
 (defn select-sfx
   "Game event is e.g. 'agenda-score', 'click-advance', event-data is a map with info about the event to inform the choice of sound effect. sfx-suite is a kwarg indicating the user's preferred suite of sound effects (currently :original or :octgn)."
@@ -1299,54 +1343,81 @@
         (let [event-name (:name game-event-and-context)
               event-data (:sfx-event-data game-event-and-context)
               sfx-keywordify #(keyword (join "-" (concat [(if (= sfx-suite :original) "jnet" "octgn") event-name] (if % [%] []))))
-              noncontextual-events #{"agenda-score" "agenda-steal" "click-advance" "click-card" "click-credit" "click-run" "click-remove-tag" "game-end" "run-unsuccessful" "virus-purge"}]
+
+              ;; TODO: things get weird if subtypes only have special SFX for some types
+              ;;       e.g. rezzing Blockchain (transaction ICE) might resolve to rez-ice-transaction
+              ;;       not 100% sure how best to handle this, but ignore for now!
+              special-cased-sfx (octgn-special-cased-sfx (:title event-data) (:subtypes event-data))]
 
           (println "select-sfx says hello")
-          (println game-event-and-context)
-          (println (keys soundbank))
           (println sfx-suite)
-          (println (sfx-keywordify nil))
+          (println game-event-and-context)
+          (println special-cased-sfx)
 
           (cond
-            (or (= sfx-suite :original)
-                (noncontextual-events event-name))
+            ;; only OCTGN sounds have special effects
+            (= sfx-suite :original)
             (sfx-keywordify nil)
 
+            ;; some events only care about the side
+            (#{"start-turn" "end-turn"} event-name)
+            (sfx-keywordify (name (:side event-data)))
+
+            ;; different sounds for HQ, R&D, Archives (no sound for remote)
+            ;; these used to happen on access, but i think people are more used to the new timing
+            (= "run-successful" event-name)
+            (when-let [run-target (#{:hq :rd :archives} (:run-target event-data))]
+              (sfx-keywordify (name (:run-target event-data))))
+
+            (= "trace-unsuccessful" event-name)
+            (sfx-keywordify (weighted-random-choice {"normal" 9
+                                                     "rare"   1}))
+
+            (= "take-damage" event-name)
+            (sfx-keywordify
+             (cond
+               (= :brain (:damage-type event-data))
+               (weighted-random-choice {"brain-normal" 9
+                                        "brain-rare"   1})
+
+               (= :meat (:damage-type event-data))
+               (weighted-random-choice {"meat-1"    9
+                                        "meat-2"    9
+                                        "meat-3"    9
+                                        "meat-4"    9
+                                        "meat-rare" 4})
+
+               :else "net"))
+
+            (= "install-corp" event-name)
+            (if (= "ices" (:install-type event-data))
+              (sfx-keywordify "ice")
+              (sfx-keywordify "root"))
+
+            (and special-cased-sfx (#{"play-instant" "score-agenda"} event-name))
+            (sfx-keywordify special-cased-sfx)
+
+            (= "game-end" event-name)
+            (sfx-keywordify (when (= (:reason event-data) "Flatline")
+                              "flatline"))
+
             ;; the remaining events depend on the type, subtype and name
-            ;; (could have :else here, but easy to forget if we add more sounds)
             (#{"install-runner" "rez-ice" "rez-other"} event-name)
-            (let [special-titles {"Archer" "archer"}
-                  special-subtypes {"Daemon" "daemon"
-                                    "Chip" "chip"
-                                    "Gear" "gear"
-                                    "Console" "console"
-                                    "Virus" "virus"
-                                    "Code Gate" "code-gate"
-                                    "Barrier" "barrier"
-                                    "Sentry" "sentry"
-                                    "Trap" "trap"
-                                    "Mythic" "mythic"}
-                  ;; TODO: ensure subtypes is a set, otherwise it must be cast here
-                  first-special-subtype (first (intersection (set (keys special-subtypes))
-                                                             (set (or (:subtypes event-data) []))))]
-              (println "fancy rezzing")
-              (println (:subtypes event-data))
-              (println first-special-subtype)
-              (cond
-                (special-titles (:title event-data))
-                (sfx-keywordify (special-titles (:title event-data)))
+            (cond
+              special-cased-sfx
+              (sfx-keywordify special-cased-sfx)
 
-                ;; TODO: think about what happens if multiple subtypes apply here - sets aren't ordered, i think, so this will not be deterministic?
-                first-special-subtype
-                (sfx-keywordify (special-subtypes first-special-subtype))
+              (:type event-data)
+              (sfx-keywordify (lower-case (:type event-data)))
 
-                :else
-                (sfx-keywordify (:type event-data))))))]
+              :else
+              (sfx-keywordify nil))
+            :else
+            (sfx-keywordify nil)))]
     (println "computed keyword:")
     (println computed-kw)
     (when computed-kw
       (computed-kw soundbank))))
-
 
 (defn play-sfx
   "Plays a list of sounds one after another."
@@ -1500,8 +1571,8 @@
                                       "jnet-click-advance"
                                       "jnet-click-card"
                                       "jnet-click-credit"
-                                      "jnet-click-run"
                                       "jnet-click-remove-tag"
+                                      "jnet-click-run"
                                       "jnet-game-end"
                                       "jnet-install-corp"
                                       "jnet-install-runner"
@@ -1511,11 +1582,58 @@
                                       "jnet-run-successful"
                                       "jnet-run-unsuccessful"
                                       "jnet-virus-purge"
+                                      "octgn-agenda-score-breaking-news"
+                                      "octgn-agenda-score"
+                                      "octgn-agenda-steal"
+                                      "octgn-click-advance"
+                                      "octgn-click-card"
+                                      "octgn-click-credit"
+                                      "octgn-click-remove-tag"
+                                      "octgn-click-run"
+                                      "octgn-damage-brain-normal"
+                                      "octgn-damage-brain-rare"
+                                      "octgn-damage-meat-1"
+                                      "octgn-damage-meat-2"
+                                      "octgn-damage-meat-3"
+                                      "octgn-damage-meat-4"
+                                      "octgn-damage-meat-rare"
+                                      "octgn-damage-net"
+                                      "octgn-end-turn-corp"
+                                      "octgn-end-turn-runner"
+                                      "octgn-gain-bad-publicity"
+                                      "octgn-game-end-flatline"
+                                      "octgn-install-corp-ice"
+                                      "octgn-install-corp-root"
+                                      "octgn-install-runner-chip"
+                                      "octgn-install-runner-console"
+                                      "octgn-install-runner-daemon"
+                                      "octgn-install-runner-gear"
+                                      "octgn-install-runner-hardware"
+                                      "octgn-install-runner-program"
+                                      "octgn-install-runner-resource"
+                                      "octgn-install-runner-virus"
+                                      "octgn-play-instant-job"
+                                      "octgn-play-instant-stimhack"
+                                      "octgn-play-instant-transaction"
+                                      "octgn-play-push-your-luck"
+                                      "octgn-psi-start"
+                                      "octgn-rez-ice-archer"
                                       "octgn-rez-ice-barrier"
                                       "octgn-rez-ice-code-gate"
                                       "octgn-rez-ice-sentry"
-                                      "octgn-rez-ice-archer"
-                                      "octgn-rez-other"
+                                      "octgn-rez-ice-trap"
+                                      "octgn-rez-other-asset"
+                                      "octgn-rez-other-upgrade"
+                                      "octgn-run-successful-archives"
+                                      "octgn-run-successful-hq"
+                                      "octgn-run-successful-rd"
+                                      "octgn-run-unsuccessful"
+                                      "octgn-start-turn-corp"
+                                      "octgn-start-turn-runner"
+                                      "octgn-trace-start"
+                                      "octgn-trace-successful"
+                                      "octgn-trace-unsuccessful-normal"
+                                      "octgn-trace-unsuccessful-rare"
                                       "octgn-virus-purge"])))]
     (r/create-class
      {:display-name "audio-component"

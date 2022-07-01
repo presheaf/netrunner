@@ -587,21 +587,22 @@
            (effect-completed state side (make-result eid false)))))))
 
 (defn- run-end-fx
-  [state side {:keys [eid successful unsuccessful]}]
-  (cond
-    ;; Successful
-    successful
-    (do
-      (play-sfx state side "run-successful")
-      (effect-completed state side (make-result eid {:successful true})))
-    ;; Unsuccessful
-    unsuccessful
-    (do
-      (play-sfx state side "run-unsuccessful")
-      (effect-completed state side (make-result eid {:unsuccessful true})))
-    ;; Neither
-    :else
-    (effect-completed state side (make-result eid nil))))
+  [state side {:keys [eid successful unsuccessful server]}]
+  (let [run-target (first server)]
+    (cond
+      ;; Successful
+      successful
+      (do
+        (play-sfx state side "run-successful" {:run-target run-target})
+        (effect-completed state side (make-result eid {:successful true})))
+      ;; Unsuccessful
+      unsuccessful
+      (do
+        (play-sfx state side "run-unsuccessful" {:run-target run-target})
+        (effect-completed state side (make-result eid {:unsuccessful true})))
+      ;; Neither
+      :else
+      (effect-completed state side (make-result eid nil)))))
 
 (defn run-cleanup-2
   [state side]
