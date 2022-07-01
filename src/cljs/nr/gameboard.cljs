@@ -1439,35 +1439,37 @@
            [:button.win-right {:on-click #(swap! app-state assoc :start-shown true) :type "button"} "✘"]])))))
 
 (defn audio-component [{:keys [sfx] :as cursor}]
-    (let [s (r/atom {})
+  (let [s (r/atom {})
         audio-sfx (fn [name] (list (keyword name)
                                    (new js/Howl (clj->js {:src [(str "/sound/" name ".ogg")
                                                                 (str "/sound/" name ".mp3")]}))))
-        soundbank (apply hash-map (concat
-                                    (audio-sfx "agenda-score")
-                                    (audio-sfx "agenda-steal")
-                                    (audio-sfx "click-advance")
-                                    (audio-sfx "click-card")
-                                    (audio-sfx "click-credit")
-                                    (audio-sfx "click-run")
-                                    (audio-sfx "click-remove-tag")
-                                    (audio-sfx "game-end")
-                                    (audio-sfx "install-corp")
-                                    (audio-sfx "install-runner")
-                                    (audio-sfx "play-instant")
-                                    (audio-sfx "rez-ice")
-                                    (audio-sfx "rez-other")
-                                    (audio-sfx "run-successful")
-                                    (audio-sfx "run-unsuccessful")
-                                    (audio-sfx "virus-purge")))]
-        (r/create-class
-            {:display-name "audio-component"
-             :component-did-update
-             (fn []
-                 (update-audio (select-keys @game-state [:sfx :sfx-current-id :gameid]) soundbank))
-             :reagent-render
-             (fn [{:keys [sfx] :as cursor}]
-              (let [_ @sfx]))}))) ;; make this component rebuild when sfx changes.
+        soundbank (apply hash-map
+                         (apply concat
+                                (map #(audio-sfx (join "-" "jnet" %))
+                                     ["agenda-score"
+                                      "agenda-steal"
+                                      "click-advance"
+                                      "click-card"
+                                      "click-credit"
+                                      "click-run"
+                                      "click-remove-tag"
+                                      "game-end"
+                                      "install-corp"
+                                      "install-runner"
+                                      "play-instant"
+                                      "rez-ice"
+                                      "rez-other"
+                                      "run-successful"
+                                      "run-unsuccessful"
+                                      "virus-purge"])))]
+    (r/create-class
+     {:display-name "audio-component"
+      :component-did-update
+      (fn []
+        (update-audio (select-keys @game-state [:sfx :sfx-current-id :gameid]) soundbank))
+      :reagent-render
+      (fn [{:keys [sfx] :as cursor}]
+        (let [_ @sfx]))}))) ;; make this component rebuild when sfx changes.
 
 (def phase->title
   {"initiation" "Initiation"
