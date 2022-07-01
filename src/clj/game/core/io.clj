@@ -70,12 +70,14 @@
     (merge
      ;; the type of upgrades in the root of R&D/Archives/HQ and unrezzed ice can be deduced
      (when (in-root? card)
-       {:installed-in-root t})
+       {:installed-in-root true})
 
-     (when (active? card)
+     (when (or (active? card))
        ;; TODO: not quite the right check - want to avoid facedown cards, but e.g. scored agendas or oaktown is fine to care about
        {:title (:title card)
-        :subtypes (set (split (:subtype card) #" - ")) ; does this work for nil subtypes?
+        :subtypes (if (:subtype card)
+                    (set (split (:subtype card) #" - "))
+                    #{}) ; does this work for nil subtypes?
         :type (:type card)}))))
 
 (defn play-sfx

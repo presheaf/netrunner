@@ -730,8 +730,9 @@
                      (system-msg state side message))
                    (update-advancement-cost state side card)
                    (add-prop state side (get-card state card) :advance-counter 1)
-                   (play-sfx state side "click-advance" (assoc (make-sfx-card-info state card)
-                                                               :num-advancements (get-counters (get-card state card) :advancement)))))))))
+                   (play-sfx state side "click-advance"
+                             (assoc (make-sfx-card-info state card)
+                                    :num-advancements (get-counters (get-card state card) :advancement)))))))))
 
 (defn score
   "Score an agenda. It trusts the card data passed to it."
@@ -763,7 +764,7 @@
                                       (swap! state dissoc-in [:corp :disable-id])
                                       (update-all-agenda-points state side)
                                       (check-winner state side)
-                                      (play-sfx state side "agenda-score" (make-sfx-card-info state card))))}}
+                                      (play-sfx state side "agenda-score" (make-sfx-card-info state moved-card))))}}
                      c))
                  (effect-completed state side eid))))))
 

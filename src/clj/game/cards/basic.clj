@@ -51,7 +51,9 @@
                 :req (req (can-advance? state side target))
                 :effect (effect (update-advancement-cost target)
                                 (add-prop (get-card state target) :advance-counter 1)
-                                (play-sfx "click-advance")
+                                (play-sfx "click-advance"
+                                          (assoc (make-sfx-card-info state target)
+                                                 :num-advancements (get-counters (get-card state target) :advancement)))
                                 (effect-completed eid))}
                {:label "Trash 1 resource if the Runner is tagged"
                 :cost [:click 1 :credit 2]
