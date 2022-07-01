@@ -31,7 +31,7 @@
                    "play "
                    (build-spend-msg cost-str "play"))]
     (system-msg state side (str play-msg title (when ignore-cost " at no cost")))
-    (play-sfx state side "play-instant")
+    (play-sfx state side "play-instant" (make-sfx-card-info state card))
     ;; Need to await trashing the existing current
     (wait-for
       (current-handler state side card)

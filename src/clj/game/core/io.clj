@@ -64,15 +64,19 @@
          {:time-out 5000 :close-button true}))
 
 (defn make-sfx-card-info
-  "WIP method for making necessary info about a card."
+  "WIP method for making necessary info about a card. Tries to not reveal any info that is not public, so that the SFX method does not need to worry about revealing anything."
   [state card]
   (let [card (get-card state card)]
-    (if (rezzed? card)
-      ;; TODO: not quite the right check - want to avoid facedown cards, but e.g. scored agendas or oaktown is fine to care about
-      {:title (:title card)
-       :subtypes (seq (:subtype card))
-       :type (:type card)}
-      {})))
+    (merge
+     ;; the type of upgrades in the root of R&D/Archives/HQ and unrezzed ice can be deduced
+     (when (in-root? card)
+       {:installed-in-root t})
+
+     (when (active? card)
+       ;; TODO: not quite the right check - want to avoid facedown cards, but e.g. scored agendas or oaktown is fine to care about
+       {:title (:title card)
+        :subtypes (set (split (:subtype card) #" - ")) ; does this work for nil subtypes?
+        :type (:type card)}))))
 
 (defn play-sfx
   ;; TODO: pass the optional argument along somehow
