@@ -70,6 +70,7 @@
   (swap! app-state assoc-in [:options :gamestats] (:gamestats @s))
   (swap! app-state assoc-in [:options :deckstats] (:deckstats @s))
   (.setItem js/localStorage "sounds" (:sounds @s))
+  (.setItem js/localStorage "octgn_sounds" (:octgn-sounds @s)) ; TODO: not sure this is needed - probably not, right?
   (.setItem js/localStorage "lobby_sounds" (:lobby-sounds @s))
   (.setItem js/localStorage "sounds_volume" (:volume @s))
   (.setItem js/localStorage "log-width" (:log-width @s))
@@ -199,6 +200,7 @@
                    :background (get-in @app-state [:options :background])
                    :sounds (get-in @app-state [:options :sounds])
                    :lobby-sounds (get-in @app-state [:options :lobby-sounds])
+                   :octgn-sounds (get-in @app-state [:options :octgn-sounds])
                    :volume (get-in @app-state [:options :sounds-volume])
                    :show-alt-art (get-in @app-state [:options :show-alt-art])
                    :all-art-select ""
@@ -250,6 +252,12 @@
                             :checked (:sounds @s)
                             :on-change #(swap! s assoc-in [:sounds] (.. % -target -checked))}]
             "Enable game sounds"]]
+          [:div
+           [:label [:input {:type "checkbox"
+                            :value true
+                            :checked (:octgn-sounds @s)
+                            :on-change #(swap! s assoc-in [:octgn-sounds] (.. % -target -checked))}]
+            "Use OCTGN sounds"]]
           [:div "Volume"
            [:input {:type "range"
                     :min 1 :max 100 :step 1

@@ -25,6 +25,7 @@
                             :log-top (str->int (get-local-value "log-top" "419"))
                             :sounds (= (get-local-value "sounds" "true") "true")
                             :lobby-sounds (= (get-local-value "lobby_sounds" "true") "true")
+                            :octgn-sounds (= (get-local-value "octgn_sounds" "false") "true")
                             :sounds-volume (str->int (get-local-value "sounds_volume" "100"))}
                            (:options (js->clj js/user :keywordize-keys true)))
 
