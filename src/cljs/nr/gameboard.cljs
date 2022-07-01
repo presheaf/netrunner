@@ -1295,9 +1295,58 @@
   [game-event-and-context sfx-suite soundbank]
 
   ;; sfx-suite is :octgn or :original
-  (let [event-name (:name game-event-and-context)
-        sfx-key (keyword event-name)]
-    (sfx-key soundbank)))
+  (let [computed-kw
+        (let [event-name (:name game-event-and-context)
+              event-data (:sfx-event-data game-event-and-context)
+              sfx-keywordify #(keyword (join "-" (concat [(if (= sfx-suite :original) "jnet" "octgn") event-name] (if % [%] []))))
+              noncontextual-events #{"agenda-score" "agenda-steal" "click-advance" "click-card" "click-credit" "click-run" "click-remove-tag" "game-end" "run-unsuccessful" "virus-purge"}]
+
+          (println "select-sfx says hello")
+          (println game-event-and-context)
+          (println (keys soundbank))
+          (println sfx-suite)
+          (println (sfx-keywordify nil))
+
+          (cond
+            (or (= sfx-suite :original)
+                (noncontextual-events event-name))
+            (sfx-keywordify nil)
+
+            ;; the remaining events depend on the type, subtype and name
+            ;; (could have :else here, but easy to forget if we add more sounds)
+            (#{"install-runner" "rez-ice" "rez-other"} event-name)
+            (let [special-titles {"Archer" "archer"}
+                  special-subtypes {"Daemon" "daemon"
+                                    "Chip" "chip"
+                                    "Gear" "gear"
+                                    "Console" "console"
+                                    "Virus" "virus"
+                                    "Code Gate" "code-gate"
+                                    "Barrier" "barrier"
+                                    "Sentry" "sentry"
+                                    "Trap" "trap"
+                                    "Mythic" "mythic"}
+                  ;; TODO: ensure subtypes is a set, otherwise it must be cast here
+                  first-special-subtype (first (intersection (set (keys special-subtypes))
+                                                             (set (or (:subtypes event-data) []))))]
+              (println "fancy rezzing")
+              (println (:subtypes event-data))
+              (println first-special-subtype)
+              (cond
+                (special-titles (:title event-data))
+                (sfx-keywordify (special-titles (:title event-data)))
+
+                ;; TODO: think about what happens if multiple subtypes apply here - sets aren't ordered, i think, so this will not be deterministic?
+                first-special-subtype
+                (sfx-keywordify (special-subtypes first-special-subtype))
+
+                :else
+                (sfx-keywordify (:type event-data))))))]
+    (println "computed keyword:")
+    (println computed-kw)
+    (when computed-kw
+      (computed-kw soundbank))))
+
 
 (defn play-sfx
   "Plays a list of sounds one after another."
@@ -1445,23 +1494,29 @@
                                                                 (str "/sound/" name ".mp3")]}))))
         soundbank (apply hash-map
                          (apply concat
-                                (map #(audio-sfx (join "-" "jnet" %))
-                                     ["agenda-score"
-                                      "agenda-steal"
-                                      "click-advance"
-                                      "click-card"
-                                      "click-credit"
-                                      "click-run"
-                                      "click-remove-tag"
-                                      "game-end"
-                                      "install-corp"
-                                      "install-runner"
-                                      "play-instant"
-                                      "rez-ice"
-                                      "rez-other"
-                                      "run-successful"
-                                      "run-unsuccessful"
-                                      "virus-purge"])))]
+                                (map audio-sfx
+                                     ["jnet-agenda-score"
+                                      "jnet-agenda-steal"
+                                      "jnet-click-advance"
+                                      "jnet-click-card"
+                                      "jnet-click-credit"
+                                      "jnet-click-run"
+                                      "jnet-click-remove-tag"
+                                      "jnet-game-end"
+                                      "jnet-install-corp"
+                                      "jnet-install-runner"
+                                      "jnet-play-instant"
+                                      "jnet-rez-ice"
+                                      "jnet-rez-other"
+                                      "jnet-run-successful"
+                                      "jnet-run-unsuccessful"
+                                      "jnet-virus-purge"
+                                      "octgn-rez-ice-barrier"
+                                      "octgn-rez-ice-code-gate"
+                                      "octgn-rez-ice-sentry"
+                                      "octgn-rez-ice-archer"
+                                      "octgn-rez-other"
+                                      "octgn-virus-purge"])))]
     (r/create-class
      {:display-name "audio-component"
       :component-did-update

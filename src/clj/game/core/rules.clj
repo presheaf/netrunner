@@ -1,7 +1,7 @@
 (in-ns 'game.core)
 
 (declare can-run? can-trash? card-init card-str cards-can-prevent? check-winner close-access-prompt
-         enforce-msg get-prevent-list get-agenda-points in-corp-scored? play-sfx
+         enforce-msg get-prevent-list get-agenda-points in-corp-scored? play-sfx make-sfx-card-info
          prevent-draw remove-old-current should-trigger? system-say system-msg steal-trigger-events
          trash-cards untrashable-while-rezzed? update-all-agenda-points update-all-ice
          untrashable-while-resources? win win-decked)

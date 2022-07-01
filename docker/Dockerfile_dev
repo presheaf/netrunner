@@ -15,6 +15,7 @@ RUN lein deps
 
 RUN lein cljsbuild once prod
 RUN lein cljsbuild once dev
+RUN lein compile
 
 # permit connections from non-localhost, and we will connect from outside the container
 ENV LEIN_REPL_HOST=0.0.0.0
