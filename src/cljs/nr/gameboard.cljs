@@ -2,6 +2,7 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [chan put! <!] :as async]
             [clojure.string :as s :refer [capitalize includes? join lower-case split]]
+            [clojure.set :refer [intersection]]
             [differ.core :as differ]
             [game.core.card :refer [active? has-subtype? asset? rezzed? ice? corp?
                                     faceup? installed? same-card?]]
@@ -1288,63 +1289,26 @@
                     [card-view c]]))]))
      (when is-me centrals)]))
 
-(defn play-sfx
-  "Plays a list of sounds one after another."
-  [sfx soundbank]
-  (when-not (empty? sfx)
-    ;; TODO: decide on what sfx-data needs to be passed, and unpack it for select-sfx in the call below
-    (when-let [the-sfx (soundbank (select-sfx (first sfx)))] ; select-sfx is messy, so verify it worked
-      (.volume the-sfx (/ (str->int (get-in @app-state [:options :sounds-volume])) 100))
-      (.play the-sfx))
-    (play-sfx (rest sfx) soundbank)))
-
 
 (defn select-sfx
   "Game event is e.g. 'agenda-score', 'click-advance', event-data is a map with info about the event to inform the choice of sound effect. sfx-suite is a kwarg indicating the user's preferred suite of sound effects (currently :original or :octgn)."
-  [game-event event-data sfx-suite soundbank]
-  (let [[noncontextual-events #{"agenda-score" "agenda-steal" "click-advance" "click-card" "click-credit" "click-run" "click-remove-tag" "game-end" "run-unsuccessful" "virus-purge" }]
-        [sfx-keywordify #((keyword sfx-suite (if %
-                                               (join "-" [game-event %])
-                                               game-event)))]]
-    (cond
-      ;; default Jinteki sounds and most OCTGN sounds  only care about which event it is, but some OCTGN sounds are special
-      (or (= sfx-suite :original)
-          (noncontextual-events game-event))
-      ((sfx-keywordify nil) soundbank)
+  [game-event-and-context sfx-suite soundbank]
 
-       ; events/operations have different sound effects for each side
-      (= "play-instant" game-event)
-      (sfx-keywordify (:side event-data))
+  ;; sfx-suite is :octgn or :original
+  (let [event-name (:name game-event-and-context)
+        sfx-key (keyword event-name)]
+    (sfx-key soundbank)))
 
-      ; different sounds for HQ, R&D, Archives (no sound for remote)
-      (= "run-successful" game-event)
-      (when-let [run-target (#{:hq :rd :archives} (:run-target event-data))]
-        (sfx-keywordify (:run-target event-data)))
-
-      ; special sfx for ice or central root installs
-      (= game-event "install-corp")
-        (if (#{"central-root" "ice"} (:install-type event-data))
-          (sfx-keywordify (:install-type event-data))
-          (sfx-keywordify "other"))
-
-      ;; the remaining events depend on the type, subtype and name
-      ;; (could have :else here, but easy to forget if we add more sounds)
-      (#{"install-runner" "rez-ice" "rez-other"} game-event)
-      (let [[special-ids #{"archer"}]
-            [special-subtypes #{:daemon :chip :gear :console :virus :code-gate :barrier :sentry :trap :mythic}]
-            ;; TODO: ensure subtypes is a set, otherwise it must be cast here
-            [first-special-subtype (first (intersection special-subtypes
-                                                        (or (:subtypes event-data) #{})))]]
-
-        (cond
-          (special-ids (:title event-data))
-          (sfx-keywordify (special-ids (:title event-data)))
-
-          first-special-subtype
-          (sfx-keywordify first-special-subtype)
-
-          :else
-          (sfx-keywordify (:type event-data)))))))
+(defn play-sfx
+  "Plays a list of sounds one after another."
+  [sfx soundbank]
+  (let [sfx-suite (if (get-in @app-state [:options :octgn-sounds])
+                    :octgn :original)]
+    (when-not (empty? sfx)
+      (when-let [the-sfx (select-sfx (first sfx) sfx-suite soundbank)] ; select-sfx is messy, so verify it worked
+        (.volume the-sfx (/ (str->int (get-in @app-state [:options :sounds-volume])) 100))
+        (.play the-sfx))
+      (play-sfx (rest sfx) soundbank))))
 
 (defn update-audio [{:keys [gameid sfx sfx-current-id]} soundbank]
   ;; When it's the first game played with this state or when the sound history comes from different game, we skip the cacophony
@@ -1353,9 +1317,9 @@
                (not (nil? sfx-last-played))
                (= gameid (:gameid sfx-last-played)))
       ;; Skip the SFX from queue with id smaller than the one last played, queue the rest
-      (let [sfx-to-play (reduce (fn [sfx-list {:keys [id name]}]
+      (let [sfx-to-play (reduce (fn [sfx-list {:keys [id name sfx-event-data]}]
                                   (if (> id (:id sfx-last-played))
-                                    (conj sfx-list name)
+                                    (conj sfx-list {:name name :sfx-event-data sfx-event-data})
                                     sfx-list)) [] sfx)]
         (play-sfx sfx-to-play soundbank)))
   ;; Remember the most recent sfx id as last played so we don't repeat it later
