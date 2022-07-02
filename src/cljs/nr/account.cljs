@@ -60,6 +60,7 @@
   (swap! app-state assoc-in [:options :lobby-sounds] (:lobby-sounds @s))
   (swap! app-state assoc-in [:options :sounds-volume] (:volume @s))
   (swap! app-state assoc-in [:options :background] (:background @s))
+  (swap! app-state assoc-in [:options :custom-bg-url] (:custom-bg-url @s))
   (swap! app-state assoc-in [:options :show-alt-art] (:show-alt-art @s))
   (swap! app-state assoc-in [:options :stacked-servers] (:stacked-servers @s))
   (swap! app-state assoc-in [:options :runner-board-order] (:runner-board-order @s))
@@ -72,6 +73,7 @@
   (.setItem js/localStorage "sounds" (:sounds @s))
   (.setItem js/localStorage "octgn_sounds" (:octgn-sounds @s)) ; TODO: not sure this is needed - probably not, right?
   (.setItem js/localStorage "lobby_sounds" (:lobby-sounds @s))
+  (.setItem js/localStorage "custom_bg_url" (:custom-bg-url @s))
   (.setItem js/localStorage "sounds_volume" (:volume @s))
   (.setItem js/localStorage "log-width" (:log-width @s))
   (.setItem js/localStorage "log-top" (:log-top @s))
@@ -198,6 +200,7 @@
 (defn account-view [user]
   (let [s (r/atom {:flash-message ""
                    :background (get-in @app-state [:options :background])
+                   :custom-bg-url (get-in @app-state [:options :custom-bg-url])
                    :sounds (get-in @app-state [:options :sounds])
                    :lobby-sounds (get-in @app-state [:options :lobby-sounds])
                    :octgn-sounds (get-in @app-state [:options :octgn-sounds])
@@ -306,14 +309,21 @@
                                {:name "Find The Truth"  :ref "find-the-truth-bg"}
                                {:name "Push Your Luck"  :ref "push-your-luck-bg"}
                                {:name "Apex"            :ref "apex-bg"}
-                               {:name "Monochrome"      :ref "monochrome-bg"}]]
+                               {:name "Monochrome"      :ref "monochrome-bg"}
+                               {:name "Custom BG"       :ref "custom-bg"}]]
                    [:div.radio {:key (:name option)}
                     [:label [:input {:type "radio"
                                      :name "background"
                                      :value (:ref option)
                                      :on-change #(swap! s assoc-in [:background] (.. % -target -value))
                                      :checked (= (:background @s) (:ref option))}]
-                     (:name option)]]))]
+                     (:name option)]]))
+          [:h4 "Custom background URL"]
+          (let [custom-bg-url (r/atom (:custom-bg-url @s))]
+            [:div [:input {:type "text"
+                           :on-change #(do (swap! s assoc-in [:custom-bg-url] (.. % -target -value))
+                                           (reset! custom-bg-url (.. % -target -value)))
+                           :value @custom-bg-url}]])]
 
          [:section
           [:h3 " Game Win/Lose statistics "]

@@ -2010,7 +2010,8 @@
             active-player (r/cursor game-state [:active-player])
             render-board? (r/track (fn [] (and corp runner side)))
             zoom-card (r/cursor app-state [:zoom])
-            background (r/cursor app-state [:options :background])]
+            background (r/cursor app-state [:options :background])
+            custom-bg-url (r/cursor app-state [:options :custom-bg-url])]
 
         (go (while true
               (let [zoom (<! zoom-channel)]
@@ -2057,8 +2058,12 @@
                     [build-start-box me-ident me-user me-hand me-prompt me-keep op-ident op-user op-keep me-quote op-quote side])
 
                   [build-win-box game-state]
-
-                  [:div {:class @background}]
+                  [:div {:class @background
+                         :style (if (= @background "custom-bg")
+                                  {:background (str "url(\"" @custom-bg-url "\")")
+                                   ;; "backgroundSize" "100% 100%"
+                                   "backgroundSize" "cover"}
+                                  {})}]
 
                   [:div.rightpane
                    [:div.card-zoom
