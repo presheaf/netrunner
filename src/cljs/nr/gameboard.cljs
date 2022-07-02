@@ -1372,6 +1372,10 @@
             (= "trace-unsuccessful" event-name)
             (sfx-keywordify (weighted-random-choice {"normal" 9
                                                      "rare"   1}))
+            (= "click-advance" event-name)
+            (let [n-adv (:num-advancements event-data)]
+              (sfx-keywordify (str (min 5 (max 1 (if n-adv n-adv 0))))))
+
 
             (= "take-damage" event-name)
             (sfx-keywordify
@@ -1585,7 +1589,11 @@
                                       "octgn-agenda-score-breaking-news"
                                       "octgn-agenda-score"
                                       "octgn-agenda-steal"
-                                      "octgn-click-advance"
+                                      "octgn-click-advance-1"
+                                      "octgn-click-advance-2"
+                                      "octgn-click-advance-3"
+                                      "octgn-click-advance-4"
+                                      "octgn-click-advance-5"
                                       "octgn-click-card"
                                       "octgn-click-credit"
                                       "octgn-click-remove-tag"
