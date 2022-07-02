@@ -301,23 +301,69 @@
 
          [:section
           [:h3  "Game board background"]
-          (doall (for [option [{:name "The Root"        :ref "lobby-bg"}
-                               {:name "Freelancer"      :ref "freelancer-bg"}
-                               {:name "Mushin No Shin"  :ref "mushin-no-shin-bg"}
-                               {:name "Traffic Jam"     :ref "traffic-jam-bg"}
-                               {:name "Rumor Mill"      :ref "rumor-mill-bg"}
-                               {:name "Find The Truth"  :ref "find-the-truth-bg"}
-                               {:name "Push Your Luck"  :ref "push-your-luck-bg"}
-                               {:name "Apex"            :ref "apex-bg"}
-                               {:name "Monochrome"      :ref "monochrome-bg"}
-                               {:name "Custom BG"       :ref "custom-bg"}]]
-                   [:div.radio {:key (:name option)}
-                    [:label [:input {:type "radio"
-                                     :name "background"
-                                     :value (:ref option)
-                                     :on-change #(swap! s assoc-in [:background] (.. % -target -value))
-                                     :checked (= (:background @s) (:ref option))}]
-                     (:name option)]]))
+
+          ;; TODO: throws 'every element in a seq should have unique :key' warning, why?
+          (let [options-vec [{:name "Adonis Campaign"            :ref "adonis-campaign-bg"}
+                             {:name "Apex"                       :ref "apex-bg"}
+                             {:name "Caprice Nisei"              :ref "caprice-nisei-bg"}
+                             {:name "Collective Consciousness"   :ref "collective-consciousness-bg"}
+                             {:name "Data Raven (alt.)"          :ref "data-raven-bg"}
+                             {:name "Day Job"                    :ref "day-job-bg"}
+                             {:name "DDOS"                       :ref "ddos-bg"}
+                             {:name "Dinosaurus"                 :ref "dinosaurus-bg"}
+                             {:name "Dedicated Server"           :ref "dedicated-server-bg"}
+                             {:name "Find The Truth"             :ref "find-the-truth-bg"}
+                             {:name "Freelance Coding Contracts" :ref "freelance-coding-contracts-bg"}
+                             {:name "Freelancer"                 :ref "freelancer-bg"}
+                             {:name "GordianBlade"               :ref "gordian-blade-bg"}
+                             {:name "Hadrian's Wall"             :ref "hadrians-wall-bg"}
+                             {:name "Harbinger"                  :ref "harbinger-bg"}
+                             {:name "Heimdall 1.0"               :ref "heimdall1-bg"}
+                             {:name "House of Knives"            :ref "house-of-knives-bg"}
+                             {:name "Jackson Howard"             :ref "jackson-howard-bg"}
+                             {:name "Lotus Field"                :ref "lotus-field-bg"}
+                             {:name "Medium"                     :ref "medium-bg"}
+                             {:name "Midseason Replacements"     :ref "midseason-replacements-bg"}
+                             {:name "Mushin No Shin"             :ref "mushin-no-shin-bg"}
+                             {:name "NeoTokyo Grid"              :ref "neotokyo-grid-bg"}
+                             {:name "Parasite"                   :ref "parasite-bg"}
+                             {:name "Pawn"                       :ref "pawn-bg"}
+                             {:name "Posted Bounty"              :ref "posted-bounty-bg"}
+                             {:name "Project Junebug"            :ref "project-junebug-bg"}
+                             {:name "Push Your Luck"             :ref "push-your-luck-bg"}
+                             {:name "Quantum Predictive Model"   :ref "quantum-predictive-model-bg"}
+                             {:name "Reboot"                     :ref "reboot-bg"}
+                             {:name "Ronin"                      :ref "ronin-bg"}
+                             {:name "Rumor Mill"                 :ref "rumor-mill-bg"}
+                             {:name "Self-modifying Code"        :ref "self-modifying-code-bg"}
+                             {:name "Shi.Kyu"                    :ref "shikyu-bg"}
+                             {:name "Space Camp"                 :ref "space-camp-bg"}
+                             {:name "Stimhack"                   :ref "stimhack-bg"}
+                             {:name "The Root"                   :ref "lobby-bg"}
+                             {:name "Traffic Jam"                :ref "traffic-jam-bg"}
+                             {:name "Wall of Static"             :ref "wall-of-static-bg"}
+                             {:name "Wanton Destruction "        :ref "wanton-destruction-bg"}
+                             {:name "Monochrome"                 :ref "monochrome-bg"}
+                             {:name "Custom background"          :ref "custom-bg"}]]
+
+            [:select {:name "background"
+                      :on-change #(swap! s assoc-in [:background] (.. % -target -value))
+                      ;; :key (:name option)
+                      }
+
+
+             (doall (for [option options-vec]
+                      
+
+                      [:option {:value (:ref option)
+                                :selected (= (:background @s) (:ref option))}
+                       (:name option)]))
+             
+             ]
+             
+            )
+                    
+          
           [:h4 "Custom background URL"]
           (let [custom-bg-url (r/atom (:custom-bg-url @s))]
             [:div [:input {:type "text"
