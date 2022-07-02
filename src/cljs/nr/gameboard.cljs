@@ -1376,7 +1376,6 @@
             (let [n-adv (:num-advancements event-data)]
               (sfx-keywordify (str (min 5 (max 1 (if n-adv n-adv 0))))))
 
-
             (= "take-damage" event-name)
             (sfx-keywordify
              (cond

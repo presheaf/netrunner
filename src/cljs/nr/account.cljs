@@ -315,7 +315,7 @@
                              {:name "Find The Truth"             :ref "find-the-truth-bg"}
                              {:name "Freelance Coding Contracts" :ref "freelance-coding-contracts-bg"}
                              {:name "Freelancer"                 :ref "freelancer-bg"}
-                             {:name "GordianBlade"               :ref "gordian-blade-bg"}
+                             {:name "Gordian Blade"              :ref "gordian-blade-bg"}
                              {:name "Hadrian's Wall"             :ref "hadrians-wall-bg"}
                              {:name "Harbinger"                  :ref "harbinger-bg"}
                              {:name "Heimdall 1.0"               :ref "heimdall1-bg"}
