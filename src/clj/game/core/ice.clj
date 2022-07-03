@@ -88,7 +88,10 @@
 (defn break-subroutine
   "Marks a given subroutine as broken"
   ([ice sub] (break-subroutine ice sub nil))
-  ([ice sub breaker]
+  ([ice sub breaker] (break-subroutine ice sub breaker true))
+  ([ice sub breaker should-play-sfx]
+   (when should-play-sfx
+     (play-sfx state side "break-subroutine" (make-sfx-card-info breaker)))
    (assoc ice :subroutines (assoc (:subroutines ice) (:index sub) (if breaker
                                                                     (assoc sub :broken true :breaker (:cid breaker))
                                                                     (assoc sub :broken true))))))
@@ -103,9 +106,11 @@
   ([ice]
    (break-all-subroutines ice nil))
   ([ice breaker]
+   (when breaker
+     (play-sfx state side "break-subroutine" (make-sfx-card-info breaker)))
    (if breaker
-     (reduce #(break-subroutine %1 %2 breaker) ice (:subroutines ice))
-     (reduce break-subroutine ice (:subroutines ice)))))
+     (reduce #(break-subroutine %1 %2 breaker nil) ice (:subroutines ice))
+     (reduce #(break-subroutine %1 %2 nil nil) ice (:subroutines ice)))))
 
 (defn break-all-subroutines!
   ([state ice] (break-all-subroutines! state ice nil))

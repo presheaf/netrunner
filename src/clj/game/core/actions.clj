@@ -697,6 +697,8 @@
   [state side card]
   (let [card (get-card state card)]
     (system-msg state side (str "derezzes " (:title card)))
+    (when (ice? card)
+      (play-sfx state side "derez-ice"))
     (unregister-events state side card)
     (update! state :corp (deactivate state :corp card true))
     (let [cdef (card-def card)]

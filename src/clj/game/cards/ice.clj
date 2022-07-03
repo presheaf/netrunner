@@ -2458,7 +2458,10 @@
                :effect (effect (reset-variable-subs card 0 nil))}]}))
 
 (define-card "Pop-up Window"
-  {:on-encounter (gain-credits-sub 1)
+  {:on-encounter {:label (str "Gain 1 [Credits]")
+                  :msg (str "gain 1 [Credits]")
+                  :effect (effect (play-sfx "popup-encounter")
+                                  (gain-credits credits))}
    :subroutines [(end-the-run-unless-runner-pays 1)]})
 
 (define-card "Pup"

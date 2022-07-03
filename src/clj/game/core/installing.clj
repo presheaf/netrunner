@@ -350,7 +350,8 @@
                                                                          :init-data true}))]
                            (when-not no-msg
                              (runner-install-message state side (:title installed-card) cost-str params))
-                           (play-sfx state side "install-runner")
+
+                           (play-sfx state side "install-runner" (make-sfx-card-info state installed-card))
                            (when (and (program? installed-card)
                                       (not facedown)
                                       (not no-mu))

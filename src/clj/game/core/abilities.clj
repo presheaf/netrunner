@@ -352,6 +352,7 @@
   ([state side eid card psi]
    (swap! state assoc :psi {})
    (register-once state side psi card)
+   (play-sfx state side "psi-start")
    (let [eid (assoc eid :source-type :psi)]
      (doseq [s [:corp :runner]]
        (let [all-amounts (range (min 3 (inc (total-available-credits state s eid card))))
@@ -428,6 +429,7 @@
                                            (:unsuccessful trace))
                                          :eid (make-eid state))]
                 (system-say state player (str "The trace was " (when-not successful "un") "successful."))
+                (play-sfx state side (if successful "trace-successful" "trace-unsuccessful"))
                 (wait-for (trigger-event-simult state :corp (if successful :successful-trace :unsuccessful-trace)
                                                 nil ;; No special functions
                                                 (assoc trigger-trace
@@ -474,6 +476,7 @@
   "Starts the trace process by showing the boost prompt to the first player (normally corp)."
   [state side eid card {:keys [player other base bonus priority label] :as trace}]
   (let [this-type (if (corp-start? trace) "trace" "link")]
+    (play-sfx state side "trace-start")
     (system-msg state player (str "uses " (:title card)
                                   " to initiate a trace with strength " ((fnil + 0 0) base bonus)
                                   (when (pos? bonus)

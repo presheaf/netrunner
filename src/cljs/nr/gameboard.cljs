@@ -623,7 +623,7 @@
          (influence-dots influence)]]))
    [:div.heading
     [:span.type (str (:type card))]
-    (when-let [subtypes (seq (:subtype card))]
+    (when-let [subtypes (:subtype card)]
       (str ": " subtypes))]
    [:div.text
     (render-icons (:text (first (filter #(= (:title %) (:title card)) @all-cards))))]
@@ -1342,16 +1342,20 @@
   (let [computed-kw
         (let [event-name (:name game-event-and-context)
               event-data (:sfx-event-data game-event-and-context)
+              subtype-set (if (= (:subtype event-data) "") #{}
+                              (set (split (:subtype event-data) #" - ")))
               sfx-keywordify #(keyword (join "-" (concat [(if (= sfx-suite :original) "jnet" "octgn") event-name] (if % [%] []))))
 
               ;; TODO: things get weird if subtypes only have special SFX for some types
               ;;       e.g. rezzing Blockchain (transaction ICE) might resolve to rez-ice-transaction
               ;;       not 100% sure how best to handle this, but ignore for now!
-              special-cased-sfx (octgn-special-cased-sfx (:title event-data) (:subtypes event-data))]
+              special-cased-sfx (octgn-special-cased-sfx (:title event-data) subtype-set)]
 
           (println "select-sfx says hello")
           (println sfx-suite)
           (println game-event-and-context)
+          (println "subtype-set")
+          (println subtype-set)
           (println special-cased-sfx)
 
           (cond
@@ -1360,14 +1364,14 @@
             (sfx-keywordify nil)
 
             ;; some events only care about the side
-            (#{"start-turn" "end-turn"} event-name)
+            (#{"start-turn" "end-turn" "handsize-discard"} event-name)
             (sfx-keywordify (name (:side event-data)))
 
             ;; different sounds for HQ, R&D, Archives (no sound for remote)
             ;; these used to happen on access, but i think people are more used to the new timing
             (= "run-successful" event-name)
-            (when-let [run-target (#{:hq :rd :archives} (:run-target event-data))]
-              (sfx-keywordify (name (:run-target event-data))))
+            (when-let [run-target (#{"hq" "rd" "archives"} (:run-target event-data))]
+              (sfx-keywordify (:run-target event-data)))
 
             (= "trace-unsuccessful" event-name)
             (sfx-keywordify (weighted-random-choice {"normal" 9
@@ -1375,6 +1379,10 @@
             (= "click-advance" event-name)
             (let [n-adv (:num-advancements event-data)]
               (sfx-keywordify (str (min 5 (max 1 (if n-adv n-adv 0))))))
+
+            (= "break-subroutine" event-name)
+            (when (intersection #{"AI" "Decoder" "Fracter" "Killer"} subtype-set)
+              (sfx-keywordify (first (intersection #{"AI" "Decoder" "Fracter" "Killer"} subtype-set))))
 
             (= "take-damage" event-name)
             (sfx-keywordify
@@ -1403,6 +1411,10 @@
             (= "game-end" event-name)
             (sfx-keywordify (when (= (:reason event-data) "Flatline")
                               "flatline"))
+
+            (= "trash-opposing" event-name)
+            (when (:type event-data)
+              (sfx-keywordify (:type event-data)))
 
             ;; the remaining events depend on the type, subtype and name
             (#{"install-runner" "rez-ice" "rez-other"} event-name)
@@ -1586,6 +1598,11 @@
                                       "jnet-run-unsuccessful"
                                       "jnet-virus-purge"
                                       "octgn-agenda-score-breaking-news"
+                                      "octgn-break-subroutine-ai"
+                                      "octgn-break-subroutine-decoder"
+                                      "octgn-break-subroutine-fracter"
+                                      "octgn-break-subroutine-killer"
+                                      "octgn-derez-ice"
                                       "octgn-agenda-score"
                                       "octgn-agenda-steal"
                                       "octgn-click-advance-1"
@@ -1595,7 +1612,6 @@
                                       "octgn-click-advance-5"
                                       "octgn-click-card"
                                       "octgn-click-credit"
-                                      "octgn-click-remove-tag"
                                       "octgn-click-run"
                                       "octgn-damage-brain-normal"
                                       "octgn-damage-brain-rare"
@@ -1609,6 +1625,8 @@
                                       "octgn-end-turn-runner"
                                       "octgn-gain-bad-publicity"
                                       "octgn-game-end-flatline"
+                                      "octgn-handsize-discard-corp"
+                                      "octgn-handsize-discard-runner"
                                       "octgn-install-corp-ice"
                                       "octgn-install-corp-root"
                                       "octgn-install-runner-chip"
@@ -1623,7 +1641,10 @@
                                       "octgn-play-instant-stimhack"
                                       "octgn-play-instant-transaction"
                                       "octgn-play-push-your-luck"
+                                      "octgn-popup-encounter"
                                       "octgn-psi-start"
+                                      "octgn-push-your-luck-fail"
+                                      "octgn-push-your-luck-success"
                                       "octgn-rez-ice-archer"
                                       "octgn-rez-ice-barrier"
                                       "octgn-rez-ice-code-gate"
@@ -1634,13 +1655,17 @@
                                       "octgn-run-successful-archives"
                                       "octgn-run-successful-hq"
                                       "octgn-run-successful-rd"
-                                      "octgn-run-unsuccessful"
                                       "octgn-start-turn-corp"
                                       "octgn-start-turn-runner"
                                       "octgn-trace-start"
                                       "octgn-trace-successful"
                                       "octgn-trace-unsuccessful-normal"
                                       "octgn-trace-unsuccessful-rare"
+                                      "octgn-trash-opposing-asset"
+                                      "octgn-trash-opposing-hardware"
+                                      "octgn-trash-opposing-ice"
+                                      "octgn-trash-opposing-program"
+                                      "octgn-trash-opposing-resource"
                                       "octgn-virus-purge"])))]
     (r/create-class
      {:display-name "audio-component"

@@ -267,6 +267,7 @@
                                         " at end of turn"))
                        (doseq [t targets]
                          (move state side t :discard))
+                       (play-sfx state side "handsize-discard" {:side side})
                        (effect-completed state side eid))}
          nil nil)
        (effect-completed state side eid)))))

@@ -276,6 +276,7 @@
                       chosen-cids (into #{} (map :cid chosen-cards))
                       leftovers (remove #(contains? chosen-cids (:cid %)) hand)
                       cards-trashed (filter identity (flatten (conj chosen-cards (seq (take (- n (count chosen-cards)) (shuffle leftovers))))))]
+                  (play-sfx state side "damage" {:damage-type type})
                   (when (= type :brain)
                     (swap! state update-in [:runner :brain-damage] #(+ % n))
                     (swap! state update-in [:runner :hand-size :mod] #(- % n)))

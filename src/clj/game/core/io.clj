@@ -66,19 +66,30 @@
 (defn make-sfx-card-info
   "WIP method for making necessary info about a card. Tries to not reveal any info that is not public, so that the SFX method does not need to worry about revealing anything."
   [state card]
-  (let [card (get-card state card)]
-    (merge
-     ;; the type of upgrades in the root of R&D/Archives/HQ and unrezzed ice can be deduced
-     (when (in-root? card)
-       {:installed-in-root true})
+  (println "make-sfx-card-info card data:")
+  (println card)
+  (let [card (get-card state card)
+        ret-dict
+        (merge
+         ;; the type of upgrades in the root of R&D/Archives/HQ and unrezzed ice can be deduced
+         (when (in-root? card)
+           {:installed-in-root true})
 
-     (when (or (active? card))
-       ;; TODO: not quite the right check - want to avoid facedown cards, but e.g. scored agendas or oaktown is fine to care about
-       {:title (:title card)
-        :subtypes (if (:subtype card)
-                    (set (split (:subtype card) #" - "))
-                    #{}) ; does this work for nil subtypes?
-        :type (:type card)}))))
+         (when (or (active? card))
+           ;; TODO: not quite the right check - want to avoid facedown cards, but e.g. scored agendas or oaktown is fine to care about
+           {:title (:title card)
+            :subtype (if (:subtype card)
+                       (:subtype card) ; t1 - t2 - ...
+                        ""
+                        ;; (vec (split (:subtype card) #" - "))
+                        ;; []
+                        ;; (set (split (:subtype card) #" - "))
+                        ;; #{}
+                        ) ; does this work for nil subtypes?
+            :type (:type card)}))]
+    (println "make-sfx-card-info checks:" card (in-root? card) (active? card))
+    ret-dict
+    ))
 
 (defn play-sfx
   ;; TODO: pass the optional argument along somehow
@@ -87,6 +98,9 @@
   The sfx queue has size limited to 3 to limit the sound torrent tabbed out or lagged players will experience. Event-data is an (optional) map of information about the event causing sound to play."
   ([state side sfx] (play-sfx state side sfx nil))
   ([state side sfx event-data]
+   (println  "play-sfx's event name and event-data:")
+   (println sfx)
+   (println event-data)
    (when-let [current-id (get-in @state [:sfx-current-id])]
      (do
        (swap! state update-in [:sfx] #(take 3 (conj % {:id (inc current-id) :name sfx :sfx-event-data event-data })))

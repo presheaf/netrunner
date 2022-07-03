@@ -2154,18 +2154,20 @@
                             (system-msg state :corp (str (if correct-guess " " " in")
                                                          "correctly guesses " (lower-case target)))
                             (wait-for (trigger-event-simult state side :reveal-spent-credits nil nil spent)
+                                      (play-sfx state side (if correct-guess "push-your-luck-fail" "push-your-luck-success"))
                                       (when-not correct-guess
                                         (system-msg state :runner (str "gains " (* 2 spent) " [Credits]"))
                                         (gain-credits state :runner (* 2 spent)))
                                       (effect-completed state side eid))))})]
     {:async true
      :effect (req (show-wait-prompt state :corp "Runner to spend credits")
-               (let [all-amounts (range (inc (get-in @state [:runner :credit])))
-                     valid-amounts (remove #(or (any-flag-fn? state :corp :prevent-secretly-spend %)
-                                                (any-flag-fn? state :runner :prevent-secretly-spend %))
-                                           all-amounts)
-                     choices (map str valid-amounts)]
-                 (continue-ability state side (runner-choice choices) card nil)))}))
+                  (play-sfx state side "play-push-your-luck")
+                  (let [all-amounts (range (inc (get-in @state [:runner :credit])))
+                        valid-amounts (remove #(or (any-flag-fn? state :corp :prevent-secretly-spend %)
+                                                   (any-flag-fn? state :runner :prevent-secretly-spend %))
+                                              all-amounts)
+                        choices (map str valid-amounts)]
+                    (continue-ability state side (runner-choice choices) card nil)))}))
 
 (define-card "Pushing the Envelope"
   {:msg (msg (if (<= (count (:hand runner)) 2)
