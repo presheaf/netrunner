@@ -2461,7 +2461,7 @@
   {:on-encounter {:label (str "Gain 1 [Credits]")
                   :msg (str "gain 1 [Credits]")
                   :effect (effect (play-sfx "popup-encounter")
-                                  (gain-credits credits))}
+                                  (gain-credits 1))}
    :subroutines [(end-the-run-unless-runner-pays 1)]})
 
 (define-card "Pup"

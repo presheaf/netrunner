@@ -1414,7 +1414,7 @@
 
             (= "trash-opposing" event-name)
             (when (:type event-data)
-              (sfx-keywordify (:type event-data)))
+              (sfx-keywordify (lower-case (:type event-data))))
 
             ;; the remaining events depend on the type, subtype and name
             (#{"install-runner" "rez-ice" "rez-other"} event-name)
