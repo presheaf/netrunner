@@ -307,7 +307,6 @@
                              {:name "Apex"                       :ref "apex-bg"}
                              {:name "Caprice Nisei"              :ref "caprice-nisei-bg"}
                              {:name "Collective Consciousness"   :ref "collective-consciousness-bg"}
-                             {:name "DDOS"                       :ref "ddos-bg"}
                              {:name "Dinosaurus"                 :ref "dinosaurus-bg"}
                              {:name "Dedicated Server"           :ref "dedicated-server-bg"}
                              {:name "Elizabeth Mills"            :ref "elizabeth-mills-bg"}
@@ -334,25 +333,18 @@
                              {:name "Project Vitruvius"          :ref "vitruvius-bg"}
                              {:name "Push Your Luck"             :ref "push-your-luck-bg"}
                              {:name "Quantum Predictive Model"   :ref "quantum-predictive-model-bg"}
-                             {:name "Reboot"                     :ref "reboot-bg"}
-                             {:name "Ronin"                      :ref "ronin-bg"}
                              {:name "Rumor Mill"                 :ref "rumor-mill-bg"}
-                             {:name "SanSan City Grid"           :ref "home-bg"}
                              {:name "Self-modifying Code"        :ref "self-modifying-code-bg"}
-                             {:name "Shi.Kyu"                    :ref "shikyu-bg"}
+                             {:name "Shi.Kyū"                    :ref "shikyu-bg"}
                              {:name "Sure Gamble"                :ref "sure-gamble-bg"}
-                             {:name "Space Camp"                 :ref "space-camp-bg"}
-                             {:name "Stimhack"                   :ref "stimhack-bg"}
                              {:name "Sunset"                     :ref "sunset-bg"}
                              {:name "The Root"                   :ref "lobby-bg"}
-                             {:name "Traffic Jam"                :ref "traffic-jam-bg"}
                              {:name "Unorthodox Predictions"     :ref "unorthodox-predictions-bg"}
                              {:name "Wall of Static"             :ref "wall-of-static-bg"}
-                             {:name "Wanton Destruction "        :ref "wanton-destruction-bg"}
+                             {:name "Wanton Destruction"         :ref "wanton-destruction-bg"}
                              {:name "Woman in the Red Dress"     :ref "woman-in-the-red-dress-bg"}
                              {:name "Monochrome"                 :ref "monochrome-bg"}
-                             {:name "Custom background"          :ref "custom-bg"}
-                             ]]
+                             {:name "Custom background"          :ref "custom-bg"}]]
 
             [:select {:name "background"
                       :on-change #(swap! s assoc-in [:background] (.. % -target -value))
@@ -405,33 +397,33 @@
                                      :checked (= (:deckstats @s) (:ref option))}]
                      (:name option)]]))]
 
-         [:section {:id "alt-art"}
-          [:h3 "Alt arts"]
-          [:div
-           [:label [:input {:type "checkbox"
-                            :name "show-alt-art"
-                            :checked (:show-alt-art @s)
-                            :on-change #(swap! s assoc-in [:show-alt-art] (.. % -target -checked))}]
-            "Show alternate card arts"]]
+         ;; [:section {:id "alt-art"}
+         ;;  [:h3 "Alt arts"]
+         ;;  [:div
+         ;;   [:label [:input {:type "checkbox"
+         ;;                    :name "show-alt-art"
+         ;;                    :checked (:show-alt-art @s)
+         ;;                    :on-change #(swap! s assoc-in [:show-alt-art] (.. % -target -checked))}]
+         ;;    "Show alternate card arts"]]
 
-          (when (and (:special @user) (:alt-arts @app-state))
-            [:div {:id "my-alt-art"}
-             [:div {:id "set-all"}
-              "Set all cards to: "
-              [:select {:ref "all-art-select"
-                        :value (:all-art-select @s)
-                        :on-change #(swap! s assoc-in [:all-art-select] (-> % .-target .-value))}
-               (doall (for [t (all-alt-art-types)]
-                        [:option {:value t :key t} (alt-art-name t)]))]
-              [:button
-               {:type "button"
-                :on-click #(reset-card-art s)}
-               "Set"]]
-             [:div.reset-all
-              [:button
-               {:type "button"
-                :on-click #(reset-card-art s "default")}
-               "Reset All to Official Art"]]])]
+         ;;  (when (and (:special @user) (:alt-arts @app-state))
+         ;;    [:div {:id "my-alt-art"}
+         ;;     [:div {:id "set-all"}
+         ;;      "Set all cards to: "
+         ;;      [:select {:ref "all-art-select"
+         ;;                :value (:all-art-select @s)
+         ;;                :on-change #(swap! s assoc-in [:all-art-select] (-> % .-target .-value))}
+         ;;       (doall (for [t (all-alt-art-types)]
+         ;;                [:option {:value t :key t} (alt-art-name t)]))]
+         ;;      [:button
+         ;;       {:type "button"
+         ;;        :on-click #(reset-card-art s)}
+         ;;       "Set"]]
+         ;;     [:div.reset-all
+         ;;      [:button
+         ;;       {:type "button"
+         ;;        :on-click #(reset-card-art s "default")}
+         ;;       "Reset All to Official Art"]]])]
 
          [:section
           [:h3 "Blocked users"]

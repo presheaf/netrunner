@@ -11,7 +11,7 @@
 (def app-state
   (r/atom {:active-page "/"
            :user (js->clj js/user :keywordize-keys true)
-           :options (merge {:background "lobby-bg"
+           :options (merge {:background "medium-bg"
                             :custom-bg-url (get-local-value "custom_bg_url" "")
                             :show-alt-art true
                             :stacked-servers (= (get-local-value "stacked-servers" "true") "true")
