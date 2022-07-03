@@ -307,44 +307,52 @@
                              {:name "Apex"                       :ref "apex-bg"}
                              {:name "Caprice Nisei"              :ref "caprice-nisei-bg"}
                              {:name "Collective Consciousness"   :ref "collective-consciousness-bg"}
-                             {:name "Data Raven (alt.)"          :ref "data-raven-bg"}
-                             {:name "Day Job"                    :ref "day-job-bg"}
                              {:name "DDOS"                       :ref "ddos-bg"}
                              {:name "Dinosaurus"                 :ref "dinosaurus-bg"}
                              {:name "Dedicated Server"           :ref "dedicated-server-bg"}
+                             {:name "Elizabeth Mills"            :ref "elizabeth-mills-bg"}
+                             {:name "Faerie"                     :ref "faerie-bg"}
                              {:name "Find The Truth"             :ref "find-the-truth-bg"}
                              {:name "Freelance Coding Contracts" :ref "freelance-coding-contracts-bg"}
                              {:name "Freelancer"                 :ref "freelancer-bg"}
                              {:name "Gordian Blade"              :ref "gordian-blade-bg"}
                              {:name "Hadrian's Wall"             :ref "hadrians-wall-bg"}
-                             {:name "Harbinger"                  :ref "harbinger-bg"}
                              {:name "Heimdall 1.0"               :ref "heimdall1-bg"}
                              {:name "House of Knives"            :ref "house-of-knives-bg"}
                              {:name "Jackson Howard"             :ref "jackson-howard-bg"}
                              {:name "Lotus Field"                :ref "lotus-field-bg"}
                              {:name "Medium"                     :ref "medium-bg"}
                              {:name "Midseason Replacements"     :ref "midseason-replacements-bg"}
+                             {:name "Midway Station Grid"        :ref "midway-station-grid-bg"}
                              {:name "Mushin No Shin"             :ref "mushin-no-shin-bg"}
                              {:name "NeoTokyo Grid"              :ref "neotokyo-grid-bg"}
+                             {:name "Ninja"                      :ref "ninja-bg"}
                              {:name "Parasite"                   :ref "parasite-bg"}
                              {:name "Pawn"                       :ref "pawn-bg"}
                              {:name "Posted Bounty"              :ref "posted-bounty-bg"}
                              {:name "Project Junebug"            :ref "project-junebug-bg"}
+                             {:name "Project Vitruvius"          :ref "vitruvius-bg"}
                              {:name "Push Your Luck"             :ref "push-your-luck-bg"}
                              {:name "Quantum Predictive Model"   :ref "quantum-predictive-model-bg"}
                              {:name "Reboot"                     :ref "reboot-bg"}
                              {:name "Ronin"                      :ref "ronin-bg"}
                              {:name "Rumor Mill"                 :ref "rumor-mill-bg"}
+                             {:name "SanSan City Grid"           :ref "home-bg"}
                              {:name "Self-modifying Code"        :ref "self-modifying-code-bg"}
                              {:name "Shi.Kyu"                    :ref "shikyu-bg"}
+                             {:name "Sure Gamble"                :ref "sure-gamble-bg"}
                              {:name "Space Camp"                 :ref "space-camp-bg"}
                              {:name "Stimhack"                   :ref "stimhack-bg"}
+                             {:name "Sunset"                     :ref "sunset-bg"}
                              {:name "The Root"                   :ref "lobby-bg"}
                              {:name "Traffic Jam"                :ref "traffic-jam-bg"}
+                             {:name "Unorthodox Predictions"     :ref "unorthodox-predictions-bg"}
                              {:name "Wall of Static"             :ref "wall-of-static-bg"}
                              {:name "Wanton Destruction "        :ref "wanton-destruction-bg"}
+                             {:name "Woman in the Red Dress"     :ref "woman-in-the-red-dress-bg"}
                              {:name "Monochrome"                 :ref "monochrome-bg"}
-                             {:name "Custom background"          :ref "custom-bg"}]]
+                             {:name "Custom background"          :ref "custom-bg"}
+                             ]]
 
             [:select {:name "background"
                       :on-change #(swap! s assoc-in [:background] (.. % -target -value))
@@ -364,7 +372,7 @@
             )
                     
           
-          [:h4 "Custom background URL"]
+          [:h4 "Custom background URL (if 'Custom BG' is selected above)"]
           (let [custom-bg-url (r/atom (:custom-bg-url @s))]
             [:div [:input {:type "text"
                            :on-change #(do (swap! s assoc-in [:custom-bg-url] (.. % -target -value))
