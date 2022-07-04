@@ -1320,11 +1320,6 @@
                           "Transaction" "transaction"}
         first-special-subtype (first (intersection (set (keys special-subtypes))
                                                    (set (or subtypes []))))]
-    (println "check for special case")
-    (println title)
-    (println subtypes)
-    (println first-special-subtype)
-
     (cond
       (special-titles title)
       (special-titles title)
@@ -1350,13 +1345,6 @@
               ;;       e.g. rezzing Blockchain (transaction ICE) might resolve to rez-ice-transaction
               ;;       not 100% sure how best to handle this, but ignore for now!
               special-cased-sfx (octgn-special-cased-sfx (:title event-data) subtype-set)]
-
-          (println "select-sfx says hello")
-          (println sfx-suite)
-          (println game-event-and-context)
-          (println "subtype-set")
-          (println subtype-set)
-          (println special-cased-sfx)
 
           (cond
             ;; only OCTGN sounds have special effects
@@ -1384,14 +1372,14 @@
             (when (intersection #{"AI" "Decoder" "Fracter" "Killer"} subtype-set)
               (sfx-keywordify (first (intersection #{"AI" "Decoder" "Fracter" "Killer"} subtype-set))))
 
-            (= "take-damage" event-name)
+            (= "damage" event-name)
             (sfx-keywordify
              (cond
-               (= :brain (:damage-type event-data))
+               (= "brain" (:damage-type event-data))
                (weighted-random-choice {"brain-normal" 9
                                         "brain-rare"   1})
 
-               (= :meat (:damage-type event-data))
+               (= "meat" (:damage-type event-data))
                (weighted-random-choice {"meat-1"    9
                                         "meat-2"    9
                                         "meat-3"    9
@@ -1409,7 +1397,7 @@
             (sfx-keywordify special-cased-sfx)
 
             (= "game-end" event-name)
-            (sfx-keywordify (when (= (:reason event-data) "Flatline")
+            (sfx-keywordify (when (= (:win-reason event-data) "Flatline")
                               "flatline"))
 
             (= "trash-opposing" event-name)
@@ -1429,8 +1417,6 @@
               (sfx-keywordify nil))
             :else
             (sfx-keywordify nil)))]
-    (println "computed keyword:")
-    (println computed-kw)
     (when computed-kw
       (computed-kw soundbank))))
 
@@ -1598,13 +1584,12 @@
                                       "jnet-run-unsuccessful"
                                       "jnet-virus-purge"
                                       "octgn-agenda-score-breaking-news"
+                                      "octgn-agenda-score"
+                                      "octgn-agenda-steal"
                                       "octgn-break-subroutine-ai"
                                       "octgn-break-subroutine-decoder"
                                       "octgn-break-subroutine-fracter"
                                       "octgn-break-subroutine-killer"
-                                      "octgn-derez-ice"
-                                      "octgn-agenda-score"
-                                      "octgn-agenda-steal"
                                       "octgn-click-advance-1"
                                       "octgn-click-advance-2"
                                       "octgn-click-advance-3"
@@ -1612,6 +1597,7 @@
                                       "octgn-click-advance-5"
                                       "octgn-click-card"
                                       "octgn-click-credit"
+                                      "octgn-click-remove-tag"
                                       "octgn-click-run"
                                       "octgn-damage-brain-normal"
                                       "octgn-damage-brain-rare"
@@ -1621,10 +1607,12 @@
                                       "octgn-damage-meat-4"
                                       "octgn-damage-meat-rare"
                                       "octgn-damage-net"
+                                      "octgn-derez-ice"
                                       "octgn-end-turn-corp"
                                       "octgn-end-turn-runner"
                                       "octgn-gain-bad-publicity"
                                       "octgn-game-end-flatline"
+                                      "octgn-game-end"
                                       "octgn-handsize-discard-corp"
                                       "octgn-handsize-discard-runner"
                                       "octgn-install-corp-ice"
@@ -1637,6 +1625,7 @@
                                       "octgn-install-runner-program"
                                       "octgn-install-runner-resource"
                                       "octgn-install-runner-virus"
+                                      "octgn-play-instant"
                                       "octgn-play-instant-job"
                                       "octgn-play-instant-stimhack"
                                       "octgn-play-instant-transaction"
@@ -1655,6 +1644,7 @@
                                       "octgn-run-successful-archives"
                                       "octgn-run-successful-hq"
                                       "octgn-run-successful-rd"
+                                      "octgn-run-unsuccessful"
                                       "octgn-start-turn-corp"
                                       "octgn-start-turn-runner"
                                       "octgn-trace-start"
@@ -1662,6 +1652,7 @@
                                       "octgn-trace-unsuccessful-normal"
                                       "octgn-trace-unsuccessful-rare"
                                       "octgn-trash-opposing-asset"
+                                      "octgn-trash-opposing-upgrade"
                                       "octgn-trash-opposing-hardware"
                                       "octgn-trash-opposing-ice"
                                       "octgn-trash-opposing-program"

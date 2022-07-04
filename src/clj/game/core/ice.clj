@@ -491,6 +491,8 @@
                                             state side
                                             (assoc args :cost cost :broken-subs (take n (:subroutines current-ice)))
                                             card current-ice))
+                            ;; ;; TODO: this is not a good place for this, ubt placeholder
+                            ;; (play-sfx state side "break-subroutine" (make-sfx-card-info card))
                             (break-subroutines current-ice card cost n args))
                           card nil))}))))
 
