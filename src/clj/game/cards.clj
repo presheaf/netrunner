@@ -10,14 +10,6 @@
   ([ab-x ab-y & ab-more]
    (reduce combine-abilities (combine-abilities ab-x ab-y) ab-more)))
 
-(def trash-program {:prompt "Select a program to trash"
-                    :label "Trash a program"
-                    :msg (msg "trash " (:title target))
-                    :choices {:card #(and (installed? %)
-                                          (program? %))}
-                    :async true
-                    :effect (effect (clear-wait-prompt :runner)
-                                    (trash eid target {:cause :subroutine}))})
 (defn trash-program-with-sfx
   [sfx-id]
   {:prompt "Select a program to trash"
@@ -26,9 +18,13 @@
    :choices {:card #(and (installed? %)
                          (program? %))}
    :async true
-   :effect (effect (clear-wait-prompt :runner)
-                   (play-sfx state side sfx-id (make-sfx-card-info state card))
-                   (trash eid target {:cause :subroutine}))})
+   :effect (req (clear-wait-prompt state side)
+                (when sfx-id
+                  (play-sfx state side sfx-id (make-sfx-card-info state card)))
+                (trash state side eid target {:cause :subroutine} (not sfx-id)))})
+
+(def trash-program (trash-program-with-sfx nil))
+
 
 (def trash-hardware {:prompt "Select a piece of hardware to trash"
                      :label "Trash a piece of hardware"

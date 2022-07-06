@@ -481,6 +481,7 @@
 (define-card "Archer"
   {:additional-cost [:forfeit]
    :subroutines [(gain-credits-sub 2)
+                 ;; TODO: if you want more trash-program-with-sfx stuff, have trash-program pass along info about the card causing the trash too, and have trash-opposing look at that - cleaner than special-casing even more
                  (trash-program-with-sfx "archer-trash")
                  (trash-program-with-sfx "archer-trash")
                  end-the-run]})
