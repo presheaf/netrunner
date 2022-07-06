@@ -1586,6 +1586,7 @@
                                       "octgn-agenda-score-breaking-news"
                                       "octgn-agenda-score"
                                       "octgn-agenda-steal"
+                                      "octgn-archer-trash"
                                       "octgn-break-subroutine-ai"
                                       "octgn-break-subroutine-decoder"
                                       "octgn-break-subroutine-fracter"

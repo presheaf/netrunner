@@ -69,8 +69,7 @@
                {:label "Purge virus counters"
                 :cost [:click 3]
                 :msg "purge all virus counters"
-                :effect (effect (purge)
-                                (play-sfx "virus-purge"))}]})
+                :effect (effect (purge))}]})
 
 (define-card "Runner Basic Action Card"
   {:abilities [{:label "Gain 1 [Credits]"

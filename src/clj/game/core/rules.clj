@@ -574,6 +574,7 @@
   "Purges viruses."
   [state side]
   (trigger-event state side :pre-purge)
+  (play-sfx state side "virus-purge")
   (let [installed-cards (concat (all-installed state :runner)
                                 (all-installed state :corp))
         hosted-on-ice (->> (get-in @state [:corp :servers]) seq flatten (mapcat :ices) (mapcat :hosted))]

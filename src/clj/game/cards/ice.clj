@@ -481,8 +481,8 @@
 (define-card "Archer"
   {:additional-cost [:forfeit]
    :subroutines [(gain-credits-sub 2)
-                 trash-program
-                 trash-program
+                 (trash-program-with-sfx "archer-trash")
+                 (trash-program-with-sfx "archer-trash")
                  end-the-run]})
 
 (define-card "Architect"
