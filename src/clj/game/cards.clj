@@ -342,6 +342,12 @@
   [x]
   (= :never x))
 
+(defn init-autoresolve
+  "Sets autoresolve in a card to :always, :never or :ask. Used to give cards sane defaults."
+   ;; show-toast
+  [state side card toggle-kw autoresolve-value]
+  (update! state side (update-in card [:special toggle-kw] (fn [x] autoresolve-value))))
+
 (defn set-autoresolve
   "Makes a card ability which lets the user toggle auto-resolve on an ability. Setting is stored under [:special toggle-kw]."
   [toggle-kw ability-name]

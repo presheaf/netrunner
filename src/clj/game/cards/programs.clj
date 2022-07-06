@@ -2033,39 +2033,53 @@
                 (strength-pump 2 2)))
 
 (define-card "Pawn"
-  {:implementation "All abilities are manual"
-   :abilities [{:label "Host Pawn on the outermost ICE of a central server"
-                :cost [:click 1]
-                :prompt "Host Pawn on the outermost ICE of a central server"
-                :choices {:card #(and (ice? %)
-                                      (can-host? %)
-                                      (= (last (:zone %)) :ices)
-                                      (is-central? (second (:zone %))))}
-                :msg (msg "host it on " (card-str state target))
-                :effect (effect (host target card))}
-               {:label "Advance to next ICE"
-                :prompt "Choose the next innermost ICE to host Pawn on it"
-                :choices {:card #(and (ice? %)
-                                      (can-host? %)
-                                      (= (last (:zone %)) :ices)
-                                      (is-central? (second (:zone %))))}
-                :msg (msg "host it on " (card-str state target))
-                :effect (effect (host target card))}
-               {:label "Trash Pawn and install a Caïssa from your Grip or Heap, ignoring all costs"
-                :async true
-                :effect (req (let [this-pawn (:cid card)]
-                               (wait-for (trash state side card nil)
-                                         (continue-ability
-                                           state side
-                                           {:prompt "Choose a Caïssa program to install from your Grip or Heap"
-                                            :show-discard true
-                                            :choices {:card #(and (has-subtype? % "Caïssa")
-                                                                  (not= (:cid %) this-pawn)
-                                                                  (#{[:hand] [:discard]} (:zone %)))}
-                                            :msg (msg "install " (:title target))
-                                            :async true
-                                            :effect (effect (runner-install eid target {:ignore-all-cost true}))}
-                                           card nil))))}]})
+  (let [advance-ab
+        {:req (req (ice? (:host card))
+                   (> (:index (:host card)) 0))
+         :effect (req
+                  (let [card (get-card state card)
+                        host-ice (get-card state (:host card))
+                        curr-ice-index  (:index host-ice)
+                        curr-ice-server (:zone host-ice)
+                        next-ice (nth (get-in corp curr-ice-server) (dec curr-ice-index))]
+                    (system-msg state side (str "uses Pawn to advance it to " (card-str state next-ice)))
+                    (host state side next-ice card)))}
+        trash-and-install-ab
+        {:async true
+         :effect (req (wait-for (resolve-ability  ; the trash should really happen simultaneously, but this ordering prevents the picking the same pawn
+                                 state side
+                                 {:prompt "Choose a Caïssa program to install from your Grip or Heap"
+                                  :show-discard true
+                                  :choices {:card #(and (has-subtype? % "Caïssa")
+                                                        (#{[:hand] [:discard]} (:zone %)))}
+                                  :msg (msg "install " (:title target))
+                                  :async true
+                                  :effect (effect (runner-install eid target {:ignore-all-cost true}))}
+                                 card nil)
+                                (trash state :runner eid card nil)))}]
+    {:events [{:event :successful-run
+               :req (req (ice? (:host card)))   ;is hosted on a piece of ice
+               :async true
+               :effect (req
+                        ;; (system-msg state side " pawn event triggred")
+                        (continue-ability state side
+                                          (if (pos? (:index (:host card)))
+                                            advance-ab
+                                            trash-and-install-ab)
+                                          card nil))}]
+     :abilities [{:label "Host Pawn on the outermost ICE of a central server"
+                  :cost [:click 1]
+                  :async true
+                  :prompt "Host Pawn on the outermost ICE of a central server"
+                  :choices {:req (req (and (ice? target)
+                                           (can-host? target)
+                                           (= (last (:zone target)) :ices)
+                                           (is-central? (second (:zone target)))
+                                           ;; TODO: also add check that
+                                           (= (:index target) (dec (count (:ices (card->server state target)))))))}
+                  :msg (msg "host it on " (card-str state target))
+                  :effect (effect (host target card)
+                                  (effect-completed eid))}]}))
 
 (define-card "Peacock"
   (auto-icebreaker {:abilities [(break-sub 2 1 "Code Gate")

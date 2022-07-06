@@ -397,25 +397,37 @@
                 :msg (msg (str "pump the strength of " (get-in card [:host :title]) " by 4"))}]})
 
 (define-card "Deep Red"
-  {:implementation "MU use restriction not enforced"
+  {:implementation "MU use restriction not enforced. [Click] abilities are triggered by default, but this can be changed by clicking Deep Red. If Scheherazade is installed, will assume any Caissa you install should be hosted onto it before being moved, so you do not need to manually install them on Scheherazade."
    :in-play [:memory 3]
+   :abilities [(set-autoresolve :auto-accept "Deep Red")]
+   :effect (effect (init-autoresolve card :auto-accept :always))
    :events [{:event :runner-install
              :optional
              {:req (req (has-subtype? target "Caïssa"))
               :prompt "Use Deep Red?"
+              :autoresolve (get-autoresolve :auto-accept)
               :yes-ability {:async true
-                            :effect (req (let [cid (:cid target)]
-                                           (continue-ability
-                                             state side
-                                             {:async true
-                                              :prompt "Choose the just-installed Caïssa to have Deep Red trigger its [Click] ability"
-                                              :choices {:card #(= cid (:cid %))}
-                                              :msg (msg "trigger the [Click] ability of " (:title target)
-                                                        " without spending [Click]")
-                                              :effect (req (gain state :runner :click 1)
-                                                           (play-ability state side {:card target :ability 0})
-                                                           (effect-completed state side eid))}
-                                             card nil)))}}}]})
+                            :effect (req
+                                     ;; could get-card, but if pawn has been hosted on Scheherazade in between the install and this resolving,
+                                     ;; get-card will look in the wrong zone and not find it
+                                     (let [find-the-caissa (fn [] (first (filter #(and (program? %) (= (:cid %) (:cid target)))
+                                                                                 (all-active-installed state :runner))))
+                                           caissa (find-the-caissa)]
+                                       (if caissa
+                                         (let [scheherazade (first (filter #(and (program? %) (= (:title %) "Scheherazade"))
+                                                                           (all-active-installed state :runner)))]
+
+                                           ;; if scheherazade is not installed, resolve the host ability of the caissa as normal. if it is and the runner hasn't already hosted the caissa somewhere
+                                           ;; before deep red-ing it onto an ice, they can get a free fredit for hosting it on scheherazade first, which they probably want. so trigger scheherazade to
+                                           ;; host the caissa first for them, then continue-the ability (after finding the new, hosted copy of the caissa).
+                                           (when (and scheherazade (not (:host caissa))) ; is-installed-scheherazade and not hosted
+                                             (resolve-ability state side
+                                                              (dissoc (second (:abilities (card-def scheherazade))) :prompt :choices)
+                                                              scheherazade [caissa]))
+                                           (system-msg state :runner (str " triggers Deep Red to trigger the [Click] ability of " (:title caissa) " without spending [Click]"))
+                                           (wait-for (resolve-ability state side (dissoc (first (:abilities (card-def caissa))) :cost) (find-the-caissa) nil) ; TODO: i don't understand why continue-ability doesn't work here...
+                                                     (effect-completed state side eid)))
+                                         (effect-completed state side eid))))}}}]})
 
 (define-card "Demolisher"
   {:in-play [:memory 1]
