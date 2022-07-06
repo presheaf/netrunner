@@ -1357,7 +1357,7 @@
 
             ;; different sounds for HQ, R&D, Archives (no sound for remote)
             ;; these used to happen on access, but i think people are more used to the new timing
-            (= "run-successful" event-name)
+            (= "access-server" event-name)
             (when-let [run-target (#{"hq" "rd" "archives"} (:run-target event-data))]
               (sfx-keywordify (:run-target event-data)))
 
@@ -1583,6 +1583,9 @@
                                       "jnet-run-successful"
                                       "jnet-run-unsuccessful"
                                       "jnet-virus-purge"
+                                      "octgn-access-server-archives"
+                                      "octgn-access-server-hq"
+                                      "octgn-access-server-rd"
                                       "octgn-agenda-score-breaking-news"
                                       "octgn-agenda-score"
                                       "octgn-agenda-steal"
@@ -1642,9 +1645,7 @@
                                       "octgn-rez-ice-trap"
                                       "octgn-rez-other-asset"
                                       "octgn-rez-other-upgrade"
-                                      "octgn-run-successful-archives"
-                                      "octgn-run-successful-hq"
-                                      "octgn-run-successful-rd"
+                                      "octgn-run-successful"
                                       "octgn-run-unsuccessful"
                                       "octgn-start-turn-corp"
                                       "octgn-start-turn-runner"

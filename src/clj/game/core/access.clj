@@ -1132,6 +1132,7 @@
   ([state side eid server] (do-access state side eid server nil))
   ([state side eid server {:keys [no-root access-first] :as args}]
    (wait-for (trigger-event-sync state side :pre-access (first server))
+             (play-sfx state side "access-server" {:run-target (first server)})
              (let [args (clean-access-args args)
                    access-amount (num-cards-to-access state side (first server) args)]
                (turn-archives-faceup state side server)
