@@ -2482,14 +2482,13 @@
                          (installed? %)
                          (not (rezzed? %)))}
    :effect (req (if (pos? (count targets))
-                  (wait-for (expose state side target)
-                            (if (>= 2 (count targets)) ; TODO: clean up this mess
+                  (wait-for (expose state side (first targets))
+                            (if (>= (count targets) 2)
                               (wait-for (expose state side (second targets))
-                                        (if (= 3 (count targets))
-                                          (expose state side (nth targets 3))
+                                        (if (= (count targets) 3)
+                                          (expose state side eid (nth targets 2))
                                           (effect-completed state side eid)))
-                              (effect-completed state side eid)))
-                  (effect-completed state side eid)))})
+                              (effect-completed state side eid)))))})
 
 (define-card "Scavenge"
   {:async true
@@ -2640,6 +2639,7 @@
                    (make-run eid target nil card))
    :events [{:event :run-ends
              :msg "take 1 brain damage"
+             :once :per-turn
              :effect (effect (damage eid :brain 1 {:unpreventable true
                                                    :card card}))}]})
 
