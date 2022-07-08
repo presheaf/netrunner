@@ -1316,12 +1316,17 @@
                       [{:event :encounter-ice
                         :optional
                         {:req (req (and (same-card? ice target)
-                                        (can-pay? state :runner eid target nil [:credit (count (:subroutines (get-card state ice)))])))
-                         :prompt (str "Pay " (count (:subroutines (get-card state ice)))
+                                        (can-pay? state :runner eid target nil
+                                                  [:credit (count (:subroutines (get-card state target)))])))
+                         :prompt (msg "Pay " (count (:subroutines (get-card state ice)))
                                       " [Credits] to bypass " (:title ice) "?")
-                         :yes-ability {:cost [:credit (count (:subroutines (get-card state ice)))]
-                                       :msg (msg "bypass " (:title target))
-                                       :effect (req (bypass-ice state))}}}])))
+                         :yes-ability {:async true
+                                       :effect (req
+                                                (wait-for (pay-sync state :runner card [:credit (count (:subroutines (get-card state target)))])
+                                                          (when-let [cost-str async-result]
+                                                            (system-msg state side (str cost-str " to bypass " (:title ice)))
+                                                            (bypass-ice state))
+                                                          (effect-completed state side eid)))}}}])))
      :abilities [(break-sub 1 1 "Sentry")
                  (strength-pump 2 1)]}))
 

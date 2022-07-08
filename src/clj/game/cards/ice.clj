@@ -112,6 +112,24 @@
                                 (system-msg state :runner cost-str)))
                             (effect-completed state side eid))))})
 
+(defn trash-program-unless-runner-pays
+  [amount]
+  {:player :runner
+   :async true
+   :label (str "Trash a program unless the Runner pays " amount " [Credits]")
+   :prompt (str "Pay " amount " [Credits] or let the Corp trash 1 program?")
+   :choices ["The Corp trashes 1 program"
+             (str "Pay " amount " [Credits]")]
+   :effect (req (if (= "The Corp trashes 1 program" target)
+                  (continue-ability state :corp trash-program card nil)
+                  (wait-for (pay-sync state :runner card [:credit amount])
+                            (when async-result
+                              (let [cost-str (str async-result
+                                                  " due to " (:title card)
+                                                  " subroutine")]
+                                (system-msg state :runner cost-str)))
+                            (effect-completed state side eid))))})
+
 (defn end-the-run-unless-corp-pays
   [amount]
   {:async true
@@ -2894,7 +2912,7 @@
                                                     :effect (req (swap! state update :run dissoc :cannot-jack-out))}]))}]))}]})
 
 (define-card "Swarm"
-  (let [sub (end-the-run-unless-runner-pays 3)
+  (let [sub (trash-program-unless-runner-pays 3)
         ability {:req (req (same-card? card target))
                  :effect (effect (reset-variable-subs card (get-counters card :advancement) sub))}]
     {:advanceable :always
