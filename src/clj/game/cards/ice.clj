@@ -795,7 +795,9 @@
                               card nil))}})
 
 (define-card "Chum"
-  {:subroutines
+  {:implementation "Can fail to trigger in edge cases, so may need to use damage ability manually."
+   :abilities [(assoc (do-net-damage 3) :label "Do 3 net damage (manual)")]
+   :subroutines
    [{:label "Give +4 strength to next ICE Runner encounters"
      :req (req this-server)
      :msg (msg "give +4 strength to the next ICE the Runner encounters")
@@ -822,7 +824,10 @@
                                   :duration :end-of-run
                                   :unregister-once-resolved true
                                   :req (req (and (same-card? target target-ice)
-                                                 (seq (remove :broken (:subroutines (get-card state target-ice)))))))])))}]))}]})
+                                                 (seq (remove :broken (:subroutines (if (get-card state target-ice) ; if the ice is trashed, this is nil because it has changed zones, so use next best thing?
+                                                                                      (get-card state target-ice)
+                                                                                      target)))))))]
+                          )))}]))}]})
 
 (define-card "Clairvoyant Monitor"
   {:subroutines [(do-psi {:label "Place 1 advancement token and end the run"
