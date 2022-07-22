@@ -89,7 +89,7 @@
                                               :max 3}
                                     :msg (msg "remove up to 3 cards from  the game")
                                     :effect (req (doseq [c targets]
-                                                   (move :corp c :rfg)))}}} card nil))}]})
+                                                   (move state :corp c :rfg)))}}} card nil))}]})
 
 (define-card "Astrolabe"
   {:in-play [:memory 1]

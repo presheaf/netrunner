@@ -149,7 +149,6 @@
   ; ([state side eid card] (trash-cards state side eid [card] nil))
   ([state side eid card args] (trash state side eid card args true))
   ([state side eid card args play-trash-opposing]
-   (prn "defn-trash" side (:side card))
    (when (and play-trash-opposing (not= (side-str side) (:side card)))
      (play-sfx state side "trash-opposing" (make-sfx-card-info state card)))
    (trash-cards state side eid [card] args)))
