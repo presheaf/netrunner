@@ -22,7 +22,7 @@
                                           (:ices server)))))
                     0
                     (flatten (seq (:servers corp)))))]
-    {:msg (msg "gain " (count-ice corp) " [Credits]")
+    {:msg (msg "gain " (* cred-gain (count-ice corp)) " [Credits]")
      :interactive (req true)
      :effect (effect (gain-credits (* cred-gain (count-ice corp)))
                (update-all-ice))
