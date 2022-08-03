@@ -2752,3 +2752,33 @@
   (cloud-icebreaker
    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
                                   (strength-pump 1 1)]})))
+;;; anarch flip card
+(define-card "Corroder"
+  (let [flip-info  {:front-face-code "01007"
+                    :back-face-code "01007_flip"
+                    :front-face-title "Corroder"
+                    :back-face-title "Fliproder"}]
+    {:leave-play (ensure-unflipped flip-info)
+     :recurring (req (when (:is-flipped card)
+                       (set-prop state side card :rec-counter 1)))
+     ;; ;; need something like this, with a check that it's the current encounter
+     ;; :interactions {:pay-credits {:req (req (and (= :ability (:source-type eid))
+     ;;                                           (program? target)))
+     ;;                            :type :recurring}}
+
+
+     :constant-effects [{:type :rez-cost
+                         :value 2
+                         :req (req (and (not (:is-flipped card))
+                                        (ice? target)))}
+                        {:type :ice-strength
+                         :req (req (and (:is-flipped card)
+                                        (same-card? (:host card) target)))
+                         :value -1}]
+
+     :events [{:event :rez
+               :req (req (and (not (:is-flipped card))
+                              (ice? target)))
+               :msg (msg "flip " (card-title card) " and host it on " (card-title target))
+               :effect (req (when (host state side card target)
+                              (flip-card state side (get-card state card) flip-info)))}]}))
