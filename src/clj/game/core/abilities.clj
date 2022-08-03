@@ -222,7 +222,7 @@
                  0)]
          (prompt! state s card prompt {:number n :default d} ab args))
        (:card-title choices)
-       (let [card-titles (sort (map :title (filter #((:card-title choices) state side (make-eid state eid) nil [%])
+       (let [card-titles (sort (map card-title (filter #((:card-title choices) state side (make-eid state eid) nil [%])
                                                    (server-cards))))
              choices (assoc choices :autocomplete card-titles)
              args (assoc args :prompt-type :card-title)]
@@ -243,7 +243,7 @@
     (let [desc (if (string? message) message (message state side eid card targets))
           cost-spend-msg (build-spend-msg cost-str "use")]
       (system-msg state (to-keyword (:side card))
-                  (str cost-spend-msg (:title card) (str " to " desc))))))
+                  (str cost-spend-msg (card-title card) (str " to " desc))))))
 
 (defn register-once
   "Register ability as having happened if :once specified"
@@ -320,7 +320,7 @@
          "No" (prompt-fn "No")
          (do (when autoresolve-fn
                (toast state side (str "This prompt can be skipped by clicking "
-                                      (:title card) " and toggling autoresolve")))
+                                      (card-title card) " and toggling autoresolve")))
              (show-prompt state side eid card message ["Yes" "No"]
                           prompt-fn ability)))))))
 
@@ -359,7 +359,7 @@
              valid-amounts (remove #(or (any-flag-fn? state :corp :prevent-secretly-spend %)
                                         (any-flag-fn? state :runner :prevent-secretly-spend %))
                                    all-amounts)]
-         (show-prompt-with-dice state s card (str "Choose an amount to spend for " (:title card))
+         (show-prompt-with-dice state s card (str "Choose an amount to spend for " (card-title card))
                                 (map #(str % " [Credits]") valid-amounts)
                                 #(resolve-psi state s eid card psi (str->int (first (split % #" "))))
                                 {:priority 2
@@ -477,7 +477,7 @@
   [state side eid card {:keys [player other base bonus priority label] :as trace}]
   (let [this-type (if (corp-start? trace) "trace" "link")]
     (play-sfx state side "trace-start")
-    (system-msg state player (str "uses " (:title card)
+    (system-msg state player (str "uses " (card-title card)
                                   " to initiate a trace with strength " ((fnil + 0 0) base bonus)
                                   (when (pos? bonus)
                                     (str " (" base " + " bonus ")"))
@@ -537,7 +537,7 @@
                      :msg (msg "shuffle "
                                (let [seen (filter :seen targets)
                                      m (count (filter #(not (:seen %)) targets))]
-                                 (str (join ", " (map :title seen))
+                                 (str (join ", " (map card-title seen))
                                       (when (pos? m)
                                         (str (when-not (empty? seen) " and ")
                                              (quantify m "unseen card")))))

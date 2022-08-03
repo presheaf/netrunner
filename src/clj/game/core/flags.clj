@@ -231,7 +231,7 @@
   ([state side card {:keys [ignore-unique] :as args}]
    (let [reason (can-rez-reason state side card)
          reason-toast #(do (toast state side %) false)
-         title (:title card)]
+         title (card-title card)]
      (case reason
        ;; Do nothing special if true
        true true
@@ -265,7 +265,7 @@
   (let [cards (->> @state :stack :current-turn :can-run (map :card))]
     (if (empty? cards)
       true
-      (do (toast state side (str "Cannot run due to " (join ", " (map :title cards))))
+      (do (toast state side (str "Cannot run due to " (join ", " (map card-title cards))))
         false))))
 
 (defn can-access?
@@ -279,7 +279,7 @@
   (let [cards (get-preventing-cards state side card :can-access [:current-run :current-turn :persistent])]
     (if (empty? cards)
       true
-      (do (toast state side (str "Cannot access " (card-str state card) " because of " (join ", " (map :title cards))) "info")
+      (do (toast state side (str "Cannot access " (card-str state card) " because of " (join ", " (map card-title cards))) "info")
           false))))
 
 (defn can-advance?

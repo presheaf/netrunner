@@ -148,7 +148,7 @@
                            (rezzed? c)
                            (:seen c)
                            (= last-zone :deck)))
-                (:title c)
+                (card-title c)
                 "a card")
         s (if (#{"HQ" "R&D" "Archives"} server) :corp :runner)]
     ;; allow moving from play-area always, otherwise only when same side, and to valid zone
@@ -309,6 +309,7 @@
   [state side {:keys [card ability targets] :as args}]
   (let [card (get-card state card)
         cdef (card-def card)
+        ;; abilities (or (:abilities card) (:abilities cdef))  ;; doesn't work, see below
         abilities (:abilities cdef)
         ab (if (= ability (count abilities))
              ;; recurring credit abilities are not in the :abilities map and are implicit
@@ -321,6 +322,13 @@
              (get-in cdef [:abilities ability]))
         cannot-play (or (:disabled card)
                         (any-effects state side :prevent-ability true? card [ab ability]))]
+    ;; (println "\n\nplay-ability says:")
+    ;; (println (str card))
+    ;; (println (str abilities))
+    ;; problem: only abilities in :cdef has an :effect ...
+    ;; possible fix: make all abilities on flippable cards dynamic?
+    ;; (println (str ab))
+    ;; (println (str (get-in cdef [:abilities ability])))
     (when-not cannot-play
       (do-play-ability state side card ab ability targets))))
 
@@ -351,7 +359,7 @@
                 (dotimes [n times-pump]
                   (resolve-ability state side (dissoc pump-ability :cost :msg) (get-card state card) nil))
                 (system-msg state side (str (build-spend-msg async-result "increase")
-                                            "the strength of " (:title card) " to "
+                                            "the strength of " (card-title card) " to "
                                             (:current-strength (get-card state card))))
                 (effect-completed state side eid)))))
 
@@ -434,18 +442,18 @@
                               (system-msg state side
                                           (if (pos? times-pump)
                                             (str (build-spend-msg cost-str "increase")
-                                                 "the strength of " (:title card)
+                                                 "the strength of " (card-title card)
                                                  " to " (get-strength (get-card state card))
                                                  " and break all " (when (< 1 unbroken-subs) unbroken-subs)
-                                                 " subroutines on " (:title current-ice))
+                                                 " subroutines on " (card-title current-ice))
                                             (str (build-spend-msg cost-str "use")
-                                                 (:title card)
+                                                 (card-title card)
                                                  " to break "
                                                  (if some-already-broken
                                                    "the remaining "
                                                    "all ")
                                                  unbroken-subs " subroutines on "
-                                                 (:title current-ice))))
+                                                 (card-title current-ice))))
                               (continue state side nil))))))))
 
 (defn play-heap-breaker-auto-pump-and-break-impl
@@ -533,9 +541,9 @@
                   (wait-for (resolve-ability state side (play-heap-breaker-auto-pump-and-break-impl state side sub-groups-to-break current-ice) card nil)
                             (system-msg state side
                                         (str (build-spend-msg cost-str "increase")
-                                             "the strength of " (:title card)
+                                             "the strength of " (card-title card)
                                              " to " (get-strength (get-card state card))
-                                             " and break all subroutines on " (:title current-ice)))
+                                             " and break all subroutines on " (card-title current-ice)))
                             (continue state side nil)))))))
 
 (defn play-copy-ability

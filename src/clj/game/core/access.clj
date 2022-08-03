@@ -84,7 +84,7 @@
       (continue-ability
         state :runner
         {:async true
-         :prompt (str "You accessed " (:title card) ".")
+         :prompt (str "You accessed " (card-title card) ".")
          :choices choices
          :effect (req (cond
                         ; Can't or won't trash or use an ability
@@ -100,7 +100,7 @@
                                       (swap! state assoc-in [:run :did-access] true)))
                                   (swap! state assoc-in [:runner :register :trashed-card] true)
                                   (system-msg state side (str async-result " to trash "
-                                                              (:title card) " from "
+                                                              (card-title card) " from "
                                                               (name-zone :corp (get-nested-zone card))))
                                   (wait-for (trash state side card nil)
                                             (access-end state side eid (first async-result) {:trashed true})))
@@ -145,7 +145,7 @@
       (trigger-event-simult
         state :runner :agenda-stolen
         {:first-ability {:async true
-                         :effect (req (system-msg state :runner (str "steals " (:title c) " and gains "
+                         :effect (req (system-msg state :runner (str "steals " (card-title c) " and gains "
                                                                      (quantify points "agenda point")))
                                       (swap! state update-in [:runner :register :stole-agenda]
                                              #(+ (or % 0) (:agendapoints c 0)))
@@ -195,7 +195,7 @@
         prompt-str (if (not (blank? cost-strs))
                      (str " " cost-strs " to steal?")
                      "")
-        prompt-str (str "You accessed " (:title card) "." prompt-str)
+        prompt-str (str "You accessed " (card-title card) "." prompt-str)
         choices (vec (concat ability-strs steal-str no-action-str))]
     ;; Steal costs are additional costs and can be denied by the runner.
     (continue-ability
@@ -207,7 +207,7 @@
                       ;; Can't steal or pay, or won't pay additional costs to steal
                       (= target "No action")
                       (do (when-not (find-cid (:cid card) (:deck corp))
-                            (system-msg state side (str "decides to not pay to steal " (:title card))))
+                            (system-msg state side (str "decides to not pay to steal " (card-title card))))
                           (access-end state side eid card))
 
                       ;; Steal normally
@@ -218,7 +218,7 @@
                       (= target "Pay to steal")
                       (wait-for (pay-sync state side nil cost {:action :steal-cost})
                                 (system-msg state side (str async-result " to steal "
-                                                            (:title card) " from "
+                                                            (card-title card) " from "
                                                             (name-zone :corp (get-nested-zone card))))
                                 (steal-agenda state side eid card))
 
@@ -273,7 +273,7 @@
                      (when card
                        (str " from " (name-zone side zone))))))
   (when (reveal-access? state side card)
-    (system-msg state side (str "must reveal they accessed " (:title card)))
+    (system-msg state side (str "must reveal they accessed " (title card)))
     (reveal state :runner card)))
 
 (defn- access-trigger-events

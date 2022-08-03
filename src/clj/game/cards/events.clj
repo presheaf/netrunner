@@ -2953,3 +2953,35 @@
                                                        (when-not (event? topcard)
                                                          (str " to gain " cost " [Credits]"))))
                                       (effect-completed state side eid)))))})
+
+
+
+
+
+;;; On the Trail
+(define-card "On the Trail"
+  (let [flip-info  {; TODO: fix codes
+                    :front-face-code "06036"
+                    :back-face-code "06036_flip"
+                    :front-face-title "On the Trail"
+                    :back-face-title "Moment of Truth"}]
+    {:leave-play (ensure-unflipped flip-info)
+     :events [{:event :successful-run
+               :silent (req true)
+               :req (req (and (not (:is-flipped card))
+                              (is-central? (:server run))
+                              (first-event? state side :successful-run is-central?)))
+               :msg (msg (str "place 1 [Credit] on On the Trail"
+                              (if (= (get-counters card :credit) 2) ", then take 3[Credit] and flip it" "")))
+               :effect (req (add-counter state side eid card :credit 1 nil)
+                            (when (= (get-counters card :credit) 2)
+                              (add-counter state side eid (get-card state card) :credit -3 nil)
+                              (gain-credits state side 3)
+                              (flip-card state side (get-card state card) flip-info)))}
+
+              {:event :agenda-stolen
+               :async true
+               :req (req (:is-flipped card))
+               :msg "gain 7 [Credit] and trash Moment of Truth"
+               :effect (req (gain-credits state :runner 7)
+                            (remove-old-current state side eid :runner))}]}))

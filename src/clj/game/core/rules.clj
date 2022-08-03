@@ -57,7 +57,7 @@
                                               (unregister-constant-effects state side card)
                                               (when (= zone :rfg)
                                                 (system-msg state side
-                                                            (str "removes " (:title c) " from the game instead of trashing it")))
+                                                            (str "removes " (card-title c) " from the game instead of trashing it")))
                                               (when (has-subtype? card "Terminal")
                                                 (lose state side :click (-> @state side :click))
                                                 (swap! state assoc-in [:corp :register :terminal] true))
@@ -280,7 +280,7 @@
                   (when (= type :brain)
                     (swap! state update-in [:runner :brain-damage] #(+ % n))
                     (swap! state update-in [:runner :hand-size :mod] #(- % n)))
-                  (when-let [trashed-msg (join ", " (map :title cards-trashed))]
+                  (when-let [trashed-msg (join ", " (map card-title cards-trashed))]
                     (system-msg state :runner (str "trashes " trashed-msg " due to " (name type) " damage")))
                   (if (< (count hand) n)
                     (do (flatline state)
@@ -531,7 +531,7 @@
             {:unpreventable true :suppress-event true}))
    (let [card (get-card state card)]
      (when (:msg args)
-       (system-msg state side (str "forfeits " (:title card))))
+       (system-msg state side (str "forfeits " (card-title card))))
      (move state (to-keyword (:side card)) card :rfg)
      (update-all-agenda-points state side)
      (check-winner state side)

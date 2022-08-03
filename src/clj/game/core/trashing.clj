@@ -47,14 +47,14 @@
              (do (system-msg state :runner "has the option to prevent trash effects")
                  (show-wait-prompt state :corp "Runner to prevent trash effects" {:priority 10})
                  (show-prompt state :runner nil
-                              (str "Prevent the trashing of " (:title card) "?") ["Done"]
+                              (str "Prevent the trashing of " (card-title card) "?") ["Done"]
                               (fn [_]
                                 (clear-wait-prompt state :corp)
                                 (if-let [_ (get-in @state [:trash :trash-prevent ktype])]
-                                  (do (system-msg state :runner (str "prevents the trashing of " (:title card)))
+                                  (do (system-msg state :runner (str "prevents the trashing of " (dynamic-title card)))
                                       (swap! state update-in [:trash :trash-prevent] dissoc ktype)
                                       (effect-completed state side eid))
-                                  (do (system-msg state :runner (str "will not prevent the trashing of " (:title card)))
+                                  (do (system-msg state :runner (str "will not prevent the trashing of " (dynamic-title card)))
                                       (swap! state update-in [:trash :trash-list oid] concat [card])
                                       (effect-completed state side eid))))
                               {:priority 10}))

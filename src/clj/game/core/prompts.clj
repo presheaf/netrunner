@@ -131,8 +131,8 @@
                     (if-let [message (:prompt ability)]
                       message
                       (if m
-                        (str "Select " (if all "" "up to ") m " targets for " (:title card))
-                        (str "Select a target for " (:title card))))
+                        (str "Select " (if all "" "up to ") m " targets for " (card-title card))
+                        (str "Select a target for " (card-title card))))
                     (if all ["Hide"] ["Done"])
                     (if all
                       (fn [choice]

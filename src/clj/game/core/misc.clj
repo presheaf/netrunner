@@ -285,3 +285,32 @@
   ([state side card target]
    (when target (set-prop state side (find-latest state target) :icon nil))
    (set-prop state side (find-latest state card) :icon-target nil)))
+
+(defn flip-card
+  "Flip a card by setting the flip-kw attribute on it to true, and changing :code to be front-face-code if flip-kw is now false, back-face-code if it is now true."
+
+  ;; TODO: ensure :is-flipped is cleared when cards leave play, and :code, :flip-info set back to normal
+  [state side card flip-info]
+  (let [is-flipped (:is-flipped card)
+        faceup-code (:front-face-code flip-info)
+        facedown-code (:back-face-code flip-info)
+        faceup-title (:front-face-title flip-info)
+        facedown-title (:back-face-title flip-info)]
+    (prn (str "flip-card:" (str flip-info)))
+
+    (when flip-info
+      ;; can't flip cards without flip-info set
+      (update! state side (-> card (assoc :is-flipped (not is-flipped)
+                                          :code (if is-flipped faceup-code facedown-code)
+                                          :dynamic-title (if is-flipped faceup-title facedown-title)))))))
+
+
+(defn ensure-unflipped
+  [flip-info]
+  (req (update! state side (assoc card
+                                  :is-flipped false
+                                  :code (:front-face-code flip-info)))))
+
+(defn card-title
+  [card]
+  (or (:dynamic-title card) (:title card)))
