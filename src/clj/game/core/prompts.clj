@@ -3,6 +3,11 @@
             [game.core.toasts :refer [toast]]
             [clj-uuid :as uuid]))
 
+(defn- card-title
+  [card]
+  (or (:dynamic-title card) (:title card)))
+
+
 (defn- add-to-prompt-queue
   "Adds a newly created prompt to the current prompt queue"
   [state side {:keys [priority] :as prompt}]

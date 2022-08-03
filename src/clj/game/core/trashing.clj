@@ -51,10 +51,10 @@
                               (fn [_]
                                 (clear-wait-prompt state :corp)
                                 (if-let [_ (get-in @state [:trash :trash-prevent ktype])]
-                                  (do (system-msg state :runner (str "prevents the trashing of " (dynamic-title card)))
+                                  (do (system-msg state :runner (str "prevents the trashing of " (card-title card)))
                                       (swap! state update-in [:trash :trash-prevent] dissoc ktype)
                                       (effect-completed state side eid))
-                                  (do (system-msg state :runner (str "will not prevent the trashing of " (dynamic-title card)))
+                                  (do (system-msg state :runner (str "will not prevent the trashing of " (card-title card)))
                                       (swap! state update-in [:trash :trash-list oid] concat [card])
                                       (effect-completed state side eid))))
                               {:priority 10}))

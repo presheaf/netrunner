@@ -2,7 +2,7 @@
 
 (declare can-trigger? event-title
          register-suppress resolve-ability
-         unregister-suppress)
+         unregister-suppress card-title)
 
 (defn default-locations
   [card]

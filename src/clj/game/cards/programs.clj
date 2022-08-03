@@ -2782,3 +2782,9 @@
                :msg (msg "flip " (card-title card) " and host it on " (card-title target))
                :effect (req (when (host state side card target)
                               (flip-card state side (get-card state card) flip-info)))}]}))
+
+(define-card "Sniper"
+  (auto-icebreaker {:strength-bonus (req (if (some #(has-subtype? % "Run")
+                                                   (:play-area (:runner @state))) 4 0))
+                    :abilities [(break-sub 1 0 "Sentry")
+                                (strength-pump 2 1)]}))

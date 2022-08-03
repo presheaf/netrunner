@@ -3331,3 +3331,15 @@
                  trash-hardware
                  (do-brain-damage 2)]
    :runner-abilities [(bioroid-break 2 2)]})
+
+
+(define-card "Snickerdoodle"
+  {:subroutines [(gain-credits-sub 3)
+                 {:label "Give the Runner 1 tag and trash Snickerdoodle"
+                  :async true
+                  :msg "give the Runner 1 tag and trash Snickerdoodle"
+                  :effect (req (wait-for (gain-tags state :corp 1)
+                                         (when current-ice
+                                           (continue state :corp nil)
+                                           (continue state :runner nil))
+                                         (trash state side eid card {:cause :subroutine})))}]})
