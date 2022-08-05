@@ -2034,8 +2034,8 @@
 
 (define-card "Peace in Our Time"
   {:req (req (not (:scored-agenda corp-reg)))
-   :msg "gain 10 [Credits]. The Corp gains 5 [Credits]"
-   :effect (effect (gain-credits :runner 10)
+   :msg "gain 8 [Credits]. The Corp gains 5 [Credits]"
+   :effect (effect (gain-credits :runner 8)
                    (gain-credits :corp 5)
                    (register-turn-flag! card :can-run nil))})
 
@@ -2419,8 +2419,7 @@
 
 (define-card "Rumor Mill"
   (letfn [(eligible? [card] (and (:uniqueness card)
-                                 (or (asset? card)
-                                     (upgrade? card))
+                                 (asset? card)
                                  (not (has-subtype? card "Region"))))
           (rumor [state] (filter eligible? (concat (all-installed state :corp)
                                                    (get-in @state [:corp :hand])

@@ -1690,7 +1690,7 @@
                 :prompt "Use Şifr?"
                 :yes-ability
                 {:once :per-turn
-                 :msg (msg "lower their maximum hand size by 1 and lower the strength of " (:title current-ice) " to 0")
+                 :msg (msg "lower their maximum hand size by 1 and lower the strength of " (:title current-ice) " to 3")
                  :effect (effect (lose :runner :hand-size 1)
                            (register-events
                              :runner card
@@ -1703,8 +1703,9 @@
                                {:type :ice-strength
                                 :duration :end-of-encounter
                                 :req (req (same-card? target ice))
-                                :value (req (- (+ (:strength target 0)
-                                                  (gather-pre-sifr-effects card state side eid target (rest targets)))))}))
+                                :value (req (let [pre-sifr-str (+ (:strength target 0)
+                                                                  (gather-pre-sifr-effects card state side eid target (rest targets)))]
+                                              (- (max (- pre-sifr-ice-str 3) 0))))}))
                            (update-all-ice :runner))}}}]}))
 
 (define-card "Silencer"

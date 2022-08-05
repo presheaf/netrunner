@@ -307,7 +307,7 @@
                    (draw eid 2 nil))})
 
 (define-card "BOOM!"
-  {:req (req (<= 2 (count-tags state)))
+  {:req (req (<= 3 (count-tags state)))
    :async true
    :msg "do 7 meat damage"
    :effect (effect (damage eid :meat 7 {:card card}))})
@@ -897,10 +897,10 @@
 (define-card "Hard-Hitting News"
   {:req (req (last-turn? state :runner :made-run))
    :trace {:base 4
-           :label "Give the Runner 4 tags"
+           :label "Give the Runner 3 tags"
            :successful {:async true
-                        :msg "give the Runner 4 tags"
-                        :effect (effect (gain-tags eid 4))}}})
+                        :msg "give the Runner 3 tags"
+                        :effect (effect (gain-tags eid 3))}}})
 
 (define-card "Hasty Relocation"
   (letfn [(hr-final [chosen original]
@@ -1147,9 +1147,9 @@
                                :card #(and (rezzed? %)
                                            (not (agenda? %)))}
                      :msg (msg "trash " (join ", " (map :title targets))
-                               " and gain " (* (count targets) 3) " [Credits]")
+                               " and gain " (* (count targets) 4) " [Credits]")
                      :effect (req (wait-for (trash-cards state side targets nil)
-                                            (gain-credits state side (* (count targets) 3))
+                                            (gain-credits state side (* (count targets) 4))
                                             (effect-completed state side eid)))}
                     card nil)))})
 
@@ -1394,9 +1394,10 @@
                   (< (:credit runner) 6)))
    :prompt "Select an installed card to trash"
    :choices {:card #(and (runner? %)
-                         (installed? %))}
+                         (installed? %))
+             :max 2}
    :msg (msg "remove 1 Runner tag and trash " (card-str state target))
-   :effect (effect (trash eid target nil))})
+   :effect (effect (trash-cards eid targets nil))})
 
 (define-card "Oversight AI"
   {:choices {:card #(and (ice? %)
@@ -2318,9 +2319,9 @@
                           (gain-bad-publicity state :corp eid 1)))})
 
 (define-card "Violet Level Clearance"
-  {:msg "gain 8 [Credits] and draw 4 cards"
+  {:msg "gain 6 [Credits] and draw 4 cards"
    :async true
-   :effect (effect (gain-credits 8)
+   :effect (effect (gain-credits 6)
                    (draw eid 4 nil))})
 
 (define-card "Voter Intimidation"

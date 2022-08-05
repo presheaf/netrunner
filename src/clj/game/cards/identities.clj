@@ -893,17 +893,17 @@
                        (continue-ability
                          (when (some #(and (has-subtype? % "Icebreaker")
                                            (can-pay? state side (assoc eid :source card :source-type :runner-install) % nil
-                                                     [:credit (install-cost state side % {:cost-bonus -1})]))
+                                                     [:credit (install-cost state side % {:cost-bonus -4})]))
                                      (:hand runner))
                            {:prompt "Select an icebreaker to install from your Grip"
                             :choices
                             {:req (req (and (in-hand? target)
                                             (has-subtype? target "Icebreaker")
                                             (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
-                                                      [:credit (install-cost state side target {:cost-bonus -1})])))}
+                                                      [:credit (install-cost state side target {:cost-bonus -4})])))}
                             :async true
-                            :msg (msg "install " (:title target) ", lowering the cost by 1 [Credits]")
-                            :effect (effect (runner-install eid target {:cost-bonus -1}))})
+                            :msg (msg "install " (:title target) ", lowering the cost by 4 [Credits]")
+                            :effect (effect (runner-install eid target {:cost-bonus -4}))})
                          card nil))}]})
 
 (define-card "Laramy Fisk: Savvy Investor"
@@ -1089,7 +1089,7 @@
                             {:optional
                              {:prompt "Trace the Runner with NBN: Controlling the Message?"
                               :autoresolve (get-autoresolve :auto-ctm)
-                              :yes-ability {:trace {:base 4
+                              :yes-ability {:trace {:base 3
                                                     :successful
                                                     {:msg "give the Runner 1 tag"
                                                      :async true

@@ -98,7 +98,7 @@
 (define-card "Aaron Marrón"
   (let [am {:effect (effect (add-counter card :power 2)
                             (system-msg :runner (str "places 2 power counters on Aaron Marrón")))}]
-    {:abilities [{:cost [:power 1]
+    {:abilities [{:cost [:power 1 :click 1]
                   :msg "remove 1 tag and draw 1 card"
                   :async true
                   :effect (req (wait-for (lose-tags state side 1)
@@ -2455,8 +2455,8 @@
    :events [(trash-on-empty :credit)
             {:event :successful-run
              :req (req (= (zone->name (get-in @state [:run :server])) (:server-target (get-card state card))))
-             :msg (msg "gain " (min 4 (get-counters card :credit)) " [Credits]")
-             :effect (req (let [credits (min 4 (get-counters card :credit))]
+             :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
+             :effect (req (let [credits (min 2 (get-counters card :credit))]
                             (add-counter state side card :credit (- credits))
                             (gain-credits state side credits)))}]})
 

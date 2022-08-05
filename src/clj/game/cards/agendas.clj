@@ -433,10 +433,10 @@
 (define-card "Crisis Management"
   (let [ability {:req (req tagged)
                  :async true
-                 :label "Do 1 meat damage (start of turn)"
+                 :label "Do 2 meat damage (start of turn)"
                  :once :per-turn
-                 :msg "do 1 meat damage"
-                 :effect (effect (damage eid :meat 1 {:card card}))}]
+                 :msg "do 2 meat damage"
+                 :effect (effect (damage eid :meat 2 {:card card}))}]
     {:events [(assoc ability :event :corp-turn-begins)]
      :abilities [ability]}))
 
@@ -937,7 +937,7 @@
    :advancement-cost-bonus (req (count-bad-pub state))})
 
 (define-card "Net Quarantine"
-  (let [nq {:effect (req (let [extra (int (/ (:runner-spent target) 2))]
+  (let [nq {:effect (req (let [extra (:runner-spent target)]
                            (when (pos? extra)
                              (gain-credits state side extra)
                              (system-msg state :corp (str "uses Net Quarantine to gain " extra "[Credits]")))))}]
@@ -1421,7 +1421,7 @@
    :leave-play (effect (gain :runner :hand-size 1))})
 
 (define-card "Sensor Net Activation"
-  {:effect (effect (add-counter card :agenda 1))
+  {:effect (effect (add-counter card :agenda 3))
    :silent (req true)
    :abilities [{:cost [:agenda 1]
                 :req (req (some #(and (has-subtype? % "Bioroid") (not (rezzed? %))) (all-installed state :corp)))

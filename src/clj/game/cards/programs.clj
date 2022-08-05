@@ -755,7 +755,6 @@
                                                  (turn-events state :corp :corp-install)))]
                   (swap! state assoc-in [:corp :register :cannot-score] agendas)))
    :events [{:event :purge
-             :async true
              :effect (req (swap! state update-in [:corp :register] dissoc :cannot-score)
                           (move state side card :rfg))}
             {:event :corp-install
@@ -1291,7 +1290,7 @@
 
 (define-card "Fawkes"
   {:implementation "Stealth credit restriction not enforced"
-   :abilities [(break-sub 1 1 "Sentry")
+   :abilities [(break-sub 1 0 "Sentry")
                {:label "X [Credits]: +X strength for the remainder of the run (using at least 1 stealth [Credits])"
                 :choices {:number (req (total-available-credits state :runner eid card))}
                 :prompt "How many credits?"
@@ -2509,7 +2508,7 @@
    :strength-bonus (req (get-counters card :power))})
 
 (define-card "Sūnya"
-  {:abilities [(break-sub 2 1 "Sentry")]
+  {:abilities [(break-sub 2 0 "Sentry")]
    :strength-bonus (req (get-counters card :power))
    :events [{:event :encounter-ice-ends
              :req (req (all-subs-broken-by-card? target card))
@@ -2581,8 +2580,7 @@
      :abilities [ability]
      :events [(assoc ability :event :runner-turn-begins)
               {:event :purge
-               :async true
-               :effect (effect (trash eid card {:cause :purge}))}]}))
+               :effect (effect (move card :rfg))}]}))
 
 (define-card "Torch"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")

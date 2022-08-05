@@ -2282,11 +2282,12 @@
     {:constant-effects [{:type :rez-cost
                          :req (req (and (ice? target)
                                         (not-triggered? state card)))
-                         :value (req (- (count-tags state)))}]
+                         :value (req (- (* 3 (count-tags state))))}]
      :events [{:event :rez
-               :req (req (and (ice? target)
+               :req (req (and tagged    ; avoid clutter
+                              (ice? target)
                               (not-triggered? state card)))
-               :msg (msg "reduce the rez cost of " (:title target) " by " (count-tags state) " [Credits]")}]}))
+               :msg (msg "reduce the rez cost of " (:title target) " by " (* 3 (count-tags state)) " [Credits]")}]}))
 
 (define-card "Whampoa Reclamation"
   {:abilities [{:label "Add 1 card from Archives to the bottom of R&D"
