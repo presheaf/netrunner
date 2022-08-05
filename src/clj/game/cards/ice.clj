@@ -3356,3 +3356,11 @@
     {:runner-abilities [(bioroid-break 1 1)]
      :events [(assoc ability :event :rez)
               (assoc ability :event :derez)]}))
+
+(define-card "Bouncer"
+  {:async true
+   :effect (req (if (some #(has-subtype? % "Fracter") (all-active-installed state :runner))
+                  (effect-completed state side eid)
+                  (resolve-unbroken-subs! state side eid card)))
+   :subroutines [(gain-credits-sub 2)
+                 end-the-run]})
