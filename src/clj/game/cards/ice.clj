@@ -287,13 +287,18 @@
   {:abilities [reveal-grail]
    :subroutines [ability resolve-grail]})
 
-;;; For NEXT ICE
+;;; For NEXT ICE, Waldemar 1.0
+(defn subtype-ice-count
+  "Counts number of rezzed ICE with a given subtype"
+  [corp subtype]
+  (let [servers (flatten (seq (:servers corp)))
+        rezzed-next? #(and (rezzed? %) (has-subtype? % subtype))]
+    (reduce (fn [c server] (+ c (count (filter rezzed-next? (:ices server))))) 0 servers)))
+
 (defn next-ice-count
   "Counts number of rezzed NEXT ICE - for use with NEXT Bronze and NEXT Gold"
   [corp]
-  (let [servers (flatten (seq (:servers corp)))
-        rezzed-next? #(and (rezzed? %) (has-subtype? % "NEXT"))]
-    (reduce (fn [c server] (+ c (count (filter rezzed-next? (:ices server))))) 0 servers)))
+  (subtype-ice-count corp "NEXT"))
 
 ;;; For Morph ICE
 (defn morph [state side card new old]
@@ -3343,3 +3348,11 @@
                                            (continue state :corp nil)
                                            (continue state :runner nil))
                                          (trash state side eid card {:cause :subroutine})))}]})
+
+(define-card "Waldemar 1.0"
+  (let [ability {:req (req (and (ice? target)
+                                (has-subtype? target "Bioroid")))
+                 :effect (effect (reset-variable-subs card (subtype-ice-count corp "Bioroid") end-the-run))}]
+    {:runner-abilities [(bioroid-break 1 1)]
+     :events [(assoc ability :event :rez)
+              (assoc ability :event :derez)]}))
