@@ -22,7 +22,7 @@
                                           (:ices server)))))
                     0
                     (flatten (seq (:servers corp)))))]
-    {:msg (msg "gain " (* cred-gain (count-ice corp)) " [Credits]")
+    {:msg (msg "gain " (count-ice corp) " [Credits]")
      :interactive (req true)
      :effect (effect (gain-credits (* cred-gain (count-ice corp)))
                (update-all-ice))
@@ -419,7 +419,7 @@
            :msg "gain 1 [Credits]"
            :effect (req (gain-credits state :corp 1)
                         (add-counter state side card :credit -1))}]
-    {:effect (effect (add-counter card :credit 6))
+    {:effect (effect (add-counter card :credit 7))
      :silent (req true)
      :events [(assoc e :event :runner-turn-begins)
               (assoc e :event :corp-turn-begins)]}))
@@ -1242,13 +1242,13 @@
              :effect (req (show-wait-prompt state :runner "Corp to use Puppet Master")
                           (continue-ability
                             state :corp
-                            {:prompt "Select a card to place 1 advancement token on"
+                            {:prompt "Select a card to place 3 advancement tokens on"
                              :player :corp
                              :choices {:card can-be-advanced?}
                              :cancel-effect (effect (clear-wait-prompt :runner)
                                                     (effect-completed eid))
-                             :msg (msg "place 1 advancement token on " (card-str state target))
-                             :effect (effect (add-prop :corp target :advance-counter 1 {:placed true})
+                             :msg (msg "place 3 advancement tokens on " (card-str state target))
+                             :effect (effect (add-prop :corp target :advance-counter 3 {:placed true})
                                              (clear-wait-prompt :runner))} card nil))}]})
 
 (define-card "Quantum Predictive Model"
@@ -1336,11 +1336,11 @@
 
 (define-card "Remote Data Farm"
   {:silent (req true)
-   :msg "increase their maximum hand size by 2"
-   :effect (effect (gain :hand-size 2))
-   :swapped {:msg "increase their maximum hand size by 2"
-             :effect (effect (gain :hand-size 2))}
-   :leave-play (effect (lose :hand-size 2))})
+   :msg "increase their maximum hand size by 4"
+   :effect (effect (gain :hand-size 4))
+   :swapped {:msg "increase their maximum hand size by 4"
+             :effect (effect (gain :hand-size 4))}
+   :leave-play (effect (lose :hand-size 4))})
 
 (define-card "Remote Enforcement"
   {:interactive (req true)
