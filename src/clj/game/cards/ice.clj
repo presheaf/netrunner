@@ -351,6 +351,10 @@
   [card number]
   (<= number (get-counters card :advancement)))
 
+(defn runner-has-installed?
+  [state subtype]
+  (some #(has-subtype? % "AI") (all-active-installed state :runner)))
+
 (defn resolve-another-subroutine
   "For cards like Orion or Upayoga."
   ([] (resolve-another-subroutine (constantly true) "Resolve a subroutine on another ice"))
@@ -707,7 +711,7 @@
              :effect (effect (gain-credits 2)
                              (end-run eid card))}]
     {:effect take-bad-pub
-     :on-encounter {:req (req (some #(has-subtype? % "AI") (all-active-installed state :runner)))
+     :on-encounter {:req (req (runner-has-installed? state "AI"))
                     :msg "gain 2 [Credits] if there is an installed AI"
                     :effect (effect (gain-credits 2))}
      :subroutines [(assoc trash-program
@@ -776,7 +780,7 @@
   {:implementation "Trash effect when using an AI to break is activated manually"
    :abilities [{:async true
                 :label "Trash the top 2 cards of the Runner's Stack"
-                :req (req (some #(has-subtype? % "AI") (all-active-installed state :runner)))
+                :req (req (runner-has-installed? state "AI"))
                 :msg (msg (str "trash " (join ", " (map :title (take 2 (:deck runner)))) " from the Runner's Stack"))
                 :effect (effect (mill :corp eid :runner 2))}]
    :subroutines [(do-net-damage 2)
@@ -888,7 +892,7 @@
                         :label "The Runner trashes 1 program")
                  runner-loses-click
                  end-the-run]
-   :strength-bonus (req (if (some #(has-subtype? % "AI") (all-active-installed state :runner)) 3 0))})
+   :strength-bonus (req (if (runner-has-installed? state "AI") 3 0))})
 
 (define-card "Cortex Lock"
   {:subroutines [{:label "Do 1 net damage for each unused memory unit the Runner has"
@@ -1727,7 +1731,7 @@
 
 (define-card "IP Block"
   {:on-encounter (assoc (give-tags 1)
-                        :req (req (seq (filter #(has-subtype? % "AI") (all-active-installed state :runner))))
+                        :req (req (runner-has-installed? state "AI"))
                         :msg "give the runner 1 tag because there is an installed AI")
    :subroutines [(tag-trace 3)
                  end-the-run-if-tagged]})
@@ -3306,8 +3310,7 @@
 
 (define-card "Wraparound"
   {:subroutines [end-the-run]
-   :strength-bonus (req (if (some #(has-subtype? % "Fracter") (all-active-installed state :runner))
-                          0 7))
+   :strength-bonus (req (if (runner-has-installed? state "Fracter") 0 7))
    :events (let [wr {:silent (req true)
                      :req (req (and (not (same-card? target card))
                                     (has-subtype? target "Fracter")))
@@ -3359,8 +3362,23 @@
 
 (define-card "Bouncer"
   {:async true
-   :effect (req (if (some #(has-subtype? % "Fracter") (all-active-installed state :runner))
+   :effect (req (if (runner-has-installed? "Fracter")
                   (effect-completed state side eid)
                   (resolve-unbroken-subs! state side eid card)))
    :subroutines [(gain-credits-sub 2)
                  end-the-run]})
+
+
+
+(define-card "Pressure Plate"
+  {:implementation "Rez cost not adjusted after rez (important for Blue Sun)"
+   :subroutines [end-the-run]
+   :rez-cost-bonus (req (if (runner-has-installed? "Fracter") -3 0))
+   :strength-bonus (req (if (runner-has-installed? "AI") 3 0))
+   :events (let [wr {:silent (req true)
+                     :req (req (and (not (same-card? target card))
+                                    (has-subtype? target "AI")))
+                     :effect (effect (update-ice-strength card))}]
+             [(assoc wr :event :runner-install)
+              (assoc wr :event :trash)
+              (assoc wr :event :card-moved)])})
