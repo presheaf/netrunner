@@ -3382,3 +3382,14 @@
              [(assoc wr :event :runner-install)
               (assoc wr :event :trash)
               (assoc wr :event :card-moved)])})
+
+
+(define-card "Anglerfish"
+  {:advanceable :always
+   :subroutines [(do-net-damage 1)]
+   :on-encounter {:async true
+                  :req (req (pos? (get-counters card :advancement)))
+                  :msg "do 1 net damage and remove all hosted advancement counters"
+                  :effect (req (add-prop target :advance-counter (- (get-counters card :advancement)))
+                               (damage eid :net 1 {:card (get-card state card)}))}})
+
