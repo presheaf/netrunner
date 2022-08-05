@@ -2376,3 +2376,21 @@
 (define-card "Witness Tampering"
   {:msg "remove 2 bad publicity"
    :effect (effect (lose-bad-publicity 2))})
+
+
+(define-card "NEXT Level Clearance"
+  {:async true
+   :prompt "Select any number of rezzed NEXT ice to trash"
+   :msg (msg "trash " (join ", " (map #(card-str state %) targets)))
+   :choices (let [is-rezzed-next #(and (installed? %) (rezzed? %) (ice? %) (has-subtype? % "NEXT"))]
+                {:card is-rezzed-next
+                  :max (req (count (filter is-rezzed-next (all-installed state :corp))))})
+   :effect (req (wait-for (trash-cards state side nil targets {:unpreventable true})
+                          (let [num-trashed (count targets)]
+                            (continue-ability state side
+                                              {:prompt (str "Select an installed card to place " num-trashed " counters on")
+                                               :choices {:card #(and (corp? %)
+                                                                     (installed? %))}
+                                               :msg (msg "place " num-trashed " advancement tokens on " (card-str state target))
+                                               :effect (add-prop state side target :advance-counter 3 {:placed true})}
+                                              card nil))))})
