@@ -612,7 +612,7 @@
                                [{:event :successful-run
                                  :duration :end-of-run
                                  :silent (req true)
-                                 :effect (req (let [tags (count-tags state)]
+                                 :effect (req (let [tags (min 7 (count-tags state))]
                                                 (if (<= tags (total-available-credits state :runner eid card))
                                                   ;; Can pay, do access
                                                   (continue-ability
@@ -939,7 +939,8 @@
              :async true
              :cost [(keyword (str "trash-" card-type "-from-hand")) 1]
              :effect (effect (trash-prevent (keyword card-type) 1))})]
-    {:interactions {:prevent [{:type #{:trash-hardware :trash-resource :trash-program}
+    {:implementation "Once per turn restriciton not enforced"
+     :interactions {:prevent [{:type #{:trash-hardware :trash-resource :trash-program}
                                :req (req (and (installed? (:prevent-target target))
                                               (not= :runner-ability (:cause target))
                                               (not= :purge (:cause target))))}]}
@@ -2218,10 +2219,10 @@
                               :yes-ability {:async true
                                             :cost [:trash]
                                             :msg (msg "force the Corp to trash the top "
-                                                      (get-turn-damage state :runner)
+                                                      (min 5 (get-turn-damage state :runner))
                                                       " cards of R&D and trash itself")
                                             :effect (effect (clear-wait-prompt :corp)
-                                                            (mill :corp eid :corp (get-turn-damage state :runner)))}
+                                                            (mill :corp eid :corp (min 5 (get-turn-damage state :runner))))}
                               :no-ability {:effect (effect (clear-wait-prompt :corp))}}}
                             card nil))}]})
 

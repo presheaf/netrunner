@@ -380,7 +380,7 @@
 
 (define-card "CFC Excavation Contract"
   {:effect (req (let [bios (count (filter #(has-subtype? % "Bioroid") (all-active-installed state :corp)))
-                      bucks (* bios 2)]
+                      bucks (* bios 4)]
                   (gain-credits state side bucks)
                   (system-msg state side (str "gains " bucks " [Credits] from CFC Excavation Contract"))))})
 
@@ -997,7 +997,7 @@
                                         (if (>= (get-counters (get-card state card) :advancement) 5) 3 2)))}]})
 
 (define-card "Obokata Protocol"
-  {:steal-cost-bonus (req [:net 4])})
+  {:steal-cost-bonus (req [:net 3])})
 
 (define-card "Paper Trail"
   {:trace {:base 6

@@ -1407,8 +1407,8 @@
                             (ice? target)))
              :interactive (req true)
              :trace {:base 2
-                     :successful {:msg "gain 1 [Credits]"
-                                  :effect (effect (gain-credits 1))}}}]})
+                     :successful {:msg "gain 4 [Credits]"
+                                  :effect (effect (gain-credits 4))}}}]})
 
 (define-card "Tranquility Home Grid"
   {:install-req (req (remove #{"HQ" "R&D" "Archives"} targets))

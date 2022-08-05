@@ -1546,8 +1546,8 @@
                  :async true
                  :effect (req (wait-for (draw state :runner 1 nil)
                                         (add-counter state side (get-card state card) :power 1)
-                                        (if (= 3 (get-counters (get-card state card) :power))
-                                          (do (system-msg state :runner "trashes Respirocytes as it reached 3 power counters")
+                                        (if (= 5 (get-counters (get-card state card) :power))
+                                          (do (system-msg state :runner "trashes Respirocytes as it reached 5 power counters")
                                               (trash state side eid card {:unpreventable true}))
                                           (effect-completed state side eid))))}
         event {:req (req (zero? (count (:hand runner))))
@@ -1592,7 +1592,7 @@
                                 (continue-ability
                                   {:choices {:card #(and (ice? %)
                                                          (= :this-turn (:rezzed %))
-                                                         (<= (:cost %) target))}
+                                                         (<= (* 2 (:cost %)) target))}
                                    :effect (effect (derez target))
                                    :msg (msg "derez " (:title target))}
                                   card nil))}]})

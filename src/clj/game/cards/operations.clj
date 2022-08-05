@@ -1377,7 +1377,7 @@
                       (continue-ability
                         state side
                         {:optional
-                         {:prompt "Trash 1 random card from your Grip?"
+                         {:prompt "Trash a random card from your Grip?"
                           :player :runner
                           :yes-ability {:async true
                                         :effect (effect (clear-wait-prompt :corp)
@@ -1690,14 +1690,14 @@
                                    (not (operation? %))
                                    (in-hand? %))}
              :effect (req (wait-for (corp-install state side target nil {:ignore-all-cost true})
-                                    (if (< n 2)
+                                    (if (< n 3)
                                       (continue-ability state side (replant (inc n)) card nil)
                                       (effect-completed state side eid))))})]
     {:async true
      :prompt "Select an installed card to add to HQ"
      :choices {:card #(and (corp? %)
                         (installed? %))}
-     :msg (msg "add " (card-str state target) " to HQ, then install 2 cards ignoring all costs")
+     :msg (msg "add " (card-str state target) " to HQ, then install up to 3 cards, ignoring all costs")
      :effect (req (move state side target :hand)
                (resolve-ability state side (replant 1) card nil))}))
 
@@ -1834,10 +1834,10 @@
    :additional-cost [:forfeit]
    :effect (req (let [bp-lost (max 0 (min (:agendapoints (last (:rfg corp)))
                                           (count-bad-pub state)))]
-                  (system-msg state side (str "uses Sacrifice to lose " bp-lost " bad publicity and gain " bp-lost " [Credits]"))
+                  (system-msg state side (str "uses Sacrifice to lose " bp-lost " bad publicity and gain " (* 4 bp-lost) " [Credits]"))
                   (when (pos? bp-lost)
                     (lose-bad-publicity state side bp-lost)
-                    (gain-credits state side bp-lost))))})
+                    (gain-credits state side (* 4 bp-lost)))))})
 
 (define-card "Salem's Hospitality"
   {:prompt "Name a Runner card"
@@ -2238,9 +2238,9 @@
                      target
                      [{:event :advance
                        :req (req (= (:hosted card) (:hosted target)))
-                       :effect (effect (gain-credits 1)
+                       :effect (effect (gain-credits 2)
                                        (system-msg
-                                         (str "uses Transparency Initiative to gain 1 [Credit]")))}]))})
+                                         (str "uses Transparency Initiative to gain 2 [Credit]")))}]))})
 
 (define-card "Trick of Light"
   {:async true
