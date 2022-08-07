@@ -2985,3 +2985,28 @@
                :msg "gain 7 [Credit] and trash Moment of Truth"
                :effect (req (gain-credits state :runner 7)
                             (remove-old-current state side eid :runner))}]}))
+
+;;; Connect the Dots
+(define-card "Connect the Dots"
+  {:async true
+   :makes-run true
+   :msg "draw a card and make a run on R&D"
+   :effect (req (wait-for (draw state side 1 nil)
+                          (make-run state side eid :rd nil card)))
+   :events [{:event :run-ends
+             :once :per-turn
+             :req (req (and (:successful target)
+                            (= :rd (first (:server target)))))
+             :msg (msg "gain " (total-cards-accessed target :deck) " [Credits]")
+             :effect (effect (gain-credits :runner (total-cards-accessed target :deck)))}
+            {:event :agenda-scored
+             :location :discard
+             :condition :in-discard
+             ;; ;; do these matter?
+             ;; :once :per-turn
+             ;; :once-key :out-of-ashes
+             :msg "add Connect the Dots to their hand from their discard pile"
+             :effect (req (move state side card :hand))}]
+   :move-zone (req (if (in-discard? card)
+                     (register-events state side card recur-flag)
+                     (unregister-events state side card {:events [{:event :agenda-scored}]})))})
