@@ -397,33 +397,33 @@
                                      :checked (= (:deckstats @s) (:ref option))}]
                      (:name option)]]))]
 
-         ;; [:section {:id "alt-art"}
-         ;;  [:h3 "Alt arts"]
-         ;;  [:div
-         ;;   [:label [:input {:type "checkbox"
-         ;;                    :name "show-alt-art"
-         ;;                    :checked (:show-alt-art @s)
-         ;;                    :on-change #(swap! s assoc-in [:show-alt-art] (.. % -target -checked))}]
-         ;;    "Show alternate card arts"]]
+         [:section {:id "alt-art"}
+          [:h3 "Alt arts"]
+          [:div
+           [:label [:input {:type "checkbox"
+                            :name "show-alt-art"
+                            :checked (:show-alt-art @s)
+                            :on-change #(swap! s assoc-in [:show-alt-art] (.. % -target -checked))}]
+            "Show alternate card arts"]]
 
-         ;;  (when (and (:special @user) (:alt-arts @app-state))
-         ;;    [:div {:id "my-alt-art"}
-         ;;     [:div {:id "set-all"}
-         ;;      "Set all cards to: "
-         ;;      [:select {:ref "all-art-select"
-         ;;                :value (:all-art-select @s)
-         ;;                :on-change #(swap! s assoc-in [:all-art-select] (-> % .-target .-value))}
-         ;;       (doall (for [t (all-alt-art-types)]
-         ;;                [:option {:value t :key t} (alt-art-name t)]))]
-         ;;      [:button
-         ;;       {:type "button"
-         ;;        :on-click #(reset-card-art s)}
-         ;;       "Set"]]
-         ;;     [:div.reset-all
-         ;;      [:button
-         ;;       {:type "button"
-         ;;        :on-click #(reset-card-art s "default")}
-         ;;       "Reset All to Official Art"]]])]
+          (when (and (:special @user) (:alt-arts @app-state))
+            [:div {:id "my-alt-art"}
+             [:div {:id "set-all"}
+              "Set all cards to: "
+              [:select {:ref "all-art-select"
+                        :value (:all-art-select @s)
+                        :on-change #(swap! s assoc-in [:all-art-select] (-> % .-target .-value))}
+               (doall (for [t (all-alt-art-types)]
+                        [:option {:value t :key t} (alt-art-name t)]))]
+              [:button
+               {:type "button"
+                :on-click #(reset-card-art s)}
+               "Set"]]
+             [:div.reset-all
+              [:button
+               {:type "button"
+                :on-click #(reset-card-art s "default")}
+               "Reset All to Official Art"]]])]
 
          [:section
           [:h3 "Blocked users"]
