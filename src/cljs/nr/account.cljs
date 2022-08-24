@@ -299,77 +299,69 @@
          [log-width-option s]
          [log-top-option s]
 
-         [:section
-          [:h3  "Game board background"]
+         (let [custom-bg-selected (= (:background @s) "custom-bg")
+               custom-bg-url (r/atom (:custom-bg-url @s))]
+           [:section
+            [:h3  "Game board background"]
+            (let [options-vec [{:name "Adonis Campaign"            :ref "adonis-campaign-bg"}
+                               {:name "Apex"                       :ref "apex-bg"}
+                               {:name "Caprice Nisei"              :ref "caprice-nisei-bg"}
+                               {:name "Collective Consciousness"   :ref "collective-consciousness-bg"}
+                               {:name "Dinosaurus"                 :ref "dinosaurus-bg"}
+                               {:name "Dedicated Server"           :ref "dedicated-server-bg"}
+                               {:name "Elizabeth Mills"            :ref "elizabeth-mills-bg"}
+                               {:name "Faerie"                     :ref "faerie-bg"}
+                               {:name "Find The Truth"             :ref "find-the-truth-bg"}
+                               {:name "Freelance Coding Contracts" :ref "freelance-coding-contracts-bg"}
+                               {:name "Freelancer"                 :ref "freelancer-bg"}
+                               {:name "Gordian Blade"              :ref "gordian-blade-bg"}
+                               {:name "Hadrian's Wall"             :ref "hadrians-wall-bg"}
+                               {:name "Heimdall 1.0"               :ref "heimdall1-bg"}
+                               {:name "House of Knives"            :ref "house-of-knives-bg"}
+                               {:name "Jackson Howard"             :ref "jackson-howard-bg"}
+                               {:name "Lotus Field"                :ref "lotus-field-bg"}
+                               {:name "Medium"                     :ref "medium-bg"}
+                               {:name "Midseason Replacements"     :ref "midseason-replacements-bg"}
+                               {:name "Midway Station Grid"        :ref "midway-station-grid-bg"}
+                               {:name "Mushin No Shin"             :ref "mushin-no-shin-bg"}
+                               {:name "NeoTokyo Grid"              :ref "neotokyo-grid-bg"}
+                               {:name "Ninja"                      :ref "ninja-bg"}
+                               {:name "Parasite"                   :ref "parasite-bg"}
+                               {:name "Pawn"                       :ref "pawn-bg"}
+                               {:name "Posted Bounty"              :ref "posted-bounty-bg"}
+                               {:name "Project Junebug"            :ref "project-junebug-bg"}
+                               {:name "Project Vitruvius"          :ref "vitruvius-bg"}
+                               {:name "Push Your Luck"             :ref "push-your-luck-bg"}
+                               {:name "Quantum Predictive Model"   :ref "quantum-predictive-model-bg"}
+                               {:name "Rumor Mill"                 :ref "rumor-mill-bg"}
+                               {:name "Self-modifying Code"        :ref "self-modifying-code-bg"}
+                               {:name "Shi.Kyū"                    :ref "shikyu-bg"}
+                               {:name "Sure Gamble"                :ref "sure-gamble-bg"}
+                               {:name "Sunset"                     :ref "sunset-bg"}
+                               {:name "The Root"                   :ref "lobby-bg"}
+                               {:name "Unorthodox Predictions"     :ref "unorthodox-predictions-bg"}
+                               {:name "Wall of Static"             :ref "wall-of-static-bg"}
+                               {:name "Wanton Destruction"         :ref "wanton-destruction-bg"}
+                               {:name "Woman in the Red Dress"     :ref "woman-in-the-red-dress-bg"}
+                               {:name "Monochrome"                 :ref "monochrome-bg"}
+                               {:name (str "Custom BG" (when custom-bg-selected " (input URL below)")) :ref "custom-bg"}]]
 
-          ;; TODO: throws 'every element in a seq should have unique :key' warning, why?
-          (let [options-vec [{:name "Adonis Campaign"            :ref "adonis-campaign-bg"}
-                             {:name "Apex"                       :ref "apex-bg"}
-                             {:name "Caprice Nisei"              :ref "caprice-nisei-bg"}
-                             {:name "Collective Consciousness"   :ref "collective-consciousness-bg"}
-                             {:name "Dinosaurus"                 :ref "dinosaurus-bg"}
-                             {:name "Dedicated Server"           :ref "dedicated-server-bg"}
-                             {:name "Elizabeth Mills"            :ref "elizabeth-mills-bg"}
-                             {:name "Faerie"                     :ref "faerie-bg"}
-                             {:name "Find The Truth"             :ref "find-the-truth-bg"}
-                             {:name "Freelance Coding Contracts" :ref "freelance-coding-contracts-bg"}
-                             {:name "Freelancer"                 :ref "freelancer-bg"}
-                             {:name "Gordian Blade"              :ref "gordian-blade-bg"}
-                             {:name "Hadrian's Wall"             :ref "hadrians-wall-bg"}
-                             {:name "Heimdall 1.0"               :ref "heimdall1-bg"}
-                             {:name "House of Knives"            :ref "house-of-knives-bg"}
-                             {:name "Jackson Howard"             :ref "jackson-howard-bg"}
-                             {:name "Lotus Field"                :ref "lotus-field-bg"}
-                             {:name "Medium"                     :ref "medium-bg"}
-                             {:name "Midseason Replacements"     :ref "midseason-replacements-bg"}
-                             {:name "Midway Station Grid"        :ref "midway-station-grid-bg"}
-                             {:name "Mushin No Shin"             :ref "mushin-no-shin-bg"}
-                             {:name "NeoTokyo Grid"              :ref "neotokyo-grid-bg"}
-                             {:name "Ninja"                      :ref "ninja-bg"}
-                             {:name "Parasite"                   :ref "parasite-bg"}
-                             {:name "Pawn"                       :ref "pawn-bg"}
-                             {:name "Posted Bounty"              :ref "posted-bounty-bg"}
-                             {:name "Project Junebug"            :ref "project-junebug-bg"}
-                             {:name "Project Vitruvius"          :ref "vitruvius-bg"}
-                             {:name "Push Your Luck"             :ref "push-your-luck-bg"}
-                             {:name "Quantum Predictive Model"   :ref "quantum-predictive-model-bg"}
-                             {:name "Rumor Mill"                 :ref "rumor-mill-bg"}
-                             {:name "Self-modifying Code"        :ref "self-modifying-code-bg"}
-                             {:name "Shi.Kyū"                    :ref "shikyu-bg"}
-                             {:name "Sure Gamble"                :ref "sure-gamble-bg"}
-                             {:name "Sunset"                     :ref "sunset-bg"}
-                             {:name "The Root"                   :ref "lobby-bg"}
-                             {:name "Unorthodox Predictions"     :ref "unorthodox-predictions-bg"}
-                             {:name "Wall of Static"             :ref "wall-of-static-bg"}
-                             {:name "Wanton Destruction"         :ref "wanton-destruction-bg"}
-                             {:name "Woman in the Red Dress"     :ref "woman-in-the-red-dress-bg"}
-                             {:name "Monochrome"                 :ref "monochrome-bg"}
-                             {:name "Custom background"          :ref "custom-bg"}]]
-
-            [:select {:name "background"
-                      :on-change #(swap! s assoc-in [:background] (.. % -target -value))
-                      ;; :key (:name option)
-                      }
-
-
-             (doall (for [option options-vec]
-                      
-
-                      [:option {:value (:ref option)
-                                :selected (= (:background @s) (:ref option))}
-                       (:name option)]))
-             
-             ]
-             
-            )
-                    
-          
-          [:h4 "Custom background URL (if 'Custom BG' is selected above)"]
-          (let [custom-bg-url (r/atom (:custom-bg-url @s))]
-            [:div [:input {:type "text"
-                           :on-change #(do (swap! s assoc-in [:custom-bg-url] (.. % -target -value))
-                                           (reset! custom-bg-url (.. % -target -value)))
-                           :value @custom-bg-url}]])]
+              [:select {:name "background"
+                        :on-change #(swap! s assoc-in [:background] (.. % -target -value))
+                        
+                        (doall (for [option options-vec]
+                                 [:option {:key (:ref option)
+                                           :value (:ref option)
+                                           :selected (= (:background @s) (:ref option))}
+                                  (:name option)]))])
+              
+              
+              [:h4 "Custom background URL (if 'Custom BG' is selected above)"]
+              [:div [:input {:type "text"
+                             :on-change #(do (swap! s assoc-in [:custom-bg-url] (.. % -target -value))
+                                             (reset! custom-bg-url (.. % -target -value)))
+                             :hidden (not custom-bg-selected)
+                             :value @custom-bg-url}]])])
 
          [:section
           [:h3 " Game Win/Lose statistics "]
@@ -412,9 +404,12 @@
               "Set all cards to: "
               [:select {:ref "all-art-select"
                         :value (:all-art-select @s)
+                        
                         :on-change #(swap! s assoc-in [:all-art-select] (-> % .-target .-value))}
                (doall (for [t (all-alt-art-types)]
-                        [:option {:value t :key t} (alt-art-name t)]))]
+                        [:option {:value t :key t
+                                  :selected (= (:all-art-select @s) t)}
+                         (alt-art-name t)]))]
               [:button
                {:type "button"
                 :on-click #(reset-card-art s)}
