@@ -55,6 +55,19 @@
                                           (assoc (make-sfx-card-info state target)
                                                  :num-advancements (get-counters (get-card state target) :advancement)))
                                 (effect-completed eid))}
+
+               {:label "Advance 1 installed card (experimental)"
+                :async true
+                :req (req (can-advance? state side target))
+                :effect (req (wait-for (pay-sync state side (make-eid state {:source :advance}) card [:click 1 :credit 1])
+                                       (if-let [[cost-str] async-result]
+                                         (system-msg state :corp (str "spends " cost-str " to advance " (card-str target)))
+                                         (add-prop state side (get-card state target) :advance-counter 1)
+                                         (play-sfx state side "click-advance" (assoc (make-sfx-card-info state target)
+                                                                                     :num-advancements (get-counters (get-card state target) :advancement))))
+                                       (effect-completed state side eid))
+                             (update-advancement-cost state side target))}
+
                {:label "Trash 1 resource if the Runner is tagged"
                 :cost [:click 1 :credit 2]
                 :async true
