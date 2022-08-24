@@ -560,7 +560,7 @@
                                                           (not-any? (fn [c] (has-subtype? c "Caïssa"))
                                                                     (:hosted %))))}
                                   :msg (msg "host it on " (card-str state target))
-                                  :effect (effect (host target card))}
+                                  :effect (effect (host target (get-card state card)))}
                                  card nil)))}]
    :constant-effects [{:type :ice-strength
                        :req (req (and (= (:cid target)
@@ -1619,7 +1619,7 @@
                                                             (can-host? %)
                                                             (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
                                     :msg (msg "host it on " (card-str state target))
-                                    :effect (effect (host target card))} card nil)))}
+                                    :effect (effect (host target (get-card state card)))} card nil)))}
                  (break-sub 2 1 "All" {:req knight-req})]}))
 
 (define-card "Kyuban"
@@ -2081,7 +2081,7 @@
                                            ;; TODO: also add check that
                                            (= (:index target) (dec (count (:ices (card->server state target)))))))}
                   :msg (msg "host it on " (card-str state target))
-                  :effect (effect (host target card)
+                  :effect (effect (host target (get-card state card))
                                   (effect-completed eid))}]}))
 
 (define-card "Peacock"
@@ -2324,7 +2324,7 @@
                                                           (= (last (:zone %)) :ices)
                                                           (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
                                   :msg (msg "host it on " (card-str state target))
-                                  :effect (effect (host target card))} card nil)))}]
+                                  :effect (effect (host target (get-card state card)))} card nil)))}]
    :constant-effects [{:type :rez-cost
                        :req (req (and (ice? target)
                                       (= (:zone (:host card)) (:zone target))))
