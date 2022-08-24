@@ -1532,7 +1532,7 @@
    :effect (effect (make-run eid target nil card))
    :events [{:event :encounter-ice
              :req (req (first-run-event? state side :encounter-ice))
-             :once :per-run
+             :once :per-turn
              :msg (msg "bypass " (:title target))
              :effect (req (bypass-ice state))}]})
 
