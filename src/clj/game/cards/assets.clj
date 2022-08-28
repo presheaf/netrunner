@@ -506,8 +506,8 @@
 (define-card "CPC Generator"
   {:events [{:event :runner-click-credit
              :req (req (first-event? state side :runner-click-credit))
-             :msg "gain 1 [Credits]"
-             :effect (effect (gain-credits :corp 1))}]})
+             :msg "gain 2 [Credits]"
+             :effect (effect (gain-credits :corp 2))}]})
 
 (define-card "CSR Campaign"
   (let [ability {:once :per-turn
@@ -1617,11 +1617,11 @@
                           :msg (msg "rez " (:title target))
                           :effect (req (let [agenda (last (:rfg corp))
                                              ap (:agendapoints agenda 0)]
-                                         (rez state side target {:no-warning true :cost-bonus (* ap -2)})
+                                         (rez state side target {:no-warning true :cost-bonus (* ap -3)})
                                          (if (< cnt 3)
                                            (continue-ability state side (rez-ice (inc cnt)) card nil)
                                            (effect-completed state side eid))))})]
-    {:abilities [{:label "Forfeit agenda to rez up to 3 ICE with a 2 [Credit] discount per agenda point"
+    {:abilities [{:label "Forfeit agenda to rez up to 3 ICE with a 3 [Credit] discount per agenda point"
                   :req (req (pos? (count (:scored corp))))
                   :cost [:forfeit]
                   :effect (req (continue-ability state side (rez-ice 1) card nil))}]}))
@@ -2282,11 +2282,12 @@
     {:constant-effects [{:type :rez-cost
                          :req (req (and (ice? target)
                                         (not-triggered? state card)))
-                         :value (req (- (count-tags state)))}]
+                         :value (req (- (* 3 (count-tags state))))}]
      :events [{:event :rez
-               :req (req (and (ice? target)
+               :req (req (and tagged    ; avoid clutter
+                              (ice? target)
                               (not-triggered? state card)))
-               :msg (msg "reduce the rez cost of " (:title target) " by " (count-tags state) " [Credits]")}]}))
+               :msg (msg "reduce the rez cost of " (:title target) " by " (* 3 (count-tags state)) " [Credits]")}]}))
 
 (define-card "Whampoa Reclamation"
   {:abilities [{:label "Add 1 card from Archives to the bottom of R&D"
@@ -2294,7 +2295,7 @@
                 :req (req (and (pos? (count (:hand corp)))
                                (pos? (count (:discard corp)))))
                 :async true
-                :cost [:trash-from-hand 1]
+                :cost [:click 1 :trash-from-hand 1]
                 :effect (effect (show-wait-prompt :runner "Corp to use Whampoa Reclamation")
                                 (continue-ability
                                   {:prompt "Select a card in Archives to add to the bottom of R&D"

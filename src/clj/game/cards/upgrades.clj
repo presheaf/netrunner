@@ -193,7 +193,7 @@
                        :value -5}]})
 
 (define-card "Bryan Stinson"
-  {:abilities [{:cost [:click 1]
+  {:abilities [{:cost [:click 3]
                 :req (req (and (< (:credit runner) 6)
                                (pos? (count (filter #(and (operation? %)
                                                           (has-subtype? % "Transaction")) (:discard corp))))))
@@ -528,7 +528,7 @@
              :async true
              :msg "do 1 net damage"
              :effect (effect (damage eid :net 1 {:card card}))}]
-   :abilities [{:cost [:credit 2]
+   :abilities [{:cost [:credit 1]
                 :label "Move to another server"
                 :async true
                 :effect (effect (continue-ability
@@ -812,11 +812,11 @@
 
 (define-card "Manta Grid"
   {:events [{:event :run-ends
-             :msg "gain a [Click] next turn"
+             :msg "gain [Click][Click] next turn"
              :req (req (and (:successful target)
                             (= (first (:server target)) (second (:zone card)))
                             (or (< (:credit runner) 6) (zero? (:click runner)))))
-             :effect (req (swap! state update-in [:corp :extra-click-temp] (fnil inc 0)))}]})
+             :effect (req (swap! state update-in [:corp :extra-click-temp] (fnil #(+ 2 %) 0)))}]})
 
 (define-card "Marcus Batty"
   {:abilities [{:req (req this-server)
@@ -1407,8 +1407,8 @@
                             (ice? target)))
              :interactive (req true)
              :trace {:base 2
-                     :successful {:msg "gain 1 [Credits]"
-                                  :effect (effect (gain-credits 1))}}}]})
+                     :successful {:msg "gain 4 [Credits]"
+                                  :effect (effect (gain-credits 4))}}}]})
 
 (define-card "Tranquility Home Grid"
   {:install-req (req (remove #{"HQ" "R&D" "Archives"} targets))

@@ -380,7 +380,7 @@
 
 (define-card "CFC Excavation Contract"
   {:effect (req (let [bios (count (filter #(has-subtype? % "Bioroid") (all-active-installed state :corp)))
-                      bucks (* bios 2)]
+                      bucks (* bios 4)]
                   (gain-credits state side bucks)
                   (system-msg state side (str "gains " bucks " [Credits] from CFC Excavation Contract"))))})
 
@@ -419,7 +419,7 @@
            :msg "gain 1 [Credits]"
            :effect (req (gain-credits state :corp 1)
                         (add-counter state side card :credit -1))}]
-    {:effect (effect (add-counter card :credit 6))
+    {:effect (effect (add-counter card :credit 7))
      :silent (req true)
      :events [(assoc e :event :runner-turn-begins)
               (assoc e :event :corp-turn-begins)]}))
@@ -433,10 +433,10 @@
 (define-card "Crisis Management"
   (let [ability {:req (req tagged)
                  :async true
-                 :label "Do 1 meat damage (start of turn)"
+                 :label "Do 2 meat damage (start of turn)"
                  :once :per-turn
-                 :msg "do 1 meat damage"
-                 :effect (effect (damage eid :meat 1 {:card card}))}]
+                 :msg "do 2 meat damage"
+                 :effect (effect (damage eid :meat 2 {:card card}))}]
     {:events [(assoc ability :event :corp-turn-begins)]
      :abilities [ability]}))
 
@@ -937,7 +937,7 @@
    :advancement-cost-bonus (req (count-bad-pub state))})
 
 (define-card "Net Quarantine"
-  (let [nq {:effect (req (let [extra (int (/ (:runner-spent target) 2))]
+  (let [nq {:effect (req (let [extra (:runner-spent target)]
                            (when (pos? extra)
                              (gain-credits state side extra)
                              (system-msg state :corp (str "uses Net Quarantine to gain " extra "[Credits]")))))}]
@@ -997,7 +997,7 @@
                                         (if (>= (get-counters (get-card state card) :advancement) 5) 3 2)))}]})
 
 (define-card "Obokata Protocol"
-  {:steal-cost-bonus (req [:net 4])})
+  {:steal-cost-bonus (req [:net 3])})
 
 (define-card "Paper Trail"
   {:trace {:base 6
@@ -1242,13 +1242,13 @@
              :effect (req (show-wait-prompt state :runner "Corp to use Puppet Master")
                           (continue-ability
                             state :corp
-                            {:prompt "Select a card to place 1 advancement token on"
+                            {:prompt "Select a card to place 3 advancement tokens on"
                              :player :corp
                              :choices {:card can-be-advanced?}
                              :cancel-effect (effect (clear-wait-prompt :runner)
                                                     (effect-completed eid))
-                             :msg (msg "place 1 advancement token on " (card-str state target))
-                             :effect (effect (add-prop :corp target :advance-counter 1 {:placed true})
+                             :msg (msg "place 3 advancement tokens on " (card-str state target))
+                             :effect (effect (add-prop :corp target :advance-counter 3 {:placed true})
                                              (clear-wait-prompt :runner))} card nil))}]})
 
 (define-card "Quantum Predictive Model"
@@ -1336,11 +1336,11 @@
 
 (define-card "Remote Data Farm"
   {:silent (req true)
-   :msg "increase their maximum hand size by 2"
-   :effect (effect (gain :hand-size 2))
-   :swapped {:msg "increase their maximum hand size by 2"
-             :effect (effect (gain :hand-size 2))}
-   :leave-play (effect (lose :hand-size 2))})
+   :msg "increase their maximum hand size by 4"
+   :effect (effect (gain :hand-size 4))
+   :swapped {:msg "increase their maximum hand size by 4"
+             :effect (effect (gain :hand-size 4))}
+   :leave-play (effect (lose :hand-size 4))})
 
 (define-card "Remote Enforcement"
   {:interactive (req true)
@@ -1421,7 +1421,7 @@
    :leave-play (effect (gain :runner :hand-size 1))})
 
 (define-card "Sensor Net Activation"
-  {:effect (effect (add-counter card :agenda 1))
+  {:effect (effect (add-counter card :agenda 3))
    :silent (req true)
    :abilities [{:cost [:agenda 1]
                 :req (req (some #(and (has-subtype? % "Bioroid") (not (rezzed? %))) (all-installed state :corp)))

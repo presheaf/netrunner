@@ -281,9 +281,9 @@
             card nil)))})
 
 (define-card "Build Script"
-  {:msg "gain 1 [Credits] and draw 2 cards"
+  {:msg "gain 2 [Credits] and draw 2 cards"
    :async true
-   :effect (effect (gain-credits 1)
+   :effect (effect (gain-credits 2)
                    (draw eid 2 nil))})
 
 (define-card "By Any Means"
@@ -1532,7 +1532,8 @@
    :effect (effect (make-run eid target nil card))
    :events [{:event :encounter-ice
              :req (req (first-run-event? state side :encounter-ice))
-             :once :per-run
+             ;; TODO: this req also needs to check that the eid of the run is the same as when the run was initiatev...
+             :once :per-turn
              :msg (msg "bypass " (:title target))
              :effect (req (bypass-ice state))}]})
 
@@ -1837,10 +1838,10 @@
 (define-card "Mars for Martians"
   (letfn [(count-clan [state] (count (filter #(and (has-subtype? % "Clan") (resource? %))
                                              (all-active-installed state :runner))))]
-    {:msg (msg "draw " (count-clan state) " cards and gain " (count-tags state) " [Credits]")
+    {:msg (msg "draw " (count-clan state) " cards and gain " (min 7 (count-tags state)) " [Credits]")
      :async true
      :effect (req (wait-for (draw state side (count-clan state) nil)
-                            (gain-credits state side (count-tags state))
+                            (gain-credits state side (min 7 (count-tags state)))
                             (effect-completed state side eid)))}))
 
 (define-card "Mass Install"
@@ -1869,19 +1870,19 @@
   {:req (req (some #{:hq :rd :archives} (:successful-run runner-reg)))
    :rfg-instead-of-trashing true
    :async true
-   :msg "make the Corp pay 5 [Credits] or take 1 bad publicity"
+   :msg "make the Corp pay 4 [Credits] or take 1 bad publicity"
    :effect (effect (show-wait-prompt :runner "Corp to choose to pay or take bad publicity")
                    (continue-ability
                      {:player :corp
                       :async true
-                      :prompt "Pay 5 [Credits] or take 1 Bad Publicity?"
-                      :choices (concat (when (can-pay? state :corp eid card "Mining Accident" :credit 5)
-                                         ["Pay 5 [Credits]"])
+                      :prompt "Pay 4 [Credits] or take 1 Bad Publicity?"
+                      :choices (concat (when (can-pay? state :corp eid card "Mining Accident" :credit 4)
+                                         ["Pay 4 [Credits]"])
                                        ["Take 1 Bad Publicity"])
                       :effect (req (clear-wait-prompt state :runner)
-                                   (if (= target "Pay 5 [Credits]")
-                                     (do (lose-credits state :corp 5)
-                                         (system-msg state side "pays 5 [Credits] from Mining Accident")
+                                   (if (= target "Pay 4 [Credits]")
+                                     (do (lose-credits state :corp 4)
+                                         (system-msg state side "pays 4 [Credits] from Mining Accident")
                                          (effect-completed state side eid))
                                      (do (gain-bad-publicity state :corp 1)
                                          (system-msg state side "takes 1 bad publicity from Mining Accident")
@@ -2034,8 +2035,8 @@
 
 (define-card "Peace in Our Time"
   {:req (req (not (:scored-agenda corp-reg)))
-   :msg "gain 10 [Credits]. The Corp gains 5 [Credits]"
-   :effect (effect (gain-credits :runner 10)
+   :msg "gain 8 [Credits]. The Corp gains 5 [Credits]"
+   :effect (effect (gain-credits :runner 8)
                    (gain-credits :corp 5)
                    (register-turn-flag! card :can-run nil))})
 
@@ -2419,8 +2420,7 @@
 
 (define-card "Rumor Mill"
   (letfn [(eligible? [card] (and (:uniqueness card)
-                                 (or (asset? card)
-                                     (upgrade? card))
+                                 (asset? card)
                                  (not (has-subtype? card "Region"))))
           (rumor [state] (filter eligible? (concat (all-installed state :corp)
                                                    (get-in @state [:corp :hand])

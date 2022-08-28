@@ -1546,8 +1546,8 @@
                  :async true
                  :effect (req (wait-for (draw state :runner 1 nil)
                                         (add-counter state side (get-card state card) :power 1)
-                                        (if (= 3 (get-counters (get-card state card) :power))
-                                          (do (system-msg state :runner "trashes Respirocytes as it reached 3 power counters")
+                                        (if (= 5 (get-counters (get-card state card) :power))
+                                          (do (system-msg state :runner "trashes Respirocytes as it reached 5 power counters")
                                               (trash state side eid card {:unpreventable true}))
                                           (effect-completed state side eid))))}
         event {:req (req (zero? (count (:hand runner))))
@@ -1592,7 +1592,7 @@
                                 (continue-ability
                                   {:choices {:card #(and (ice? %)
                                                          (= :this-turn (:rezzed %))
-                                                         (<= (:cost %) target))}
+                                                         (<= (* 2 (:cost %)) target))}
                                    :effect (effect (derez target))
                                    :msg (msg "derez " (:title target))}
                                   card nil))}]})
@@ -1662,50 +1662,51 @@
                   :async true
                   :effect (effect (continue-ability (implant-fn target (if (= target "HQ") :hq :rd)) card nil))}]}))
 
-(define-card "Şifr"
-  (letfn [(gather-pre-sifr-effects [sifr state side eid target targets]
-            ;; This is needed because of the stupid ass rulings about how Sifr modifies
-            ;; ice strength: Sifr only lowers the ice to 0 at the point it's activated,
-            ;; and then other abilities (Sandburg, etc) can raise it back after, which
-            ;; is DUMB, so that means we have to on the fly calculate what the strength
-            ;; of the ice is at the moment Sifr would affect it.
-            (if (card-flag? target :cannot-lower-strength true)
-              0
-              (->> (:effects @state)
-                   (filter #(= :ice-strength (:type %)))
-                   (filter #(if-not (:req %)
-                              true
-                              ((:req %) state side eid (get-card state (:card %)) (cons target targets))))
-                   (split-with #(same-card? sifr %))
-                   (first)
-                   (mapv #(if-not (fn? (:value %))
-                            (:value %)
-                            ((:value %) state side eid (get-card state (:card %)) (cons target targets))))
-                   (reduce +)
-                   (abs))))]
-    {:in-play [:memory 2]
-     :events [{:event :encounter-ice
-               :optional
-               {:req (req (not-used-once? state {:once :per-turn} card))
-                :prompt "Use Şifr?"
-                :yes-ability
-                {:once :per-turn
-                 :msg (msg "lower their maximum hand size by 1 and lower the strength of " (:title current-ice) " to 0")
-                 :effect (effect (lose :runner :hand-size 1)
-                           (register-events
-                             :runner card
-                             [{:event :runner-turn-begins
-                               :duration :until-runner-turn-begins
-                               :effect (effect (gain :runner :hand-size 1))}])
-                           (register-floating-effect
-                             :runner card
-                             (let [ice current-ice]
-                               {:type :ice-strength
-                                :duration :end-of-encounter
-                                :req (req (same-card? target ice))
-                                :value (req (- (+ (:strength target 0)
-                                                  (gather-pre-sifr-effects card state side eid target (rest targets)))))}))
-                           (update-all-ice :runner))}}}]}))
+;; (define-card "Şifr"
+;;   (letfn [(gather-pre-sifr-effects [sifr state side eid target targets]
+;;             ;; This is needed because of the stupid ass rulings about how Sifr modifies
+;;             ;; ice strength: Sifr only lowers the ice to 0 at the point it's activated,
+;;             ;; and then other abilities (Sandburg, etc) can raise it back after, which
+;;             ;; is DUMB, so that means we have to on the fly calculate what the strength
+;;             ;; of the ice is at the moment Sifr would affect it.
+;;             (if (card-flag? target :cannot-lower-strength true)
+;;               0
+;;               (->> (:effects @state)
+;;                    (filter #(= :ice-strength (:type %)))
+;;                    (filter #(if-not (:req %)
+;;                               true
+;;                               ((:req %) state side eid (get-card state (:card %)) (cons target targets))))
+;;                    (split-with #(same-card? sifr %))
+;;                    (first)
+;;                    (mapv #(if-not (fn? (:value %))
+;;                             (:value %)
+;;                             ((:value %) state side eid (get-card state (:card %)) (cons target targets))))
+;;                    (reduce +)
+;;                    (abs))))]
+;;     {:in-play [:memory 2]
+;;      :events [{:event :encounter-ice
+;;                :optional
+;;                {:req (req (not-used-once? state {:once :per-turn} card))
+;;                 :prompt "Use Şifr?"
+;;                 :yes-ability
+;;                 {:once :per-turn
+;;                  :msg (msg "lower their maximum hand size by 1 and lower the strength of " (:title current-ice) " to 3")
+;;                  :effect (effect (lose :runner :hand-size 1)
+;;                            (register-events
+;;                              :runner card
+;;                              [{:event :runner-turn-begins
+;;                                :duration :until-runner-turn-begins
+;;                                :effect (effect (gain :runner :hand-size 1))}])
+;;                            (register-floating-effect
+;;                              :runner card
+;;                              (let [ice current-ice]
+;;                                {:type :ice-strength
+;;                                 :duration :end-of-encounter
+;;                                 :req (req (same-card? target ice))
+;;                                 :value (req (let [pre-sifr-str (+ (:strength target 0)
+;;                                                                   (gather-pre-sifr-effects card state side eid target (rest targets)))]
+;;                                               (- (max (- pre-sifr-ice-str 3) 0))))}))
+;;                            (update-all-ice :runner))}}}]}))
 
 (define-card "Silencer"
   {:recurring 1

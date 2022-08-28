@@ -470,11 +470,10 @@
                                 (add-counter card :virus 1))}]
    :strength-bonus (req (get-virus-counters state card))
    :events [{:event :run-ends
-             :req (req (and (not (or (:did-trash target)
+             :req (req (and (is-central? (:server target))
+                            (not (or (:did-trash target)
                                      (:did-steal target)))
                             (:did-access target)))
-             :effect (effect (add-counter card :virus 1))}
-            {:event :expose
              :effect (effect (add-counter card :virus 1))}
             {:event :counter-added
              :req (req (same-card? target card))
@@ -561,7 +560,7 @@
                                                           (not-any? (fn [c] (has-subtype? c "Caïssa"))
                                                                     (:hosted %))))}
                                   :msg (msg "host it on " (card-str state target))
-                                  :effect (effect (host target card))}
+                                  :effect (effect (host target (get-card state card)))}
                                  card nil)))}]
    :constant-effects [{:type :ice-strength
                        :req (req (and (= (:cid target)
@@ -755,7 +754,6 @@
                                                  (turn-events state :corp :corp-install)))]
                   (swap! state assoc-in [:corp :register :cannot-score] agendas)))
    :events [{:event :purge
-             :async true
              :effect (req (swap! state update-in [:corp :register] dissoc :cannot-score)
                           (move state side card :rfg))}
             {:event :corp-install
@@ -1291,7 +1289,7 @@
 
 (define-card "Fawkes"
   {:implementation "Stealth credit restriction not enforced"
-   :abilities [(break-sub 1 1 "Sentry")
+   :abilities [(break-sub 1 0 "Sentry")
                {:label "X [Credits]: +X strength for the remainder of the run (using at least 1 stealth [Credits])"
                 :choices {:number (req (total-available-credits state :runner eid card))}
                 :prompt "How many credits?"
@@ -1621,7 +1619,7 @@
                                                             (can-host? %)
                                                             (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
                                     :msg (msg "host it on " (card-str state target))
-                                    :effect (effect (host target card))} card nil)))}
+                                    :effect (effect (host target (get-card state card)))} card nil)))}
                  (break-sub 2 1 "All" {:req knight-req})]}))
 
 (define-card "Kyuban"
@@ -2083,7 +2081,7 @@
                                            ;; TODO: also add check that
                                            (= (:index target) (dec (count (:ices (card->server state target)))))))}
                   :msg (msg "host it on " (card-str state target))
-                  :effect (effect (host target card)
+                  :effect (effect (host target (get-card state card))
                                   (effect-completed eid))}]}))
 
 (define-card "Peacock"
@@ -2326,7 +2324,7 @@
                                                           (= (last (:zone %)) :ices)
                                                           (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
                                   :msg (msg "host it on " (card-str state target))
-                                  :effect (effect (host target card))} card nil)))}]
+                                  :effect (effect (host target (get-card state card)))} card nil)))}]
    :constant-effects [{:type :rez-cost
                        :req (req (and (ice? target)
                                       (= (:zone (:host card)) (:zone target))))
@@ -2509,7 +2507,7 @@
    :strength-bonus (req (get-counters card :power))})
 
 (define-card "Sūnya"
-  {:abilities [(break-sub 2 1 "Sentry")]
+  {:abilities [(break-sub 2 0 "Sentry")]
    :strength-bonus (req (get-counters card :power))
    :events [{:event :encounter-ice-ends
              :req (req (all-subs-broken-by-card? target card))
@@ -2581,8 +2579,7 @@
      :abilities [ability]
      :events [(assoc ability :event :runner-turn-begins)
               {:event :purge
-               :async true
-               :effect (effect (trash eid card {:cause :purge}))}]}))
+               :effect (effect (move card :rfg))}]}))
 
 (define-card "Torch"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
