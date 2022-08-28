@@ -1532,6 +1532,7 @@
    :effect (effect (make-run eid target nil card))
    :events [{:event :encounter-ice
              :req (req (first-run-event? state side :encounter-ice))
+             ;; TODO: this req also needs to check that the eid of the run is the same as when the run was initiatev...
              :once :per-turn
              :msg (msg "bypass " (:title target))
              :effect (req (bypass-ice state))}]})
