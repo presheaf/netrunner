@@ -38,7 +38,7 @@
 
            [:p "Many thanks to all donors!"]
            [:ul.list.compact
-            (for [d @donors]
+            (for [d @donators]
               ^{:key d}
               [:li d])]
 

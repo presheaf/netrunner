@@ -60,7 +60,7 @@
                 :async true
                 :req (req (can-advance? state side target))
                 :effect (req (wait-for (pay-sync state side (make-eid state {:source :advance}) card [:click 1 :credit 1])
-                                       (if-let [[cost-str] async-result]
+                                       (when-let [[cost-str] async-result]
                                          (system-msg state :corp (str "spends " cost-str " to advance " (card-str target)))
                                          (add-prop state side (get-card state target) :advance-counter 1)
                                          (play-sfx state side "click-advance" (assoc (make-sfx-card-info state target)
