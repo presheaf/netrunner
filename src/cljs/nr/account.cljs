@@ -347,21 +347,22 @@
                                {:name (str "Custom BG" (when custom-bg-selected " (input URL below)")) :ref "custom-bg"}]]
 
               [:select {:name "background"
-                        :on-change #(swap! s assoc-in [:background] (.. % -target -value))
-                        
-                        (doall (for [option options-vec]
-                                 [:option {:key (:ref option)
-                                           :value (:ref option)
-                                           :selected (= (:background @s) (:ref option))}
-                                  (:name option)]))])
-              
-              
-              [:h4 "Custom background URL (if 'Custom BG' is selected above)"]
-              [:div [:input {:type "text"
-                             :on-change #(do (swap! s assoc-in [:custom-bg-url] (.. % -target -value))
-                                             (reset! custom-bg-url (.. % -target -value)))
-                             :hidden (not custom-bg-selected)
-                             :value @custom-bg-url}]])])
+                        :on-change #(swap! s assoc-in [:background] (.. % -target -value))}
+               
+               (doall (for [option options-vec]
+                        [:option {:key (:ref option)
+                                  :value (:ref option)
+                                  :selected (= (:background @s) (:ref option))}
+                         (:name option)]))])
+
+            
+            [:h4 "Custom background URL (if 'Custom BG' is selected above)"]
+            [:div [:input {:type "text"
+                           :on-change #(do (swap! s assoc-in [:custom-bg-url] (.. % -target -value))
+                                           (reset! custom-bg-url (.. % -target -value)))
+                           :hidden (not custom-bg-selected)
+                           :value @custom-bg-url}]]])
+
 
          [:section
           [:h3 " Game Win/Lose statistics "]
