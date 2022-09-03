@@ -1529,3 +1529,21 @@
                                  :no-ability {:effect (effect (clear-wait-prompt :runner)
                                                               (effect-completed eid))}}}
                                card nil))}]})
+
+(define-card "Kampala City Grid"
+  {:constant-effects [{:type :run-additional-cost
+                       :req (req (= (:server (second targets)) (unknown->kw (:zone card))))
+                       :value (req [:credit 3])}]
+   :events [{:event :run
+             :req (req this-server)
+             :msg "trash itself"
+             :async true
+             :effect (effect (trash eid card nil))}
+            {:event :corp-phase-12
+             :location :discard
+             :optional
+             {:req (req tagged)
+              :prompt "Add Kampala City Grid to HQ?"
+              :yes-ability
+              {:msg "add Kampala City Grid to HQ"
+               :effect (effect (move card :hand))}}}]})
