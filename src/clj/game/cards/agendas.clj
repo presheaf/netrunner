@@ -634,9 +634,9 @@
                                                          card nil)))}]})
 
 (define-card "Fly on the Wall"
-  {:msg "give the runner 1 tag"
+  {:msg "give the runner 2 tags"
    :async true
-   :effect (req (gain-tags state :runner eid 1))})
+   :effect (req (gain-tags state :runner eid 2))})
 
 (define-card "Genetic Resequencing"
   {:choices {:card #(= (last (:zone %)) :scored)
