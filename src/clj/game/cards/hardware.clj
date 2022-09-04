@@ -1799,15 +1799,15 @@
                                         (program? target)))
                          :value -1}]
      :abilities [{:msg "flip Subsidized Drive"
-                  :req (req (= (available-mu state) 0))
+                  :req (req (and (not (:is-flipped card))
+                                 (= (available-mu state) 0)))
                   :effect (effect (flip-card card flip-info)
-                                  (gain state :runner
-                                        :memory 3))}]
+                                  (gain :memory 3))}]
 
      :leave-play (req (when (:is-flipped card)
                         (lose state :runner
                               :memory 3))
-                      (ensure-unflipped flip-info))}))
+                      (ensure-unflipped state side card flip-info))}))
 
 (define-card "Supercorridor"
   {:in-play [:memory 2 :hand-size 1]
