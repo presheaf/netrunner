@@ -2960,12 +2960,11 @@
 
 ;;; On the Trail
 (define-card "On the Trail"
-  (let [flip-info  {; TODO: fix codes
-                    :front-face-code "06036"
-                    :back-face-code "06036_flip"
+  (let [flip-info  {:front-face-code "50004"
+                    :back-face-code "50004_flip"
                     :front-face-title "On the Trail"
                     :back-face-title "Moment of Truth"}]
-    {:leave-play (ensure-unflipped flip-info)
+    {:leave-play (req (ensure-unflipped state side card flip-info))
      :events [{:event :successful-run
                :silent (req true)
                :req (req (and (not (:is-flipped card))
@@ -2986,7 +2985,6 @@
                :effect (req (gain-credits state :runner 7)
                             (remove-old-current state side eid :runner))}]}))
 
-;;; Connect the Dots
 (define-card "Connect the Dots"
   {:async true
    :makes-run true
@@ -3002,11 +3000,6 @@
             {:event :agenda-scored
              :location :discard
              :condition :in-discard
-             ;; ;; do these matter?
-             ;; :once :per-turn
-             ;; :once-key :out-of-ashes
+
              :msg "add Connect the Dots to their hand from their discard pile"
-             :effect (req (move state side card :hand))}]
-   :move-zone (req (if (in-discard? card)
-                     (register-events state side card recur-flag)
-                     (unregister-events state side card {:events [{:event :agenda-scored}]})))})
+             :effect (req (move state side card :hand))}]})

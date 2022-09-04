@@ -2132,6 +2132,28 @@
                                               (= :corp-install (:source-type eid))
                                               (= :rez (:source-type eid))))
                                 :type :recurring}}})
+(define-card "Thistle"
+  (let [ability {:msg "gain 1 [Credits]"
+                 :label "Gain 1 [Credits] (start of turn)"
+                 :once :per-turn
+                 :effect (effect (gain-credits 1))}]
+    {:derezzed-events [corp-rez-toast]
+     :events [(assoc ability :event :corp-turn-begins)
+              {:event :agenda-scored
+               :location :discard
+               :optional
+               {:prompt "Install Thistle?"
+                :yes-ability
+                {:async true
+                 :prompt (str "Where to install Thistle?")
+                 :choices (req (installable-servers state card))
+                 :effect (effect (corp-install eid card target nil))}}}]
+     :abilities [ability]
+     :trash-effect {:when-inactive false
+                    :req (req (= side :runner))
+                    :msg "do 1 net damage"
+                    :async true
+                    :effect (effect (damage eid :net 1 {:card card}))}}))
 
 (define-card "Thomas Haas"
   {:advanceable :always

@@ -2386,12 +2386,12 @@
    :choices (let [is-rezzed-next #(and (installed? %) (rezzed? %) (ice? %) (has-subtype? % "NEXT"))]
                 {:card is-rezzed-next
                   :max (req (count (filter is-rezzed-next (all-installed state :corp))))})
-   :effect (req (wait-for (trash-cards state side nil targets {:unpreventable true})
-                          (let [num-trashed (count targets)]
+   :effect (req (wait-for (trash-cards state side targets {:unpreventable true})
+                          (let [num-trashed (count async-result)]
                             (continue-ability state side
                                               {:prompt (str "Select an installed card to place " num-trashed " counters on")
                                                :choices {:card #(and (corp? %)
                                                                      (installed? %))}
                                                :msg (msg "place " num-trashed " advancement tokens on " (card-str state target))
-                                               :effect (add-prop state side target :advance-counter 3 {:placed true})}
+                                               :effect (effect (add-prop target :advance-counter num-trashed {:placed true}))}
                                               card nil))))})

@@ -353,7 +353,7 @@
 
 (defn runner-has-installed?
   [state subtype]
-  (some #(has-subtype? % "AI") (all-active-installed state :runner)))
+  (some #(has-subtype? % subtype) (all-active-installed state :runner)))
 
 (defn resolve-another-subroutine
   "For cards like Orion or Upayoga."
@@ -476,6 +476,15 @@
                      :event :encounter-ice-ends
                      :req (req (and (= target card)
                                     (seq (remove :broken (:subroutines target))))))]}))
+
+(define-card "Anglerfish"
+  {:advanceable :always
+   :subroutines [(do-net-damage 1)]
+   :on-encounter {:async true
+                  :req (req (pos? (get-counters card :advancement)))
+                  :msg "do 1 net damage and remove all hosted advancement counters"
+                  :effect (effect (add-prop target :advance-counter (- (get-counters card :advancement)))
+                               (damage eid :net 1 {:card (get-card state card)}))}})
 
 (define-card "Archangel"
   {:flags {:rd-reveal (req true)}
@@ -674,6 +683,14 @@
                             " [Credits]")
                   :effect (req (let [num-ice (count (:ices (card->server state card)))]
                                  (gain-credits state :corp num-ice)))}
+                 end-the-run]})
+
+(define-card "Bouncer"
+  {:async true
+   :effect (req (if (or (not run) (runner-has-installed? state "Fracter"))
+                  (effect-completed state side eid)
+                  (resolve-unbroken-subs! state side eid card)))
+   :subroutines [(gain-credits-sub 2)
                  end-the-run]})
 
 (define-card "Brainstorm"
@@ -2497,6 +2514,20 @@
                                   (gain-credits 1))}
    :subroutines [(end-the-run-unless-runner-pays 1)]})
 
+(define-card "Pressure Plate"
+  {:implementation "Rez cost not adjusted after rez (important for Blue Sun)"
+   :subroutines [end-the-run]
+   :rez-cost-bonus (req (if (runner-has-installed? state "Fracter") -3 0))
+   :strength-bonus (req (if (runner-has-installed? state "AI") 3 0))
+   :events (let [wr {:silent (req true)
+                     :req (req (and (not (same-card? target card))
+                                    (has-subtype? target "AI")))
+                     :effect (effect (update-ice-strength card))}]
+             [(assoc wr :event :runner-install)
+              (assoc wr :event :trash)
+              (assoc wr :event :card-moved)])})
+
+
 (define-card "Pup"
   (let [sub {:player :runner
              :async true
@@ -2855,6 +2886,17 @@
                                                (card-str state target))
                                      :effect (effect (add-prop target :advance-counter 3 {:placed true}))}))
                                 card nil))}]}))
+
+(define-card "Snickerdoodle"
+  {:subroutines [(gain-credits-sub 3)
+                 {:label "Give the Runner 1 tag and trash Snickerdoodle"
+                  :async true
+                  :msg "give the Runner 1 tag and trash Snickerdoodle"
+                  :effect (req (wait-for (gain-tags state :corp 1)
+                                         (when current-ice
+                                           (continue state :corp nil)
+                                           (continue state :runner nil))
+                                         (trash state side eid card {:cause :subroutine})))}]})
 
 (define-card "Snoop"
   {:on-encounter {:msg (msg "reveal the Runner's Grip (" (join ", " (map :title (:hand runner))) ")")
@@ -3230,6 +3272,14 @@
                                                                  (join ", " (map :title cards))))
                                      (trash-cards state side eid cards {:cause :subroutine})))})]})
 
+(define-card "Waldemar 1.0"
+  (let [ability {:req (req (and (ice? target)
+                                (has-subtype? target "Bioroid")))
+                 :effect (effect (reset-variable-subs card (subtype-ice-count corp "Bioroid") end-the-run))}]
+    {:runner-abilities [(bioroid-break 1 1)]
+     :events [(assoc ability :event :rez)
+              (assoc ability :event :derez)]}))
+
 (define-card "Wall of Static"
   {:subroutines [end-the-run]})
 
@@ -3339,57 +3389,4 @@
                  trash-hardware
                  (do-brain-damage 2)]
    :runner-abilities [(bioroid-break 2 2)]})
-
-
-(define-card "Snickerdoodle"
-  {:subroutines [(gain-credits-sub 3)
-                 {:label "Give the Runner 1 tag and trash Snickerdoodle"
-                  :async true
-                  :msg "give the Runner 1 tag and trash Snickerdoodle"
-                  :effect (req (wait-for (gain-tags state :corp 1)
-                                         (when current-ice
-                                           (continue state :corp nil)
-                                           (continue state :runner nil))
-                                         (trash state side eid card {:cause :subroutine})))}]})
-
-(define-card "Waldemar 1.0"
-  (let [ability {:req (req (and (ice? target)
-                                (has-subtype? target "Bioroid")))
-                 :effect (effect (reset-variable-subs card (subtype-ice-count corp "Bioroid") end-the-run))}]
-    {:runner-abilities [(bioroid-break 1 1)]
-     :events [(assoc ability :event :rez)
-              (assoc ability :event :derez)]}))
-
-(define-card "Bouncer"
-  {:async true
-   :effect (req (if (runner-has-installed? "Fracter")
-                  (effect-completed state side eid)
-                  (resolve-unbroken-subs! state side eid card)))
-   :subroutines [(gain-credits-sub 2)
-                 end-the-run]})
-
-
-
-(define-card "Pressure Plate"
-  {:implementation "Rez cost not adjusted after rez (important for Blue Sun)"
-   :subroutines [end-the-run]
-   :rez-cost-bonus (req (if (runner-has-installed? "Fracter") -3 0))
-   :strength-bonus (req (if (runner-has-installed? "AI") 3 0))
-   :events (let [wr {:silent (req true)
-                     :req (req (and (not (same-card? target card))
-                                    (has-subtype? target "AI")))
-                     :effect (effect (update-ice-strength card))}]
-             [(assoc wr :event :runner-install)
-              (assoc wr :event :trash)
-              (assoc wr :event :card-moved)])})
-
-
-(define-card "Anglerfish"
-  {:advanceable :always
-   :subroutines [(do-net-damage 1)]
-   :on-encounter {:async true
-                  :req (req (pos? (get-counters card :advancement)))
-                  :msg "do 1 net damage and remove all hosted advancement counters"
-                  :effect (req (add-prop target :advance-counter (- (get-counters card :advancement)))
-                               (damage eid :net 1 {:card (get-card state card)}))}})
 

@@ -1812,6 +1812,37 @@
                                 [(pump-and-break [:credit 3] 2 "Sentry")])]
     (assoc cdef :events (apply conj events (:events cdef)))))
 
+(define-card "Molotov"
+  (let [flip-info  {:front-face-code "50001"
+                    :back-face-code "50001_flip"
+                    :front-face-title "Molotov"
+                    :back-face-title "Blaze"}]
+    {:leave-play (req (ensure-unflipped state side card flip-info))
+     :implementation "Recurring credit usage restriction not implemented"
+     :recurring (req (when (:is-flipped card)
+                       (set-prop state side card :rec-counter 1)))
+
+     ;; ;; need something like this, with a check that it's the current encounter
+     ;; :interactions {:pay-credits {:req (req (and (= :ability (:source-type eid))
+     ;;                                           (program? target)))
+     ;;                            :type :recurring}}
+
+     :constant-effects [{:type :rez-cost
+                         :value 2
+                         :req (req (and (not (:is-flipped card))
+                                        (ice? target)))}
+                        {:type :ice-strength
+                         :req (req (and (:is-flipped card)
+                                        (= :encounter-ice (:phase run))
+                                        (same-card? (:host card) target)))
+                         :value -1}]
+
+     :events [{:event :rez
+               :req (req (and (not (:is-flipped card))
+                              (ice? target)))
+               :msg (msg "flip " (card-title card) " and host it on " (card-title target))
+               :effect (req (when (host state side target card)
+                              (flip-card state side (get-card state (find-latest state card)) flip-info)))}]}))
 (define-card "Mongoose"
   (auto-icebreaker {:implementation "Usage restriction is not implemented"
                     :abilities [(break-sub 1 2 "Sentry")
@@ -2749,39 +2780,10 @@
   (cloud-icebreaker
    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
                                   (strength-pump 1 1)]})))
-;;; anarch flip card
-(define-card "Corroder"
-  (let [flip-info  {:front-face-code "01007"
-                    :back-face-code "01007_flip"
-                    :front-face-title "Corroder"
-                    :back-face-title "Fliproder"}]
-    {:leave-play (ensure-unflipped flip-info)
-     :recurring (req (when (:is-flipped card)
-                       (set-prop state side card :rec-counter 1)))
-     ;; ;; need something like this, with a check that it's the current encounter
-     ;; :interactions {:pay-credits {:req (req (and (= :ability (:source-type eid))
-     ;;                                           (program? target)))
-     ;;                            :type :recurring}}
 
-
-     :constant-effects [{:type :rez-cost
-                         :value 2
-                         :req (req (and (not (:is-flipped card))
-                                        (ice? target)))}
-                        {:type :ice-strength
-                         :req (req (and (:is-flipped card)
-                                        (same-card? (:host card) target)))
-                         :value -1}]
-
-     :events [{:event :rez
-               :req (req (and (not (:is-flipped card))
-                              (ice? target)))
-               :msg (msg "flip " (card-title card) " and host it on " (card-title target))
-               :effect (req (when (host state side card target)
-                              (flip-card state side (get-card state card) flip-info)))}]}))
 
 (define-card "Sniper"
   (auto-icebreaker {:strength-bonus (req (if (some #(has-subtype? % "Run")
                                                    (:play-area (:runner @state))) 4 0))
                     :abilities [(break-sub 1 0 "Sentry")
-                                (strength-pump 2 1)]}))
+                                (strength-pump 3 1)]}))

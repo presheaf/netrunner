@@ -306,10 +306,10 @@
 
 
 (defn ensure-unflipped
-  [flip-info]
-  (req (update! state side (assoc card
-                                  :is-flipped false
-                                  :code (:front-face-code flip-info)))))
+  [state side card flip-info]
+  (update! state side (assoc card
+                             :is-flipped false
+                             :code (:front-face-code flip-info))))
 
 (defn card-title
   [card]

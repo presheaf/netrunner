@@ -1191,6 +1191,30 @@
              :msg (msg "gain " (get-agenda-points state :runner target) " [Credits]")
              :effect (effect (gain-credits (get-agenda-points state :runner target)))}]})
 
+(define-card "Human Rights Riot"
+  {:implementation "Ability must be triggered manually"
+   :abilities [{:req (req (:accessed-cards runner-reg)) ; insufficient - just to avoid accidental clicks
+                :once :per-turn
+                :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
+                :effect (req (gain-credits state :runner 1)
+                             (let [card-to-trash (first (shuffle (:hand corp)))]
+                               (trash state :corp eid card-to-trash nil)))}]
+   ;;  ;; WIP
+   ;; :events [{:event :runner-trash
+   ;;           :once :per-turn
+   ;;           :async true
+   ;;           ;; also check: is a card being accessed from a central server
+   ;;           :req (req                  ;TODO: check that there is currently an ongoing access?
+   ;;                     (corp? target)
+   ;;                     (is-central? (:zone target))
+                       
+   ;;                     )
+   ;;           :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
+   ;;           :effect (req (gain-credits state :runner 1)
+   ;;                        (let [card-to-trash (first (shuffle (:hand corp)))]
+   ;;                          (trash state :corp eid card-to-trash nil)))}]
+   })
+
 (define-card "Hunting Grounds"
   {:implementation "Use prevention ability during approach, after ice is rezzed"
    :abilities [{:label "Prevent a \"When encountered\" ability"
@@ -1955,11 +1979,15 @@
                                             (hardware? %))
                                         (in-hand? %)
                                         (runner? %))}
-                  :effect (req (if (not (pos? (:cost target)))
-                                 (runner-install state side (assoc eid :source card :source-type :runner-install) target nil)
-                                 (do (host state side card
-                                           (assoc target :counter {:power (:cost target)}))
-                                     (effect-completed state side eid))))
+                  :effect (req (let [base-cost (:cost target)
+                                     num-active-sds (count (filter #(= (:title % "Subsidized Drive"))
+                                                                   (all-active-installed state :runner)))
+                                     adjusted-cost (- base-cost num-active-sds)]
+                                 (if (not (pos? adjusted-cost))
+                                   (runner-install state side (assoc eid :source card :source-type :runner-install) target nil)
+                                   (do (host state side card
+                                             (assoc target :counter {:power adjusted-cost}))
+                                       (effect-completed state side eid)))))
                   :msg (msg "host " (:title target) "")}
                  (assoc remove-counter
                         :label "Remove 1 counter from a hosted card (start of turn)"

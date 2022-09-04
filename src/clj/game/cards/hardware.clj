@@ -1788,6 +1788,27 @@
                 :cost [:trash]
                 :effect (effect (prompt! card (str "The top card of R&D is " (:title (first (:deck corp)))) ["OK"] {}))}]})
 
+(define-card "Subsidized Drive"
+  (let [flip-info  {:front-face-code "50009"
+                    :back-face-code "50009_flip"
+                    :front-face-title "Subsidized Drive"
+                    :back-face-title "Backup Storage"}]
+    {:implementation "Flip when memory is full must be manually triggered"
+     :constant-effects [{:type :install-cost ; NOTE: this will not properly affect personal workshop costs, but that interaction is hardcoded in PW
+                         :req (req (and (not (:is-flipped card))
+                                        (program? target)))
+                         :value -1}]
+     :abilities [{:msg "flip Subsidized Drive"
+                  :req (req (= (available-mu state) 0))
+                  :effect (effect (flip-card card flip-info)
+                                  (gain state :runner
+                                        :memory 3))}]
+
+     :leave-play (req (when (:is-flipped card)
+                        (lose state :runner
+                              :memory 3))
+                      (ensure-unflipped flip-info))}))
+
 (define-card "Supercorridor"
   {:in-play [:memory 2 :hand-size 1]
    :events [{:event :runner-turn-ends
