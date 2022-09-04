@@ -1812,12 +1812,15 @@
                                 [(pump-and-break [:credit 3] 2 "Sentry")])]
     (assoc cdef :events (apply conj events (:events cdef)))))
 
+
 (define-card "Molotov"
   (let [flip-info  {:front-face-code "50001"
                     :back-face-code "50001_flip"
                     :front-face-title "Molotov"
                     :back-face-title "Blaze"}]
-    {:leave-play (req (ensure-unflipped state side card flip-info))
+    {:leave-play (req (when (:is-flipped card) ; molotov is supposed to be 0 MU when flipped, which we make work by freeing a MU on flip which must now be de-freed
+                        (use-mu state 1))
+                      (ensure-unflipped state side card flip-info))
      :implementation "Recurring credit usage restriction not implemented"
      :recurring (req (when (:is-flipped card)
                        (set-prop state side card :rec-counter 1)))
@@ -1842,6 +1845,7 @@
                               (ice? target)))
                :msg (msg "flip " (card-title card) " and host it on " (card-title target))
                :effect (req (when (host state side target card)
+                              (free-mu state 1)
                               (flip-card state side (get-card state (find-latest state card)) flip-info)))}]}))
 (define-card "Mongoose"
   (auto-icebreaker {:implementation "Usage restriction is not implemented"
