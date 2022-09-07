@@ -484,7 +484,7 @@
                   :req (req (pos? (get-counters card :advancement)))
                   :msg "do 1 net damage and remove all hosted advancement counters"
                   :effect (effect (add-prop target :advance-counter (- (get-counters card :advancement)))
-                               (damage eid :net 1 {:card (get-card state card)}))}})
+                                  (damage eid :net 1 {:card (get-card state card)}))}})
 
 (define-card "Archangel"
   {:flags {:rd-reveal (req true)}

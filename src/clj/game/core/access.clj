@@ -273,7 +273,7 @@
                      (when card
                        (str " from " (name-zone side zone))))))
   (when (reveal-access? state side card)
-    (system-msg state side (str "must reveal they accessed " (title card)))
+    (system-msg state side (str "must reveal they accessed " (card-title card)))
     (reveal state :runner card)))
 
 (defn- access-trigger-events
