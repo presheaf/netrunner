@@ -479,7 +479,11 @@
 
 (define-card "Anglerfish"
   {:advanceable :always
-   :subroutines [(do-net-damage 1)]
+   :subroutines [{:label "Do 1 net damage and place 1 advancement counter on Anglerfish"
+                  :async true
+                  :msg "do 1 net damage and place 1 advancement counter on Anglerfish"
+                  :effect (effect (add-prop card :advance-counter 1)
+                                  (damage eid :net 1 {:card (get-card state card)}))}]
    :on-encounter {:async true
                   :req (req (pos? (get-counters card :advancement)))
                   :msg "do 1 net damage and remove all hosted advancement counters"
