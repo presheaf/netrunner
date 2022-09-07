@@ -2149,7 +2149,9 @@
                  :choices (req (installable-servers state card))
                  :effect (effect (corp-install eid card target nil))}}}]
      :abilities [ability]
-     :trash-effect {:req (req (= side :runner)
+     
+     :trash-effect {:when-inactive true
+                    :req (req (= side :runner)
                               (installed? card))
                     :msg "do 1 net damage"
                     :async true
