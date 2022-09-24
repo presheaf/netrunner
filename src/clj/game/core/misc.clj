@@ -219,7 +219,8 @@
   "Increases amount of mu used (increased :used)"
   ([state _ n] (use-mu state n))
   ([state n]
-   (gain state :runner :memory {:used n})))
+   (gain state :runner :memory {:used n})
+   (trigger-event state :runner :did-use-mu)))
 
 ;;; Other helpers
 

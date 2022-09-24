@@ -2518,9 +2518,12 @@
                                   (gain-credits 1))}
    :subroutines [(end-the-run-unless-runner-pays 1)]})
 
-(define-card "Pressure Plate"
+(define-card "Kwolek"
   {:implementation "Rez cost not adjusted after rez (important for Blue Sun)"
    :subroutines [end-the-run]
+   :constant-effects [{:type :bypass-ice
+                       :req (req (same-card? card target))
+                       :value false}]
    :rez-cost-bonus (req (if (runner-has-installed? state "Fracter") -3 0))
    :strength-bonus (req (if (runner-has-installed? state "AI") 3 0))
    :events (let [wr {:silent (req true)

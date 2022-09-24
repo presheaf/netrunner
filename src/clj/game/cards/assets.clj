@@ -2147,6 +2147,7 @@
                 {:async true
                  :prompt (str "Where to install Thistle?")
                  :choices (req (installable-servers state card))
+                 :msg "install itself from Archives"
                  :effect (effect (corp-install eid card target nil))}}}]
      :abilities [ability]
      
@@ -2155,7 +2156,7 @@
                               (installed? target))
                     :msg "do 1 net damage"
                     :async true
-                    :effect (effect (damage eid :net 1 {:card card}))}}))
+                    :effect (effect (damage eid :net 1 {:card target}))}}))
 
 (define-card "Thomas Haas"
   {:advanceable :always

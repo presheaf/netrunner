@@ -1191,29 +1191,17 @@
              :msg (msg "gain " (get-agenda-points state :runner target) " [Credits]")
              :effect (effect (gain-credits (get-agenda-points state :runner target)))}]})
 
-(define-card "Human Rights Riot"
-  {:implementation "Ability must be triggered manually"
-   :abilities [{:req (req (:accessed-cards runner-reg)) ; insufficient - just to avoid accidental clicks
-                :once :per-turn
-                :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
-                :effect (req (gain-credits state :runner 1)
-                             (let [card-to-trash (first (shuffle (:hand corp)))]
-                               (trash state :corp eid card-to-trash nil)))}]
-   ;;  ;; WIP
-   ;; :events [{:event :runner-trash
-   ;;           :once :per-turn
-   ;;           :async true
-   ;;           ;; also check: is a card being accessed from a central server
-   ;;           :req (req                  ;TODO: check that there is currently an ongoing access?
-   ;;                     (corp? target)
-   ;;                     (is-central? (:zone target))
-                       
-   ;;                     )
-   ;;           :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
-   ;;           :effect (req (gain-credits state :runner 1)
-   ;;                        (let [card-to-trash (first (shuffle (:hand corp)))]
-   ;;                          (trash state :corp eid card-to-trash nil)))}]
-   })
+(letfn [(target-in-rd-or-hq [t]
+          (#{:deck :hand} (first (:previous-zone t))))]
+  (define-card "Human Rights Riot"
+    {:implementation "Ability must be triggered manually"
+     :events [{:event :trash-during-access
+               :req (req (first-event? state side :trash-during-access #(target-in-rd-or-hq (first %))))
+               :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
+               :async true
+               :effect (req (gain-credits state :runner 1)
+                            (let [card-to-trash (first (shuffle (:hand corp)))]
+                              (trash state :corp eid card-to-trash nil)))}]}))
 
 (define-card "Hunting Grounds"
   {:implementation "Use prevention ability during approach, after ice is rezzed"
@@ -2053,13 +2041,16 @@
                 :effect (effect (gain-credits 1)
                                 (draw eid 1 nil))}]})
 
-(define-card "Psych Mike"
-  {:events [{:event :run-ends
-             :req (req (and (:successful target)
-                            (first-event? state side :run-ends #(and (= :rd (first (:server (first %))))
-                                                                     (:successful (first %))))))
-             :msg (msg "gain " (total-cards-accessed target :deck) " [Credits]")
-             :effect (effect (gain-credits :runner (total-cards-accessed target :deck)))}]})
+(letfn [(successful-run-on-rd
+          [the-run]
+          (and (= :rd (first (:server (first the-run))))
+               (:successful (first the-run))))]
+  (define-card "Psych Mike"
+    {:events [{:event :run-ends
+               :req (req (and (successful-run-on-rd target)
+                              (first-event? state side :run-ends successful-run-on-rd)))
+               :msg (msg "gain " (total-cards-accessed target :deck) " [Credits]")
+               :effect (effect (gain-credits :runner (total-cards-accessed target :deck)))}]}))
 
 (define-card "Public Sympathy"
   {:in-play [:hand-size 2]})
