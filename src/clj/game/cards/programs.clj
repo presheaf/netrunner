@@ -1836,7 +1836,7 @@
                                         (ice? target)))}
                         {:type :ice-strength
                          :req (req (same-card? (:host card) target))
-                         :value (req (if (:is-flipped card) 1 0))}]
+                         :value (req (if (:is-flipped card) -1 0))}]
      :events [{:event :rez
                :req (req (and (not (:is-flipped card))
                               (ice? target)))
