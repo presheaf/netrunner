@@ -112,6 +112,7 @@
                                       :phase :initiation
                                       :next-phase :initiation
                                       :eid eid
+                                      :initiating-card card
                                       :current-ice nil
                                       :events nil})
                          (when (or run-effect card)

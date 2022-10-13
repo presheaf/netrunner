@@ -2785,7 +2785,6 @@
 
 
 (define-card "Sniper"
-  (auto-icebreaker {:strength-bonus (req (if (some #(has-subtype? % "Run")
-                                                   (:play-area (:runner @state))) 3 0))
+  (auto-icebreaker {:strength-bonus (req (if (and run (has-subtype? (:initiating-card run) "Run")) 3 0))
                     :abilities [(break-sub 1 0 "Sentry")
                                 (strength-pump 3 1)]}))
