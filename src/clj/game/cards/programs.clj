@@ -980,7 +980,6 @@
                 :once :per-turn
                 :cost [:credit 1]
                 :msg "place 1 virus counter"
-                :req (req (:runner-phase-12 @state))
                 :effect (effect (add-counter card :virus 1)
                                 (update-breaker-strength card))}]
    :strength-bonus (req (+ 1 (get-virus-counters state card)))})
