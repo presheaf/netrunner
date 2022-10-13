@@ -2524,8 +2524,8 @@
    :constant-effects [{:type :bypass-ice
                        :req (req (same-card? card target))
                        :value false}]
-   :rez-cost-bonus (req (if (runner-has-installed? state "Fracter") -3 0))
-   :strength-bonus (req (if (runner-has-installed? state "AI") 3 0))
+   :rez-cost-bonus (req (if (runner-has-installed? state "Fracter") -4 0))
+   :strength-bonus (req (if (runner-has-installed? state "AI") 4 0))
    :events (let [wr {:silent (req true)
                      :req (req (and (not (same-card? target card))
                                     (has-subtype? target "AI")))

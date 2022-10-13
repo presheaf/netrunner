@@ -1194,7 +1194,7 @@
 (letfn [(target-in-rd-or-hq [t]
           (#{:deck :hand} (first (:previous-zone t))))]
   (define-card "Human Rights Riot"
-    {:implementation "Ability must be triggered manually"
+    {;; :implementation "Ability must be triggered manually"
      :events [{:event :trash-during-access
                :req (req (first-event? state side :trash-during-access #(target-in-rd-or-hq (first %))))
                :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
@@ -2043,12 +2043,11 @@
 
 (letfn [(successful-run-on-rd
           [the-run]
-          (and (= :rd (first (:server (first the-run))))
-               (:successful (first the-run))))]
+          (do (and (= :rd (first (:server (first the-run))))
+                   (:successful (first the-run)))))]
   (define-card "Psych Mike"
     {:events [{:event :run-ends
-               :req (req (and (successful-run-on-rd target)
-                              (first-event? state side :run-ends successful-run-on-rd)))
+               :req (req (first-event? state side :run-ends successful-run-on-rd))
                :msg (msg "gain " (total-cards-accessed target :deck) " [Credits]")
                :effect (effect (gain-credits :runner (total-cards-accessed target :deck)))}]}))
 

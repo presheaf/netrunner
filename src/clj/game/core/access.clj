@@ -9,7 +9,9 @@
   ([state side eid c] (access-end state side eid c nil))
   ([state side eid c {:keys [trashed stolen] :as args}]
    ;; Do not trigger :no-trash if card has already been trashed
-   (wait-for (trigger-event-sync state side (if trashed :trash-during-access :no-trash) c)
+   (wait-for (trigger-event-sync state side
+                                 (if trashed :trash-during-access :no-trash)
+                                 (if trashed (find-latest state c) c))
              (wait-for (trigger-event-sync state side (when-not stolen :no-steal) c)
                        (when (and (not trashed)
                                   (not stolen)

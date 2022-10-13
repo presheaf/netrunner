@@ -297,7 +297,6 @@
         facedown-code (:back-face-code flip-info)
         faceup-title (:front-face-title flip-info)
         facedown-title (:back-face-title flip-info)]
-    (prn (str "flip-card:" (str flip-info)))
 
     (when flip-info
       ;; can't flip cards without flip-info set

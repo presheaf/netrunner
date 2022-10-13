@@ -1835,13 +1835,13 @@
                          :req (req (and (not (:is-flipped card))
                                         (ice? target)))}
                         {:type :ice-strength
-                         :req (req (same-card? (:host card) target))
+                         :req (req (same-card? target (:host card)))
                          :value (req (if (:is-flipped card) -1 0))}]
      :events [{:event :rez
                :req (req (and (not (:is-flipped card))
                               (ice? target)))
                :msg (msg "flip " (card-title card) " and host it on " (card-title target))
-               :effect (req (when (host state side target card)
+               :effect (req (when (host state side target card {:prevent-init true})
                               (free-mu state 1)
                               (set-prop state side (get-card state (find-latest state card)) :rec-counter 1)
                               (flip-card state side (get-card state (find-latest state card)) flip-info)))}]}))

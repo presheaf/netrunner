@@ -21,7 +21,7 @@
 (defn host
   "Host the target onto the card."
   ([state side card target] (host state side card target nil))
-  ([state side card {:keys [zone cid host installed] :as target} {:keys [facedown] :as options}]
+  ([state side card {:keys [zone cid host installed] :as target} {:keys [facedown prevent-init] :as options}]
    (when (not= cid (:cid card))
      (when installed
        (unregister-events state side target)
@@ -54,10 +54,11 @@
                  (and installed (corp? target) (rezzed? target)))
          (register-events state side c)
          (register-constant-effects state side c)
-         (when (or (:recurring tdef)
-                   (:prevent tdef)
-                   (:corp-abilities tdef)
-                   (:runner-abilities tdef))
+         (when (and (not prevent-init)
+                    (or (:recurring tdef)
+                        (:prevent tdef)
+                        (:corp-abilities tdef)
+                        (:runner-abilities tdef)))
            (card-init state side c {:resolve-effect false
                                     :init-data true})))
        (when (:events tdef)
