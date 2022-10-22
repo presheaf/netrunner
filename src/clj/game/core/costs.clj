@@ -70,6 +70,16 @@
           (deduct state side [cost-type amount])))
     (trigger-event state side (if (= side :corp) :corp-lose :runner-lose) [cost-type amount])))
 
+;;; TODO: this is really "pay", but the cost paying function unfortunately uses lose, so until this is properly cleared up
+(defn lose-no-event [state side & args]
+  (doseq [[cost-type amount] (partition 2 args)]
+    (if (= amount :all)
+      (do (swap! state assoc-in [side cost-type] 0)
+          (swap! state update-in [:stats side :lose cost-type] (fnil + 0) (get-in @state [side cost-type])))
+      (do (when (number? amount)
+            (swap! state update-in [:stats side :lose cost-type] (fnil + 0) amount))
+          (deduct state side [cost-type amount])))))
+
 (defn gain-credits
   "Utility function for triggering events"
   ([state side amount] (gain-credits state side (make-eid state) amount nil))
@@ -340,7 +350,7 @@
                 (swap! state update-in [:stats side :spent :credit] (fnil + 0) amount)
                 (complete-with-result state side eid (str "pays " (:msg async-result))))
       (pos? amount)
-      (do (lose state side :credit amount)
+      (do (lose-no-event state side :credit amount)
           (complete-with-result state side eid (str "pays " amount " [Credits]")))
       :else
       (complete-with-result state side eid (str "pays 0 [Credits]")))))
@@ -351,7 +361,7 @@
     (when (not (some #{:steal-cost :bioroid-cost} a))
       ;; do not create an undo state if click is being spent due to a steal cost (eg. Ikawah Project)
       (swap! state assoc :click-state (dissoc @state :log)))
-    (lose state side :click amount)
+    (lose-no-event state side :click amount)
     (wait-for (trigger-event-sync state side (make-eid state eid)
                                   (if (= side :corp) :corp-spent-click :runner-spent-click)
                                   a (:click (into {} costs)))
