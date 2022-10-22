@@ -386,7 +386,7 @@
         " to break " (quantify (count broken-subs)
                            (str (when-let [subtype (:subtype args)]
                                   (when (not= "All" subtype)
-                                    (str subtype " ")))
+                                    (str (or (:break-label args) subtype) " ")))
                                 "subroutine"))
         " on " (:title ice)
         " (\"[subroutine] "
@@ -457,11 +457,14 @@
                              (= :encounter-ice (:phase run))
                              (if subtype
                                (or (= subtype "All")
+                                   (and (sequential? subtype) ; e.g. ["Barrier" "Code Gate"]
+                                        (some #(has-subtype? current-ice %) subtype))
                                    (has-subtype? current-ice subtype)))
                              (pos? (count (breakable-subroutines-choice state side eid card current-ice)))
                              (if (:req args)
                                ((:req args) state side eid card targets)
                                true)))
+         break-descr (or (:break-label args) subtype)
          strength-req (req (if (has-subtype? card "Icebreaker")
                              (<= (get-strength current-ice) (get-strength card))
                              true))]
@@ -481,7 +484,7 @@
                         (str "break "
                              (when (< 1 n) "up to ")
                              (if (pos? n) n "any number of")
-                             (when (not= "All" subtype) (str " " subtype))
+                             (when (not= "All" subtype) (str " " break-descr))
                              (pluralize " subroutine" n))))
         :effect (effect (continue-ability
                           (when (can-pay? state side

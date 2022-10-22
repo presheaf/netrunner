@@ -2369,9 +2369,7 @@
 
 (define-card "Sage"
   (mu-based-strength "sage"
-                     [(break-multiple-types
-                        1 "Barrier"
-                        1 "Code Gate")]))
+                     [(break-sub 2 1 ["Barrier" "Code Gate"] {:break-label "Code Gate or Barrier"})]))
 
 (define-card "Sahasrara"
   {:recurring 2
