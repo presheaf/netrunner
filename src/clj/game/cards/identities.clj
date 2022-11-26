@@ -1541,16 +1541,6 @@
   {:events [{:event :pre-start-game
              :effect draft-points-target}]})
 
-(define-card "The Shadow: Making Bank"
-  {:events [{:event :corp-turn-begins
-             :msg "gain 1 [Credits]"
-             :effect (effect (gain-credits 1))}]})
-
-(define-card "The Masque: Making Bank"
-  {:events [{:event :runner-turn-begins
-             :msg "gain 1 [Credits]"
-             :effect (effect (gain-credits 1))}]})
-
 (define-card "Titan Transnational: Investing In Your Future"
   {:events [{:event :agenda-scored
              :msg (msg "add 1 agenda counter to " (:title target))

@@ -27,6 +27,7 @@
         {:odds 20
          :identity ["NBN: Making News"
                     "Argus Security: Protection Guaranteed"]
+         :presents :tag-deck-presents
          :tags {"Hedge"                3
                 "Jackson"              3
                 "Economy"             10

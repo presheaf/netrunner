@@ -5,10 +5,13 @@
             [clojure.string :refer [lower-case]]
             [game.utils :refer [server-card]]))
 
-;; (declare load-deck-stubs!)
+;; TODO: Consider adding some check here that all tags used in templates actually have some matching card?
 
 (def jumpstart-tags-filename "data/jumpstart-cardtags.edn")
 (def jumpstart-templates-filename "data/jumpstart-templates.edn")
+(def jumpstart-presents-filename "data/jumpstart-presents.edn")
+(def templates-by-side (load-file jumpstart-templates-filename))
+(def presents-by-faction (load-file jumpstart-presents-filename))
 
 (defn  matches-tag [tag cardtags]
   (if (set? tag)
@@ -22,8 +25,6 @@
 
 (defn tags-of [card]
   (get all-card-tags (lower-case (:title card))))
-
-(def templates-by-side (load-file jumpstart-templates-filename))
 
 (def cards-by-tag
   ;; map tag -> [c1, c2, ...] of all such tagged cards
@@ -182,9 +183,10 @@
     (let [deck        (generate-from-template template)
           deck-id     (:title (:identity deck))
           card-titles (map :title (:cards deck))]
-      {:identity deck-id
-       :cards (apply vector (map (fn [[title qty]] {:qty qty :card {:title title}})
-                                 (frequencies card-titles)))})))
+      (merge {:identity deck-id
+              :cards (apply vector (map (fn [[title qty]] {:qty qty :card {:title title}})
+                                        (frequencies card-titles)))}
+             (if (:presents template) {:presents (:presents template)} {})))))
 
 ;;; utility
 (defn deck-titles
