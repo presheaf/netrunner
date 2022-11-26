@@ -6,12 +6,15 @@
 
 (defn default-locations
   [card]
-  (case (to-keyword (:type card))
-    :agenda [:scored]
-    (:asset :ice :upgrade) [:servers]
-    (:event :operation) [:current :play-area]
-    (:hardware :program :resource) [:rig]
-    (:identity :fake-identity) [:identity]))
+  (if (= (:type card) "Basic Action")
+    [:basic-action-card]
+    (case (to-keyword (:type card))
+      :agenda [:scored]
+      (:asset :ice :upgrade) [:servers]
+      (:event :operation) [:current :play-area]
+      (:hardware :program :resource) [:rig]
+      (:identity :fake-identity) [:identity]
+      (to-keyword "Basic Action") nil)))
 
 ; Functions for registering and dispatching events.
 (defn register-events
@@ -152,6 +155,10 @@
           :hosted
           (when (:host card)
             card)
+
+          :always
+          card
+
           nil)
         card))
      (:card ability)))

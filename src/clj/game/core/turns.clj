@@ -1,7 +1,7 @@
 (in-ns 'game.core)
 
 (declare all-active card-flag-fn? clear-turn-register! create-deck create-js-deck hand-size keep-hand mulligan
-         make-card turn-message add-sub create-basic-action-cards build-card)
+         make-card turn-message add-sub create-basic-action-cards build-card command-summon)
 
 
 (defn- card-implemented
@@ -69,29 +69,71 @@
                                                                                              "The Professor: Keeper of Knowledge")})))
         corp-quote (quotes/make-quote corp-identity runner-identity)
         runner-quote (quotes/make-quote runner-identity corp-identity)]
-    (atom
-      (new-state
-        gameid
-        room
-        (t/now)
-        spectatorhands
-        (new-corp (:user corp) corp-identity corp-options (zone :deck (if is-jumpstart?
-                                                                        (:cards corp-deck)
-                                                                        corp-deck))
-                  corp-deck-id corp-quote)
-        (new-runner (:user runner) runner-identity runner-options (zone :deck (if is-jumpstart?
-                                                                                (:cards runner-deck)
-                                                                                runner-deck))
-                    runner-deck-id runner-quote)))))
+    (let [state
+          (atom
+           (new-state
+            gameid
+            room
+            (t/now)
+            spectatorhands
+            (new-corp (:user corp) corp-identity corp-options (zone :deck (if is-jumpstart?
+                                                                            (:cards corp-deck)
+                                                                            corp-deck))
+                      corp-deck-id corp-quote)
+            (new-runner (:user runner) runner-identity runner-options (zone :deck (if is-jumpstart?
+                                                                                    (:cards runner-deck)
+                                                                                    runner-deck))
+                        runner-deck-id runner-quote)))]
+      [state (if is-jumpstart?
+               {:runner (:presents-type runner-deck) :corp (:presents-type corp-deck)}
+               nil)])))
+
+(defn- register-single-present!
+  "Sets up one event handler giving a present at some particular turn"
+  [state side turn-number card-titles present-str]
+  ;; TODO: enrich this by a pop-up showing the three cards. To do this, add a prompt box to nr/gameboard.cljs, which checks the state for some vector of card names to get image for or whatever, so it can be made to show by setting this vector in the state
+  (register-events
+   state :runner
+   (get-in @state [side :basic-action-card])
+   [{:event (if (= side :runner):runner-turn-begins :corp-turn-begins)
+     :silent (req true)
+     :condition :always
+     :choices card-titles
+     :req  (req (= (:turn @state) turn-number))
+     :prompt (str "You get a " present-str " present! Pick a card to add to your hand.")
+     :effect (req
+              (system-msg state side
+                          (str "unpacks a card from a " present-str " present"))
+              (command-summon state side [target]))}]))
+
+(defn- choose-three-random
+  "Return a vector of 3 random (distinct) cards from a vector of choices. Assumes len(choices) >= 3."
+  [choices]
+  (into [] (take 3 (shuffle choices))))
+
+(defn register-presents!
+  "Sets up event handlers which gives a present at start of turn"
+  [state presents-map]
+
+  (doseq [[side present-type] presents-map]
+    (let [possible-presents (deckgen/presents-by-faction (if present-type present-type (:faction (get-in @state [side :identity]))))]
+      (println (str "Possible presents for " side possible-presents))
+
+      (register-single-present! state side 3 (choose-three-random (nth possible-presents 0)) "small")
+      (register-single-present! state side 8 (choose-three-random (nth possible-presents 1)) "medium")
+      (register-single-present! state side 15 (choose-three-random (nth possible-presents 2)) "large"))))
+
+
 
 (defn init-game
   "Initializes a new game with the given players vector."
   [game]
-  (let [state (init-game-state game)
+  (let [[state presents-map] (init-game-state game)
         corp-identity (get-in @state [:corp :identity])
         runner-identity (get-in @state [:runner :identity])]
     (when-let [messages (seq (:messages game))]
       (swap! state assoc :log (conj (vec messages) {:user "__system__" :text "[hr]"})))
+
     (init-identity state :corp corp-identity)
     (init-identity state :runner runner-identity)
     (create-basic-action-cards state)
@@ -100,6 +142,8 @@
                 (let [side :runner]
                   (wait-for (trigger-event-sync state side :pre-start-game nil)
                             (init-hands state)))))
+    (if presents-map                          ; only happens if mode is jumpstart
+      (register-presents! state presents-map))
     state))
 
 (defn create-basic-action-cards
@@ -143,8 +187,7 @@
                     (shuffle (vec (:cards deck)))))))
 
 (defn create-js-deck
-  "Creates a shuffled draw deck (R&D/Stack) from the given list of cards.
-  Loads card data from the server-card map if available."
+  "Creates a randomized draw deck (R&D/Stack) using the Jumpstart deck generator."
   ([user side]
    (let [d (deckgen/generate-deck side)]
      {:identity (:identity d)
