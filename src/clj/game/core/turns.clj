@@ -102,7 +102,7 @@
      :req  (req (= (:turn @state) turn-number))
      :effect (req
               ;; TODO: add this
-              ;; (play-sfx state side "jingle-bells")
+              (play-sfx state side "jingle-bells")
               ;; causes the present box to display, in case players don't know the cards
               (swap! state assoc-in [side :has-unopened-present] (into [] (map server-card card-titles)))
               (continue-ability state side
