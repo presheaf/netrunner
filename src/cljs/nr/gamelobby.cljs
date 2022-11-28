@@ -86,6 +86,7 @@
              :protected false
              :password ""
              :allow-spectator true
+             :include-presents false
              :spectatorhands false)
       (-> ".game-title" js/$ .select))))
 
@@ -104,7 +105,7 @@
         (do (swap! s assoc :editing false)
             (ws/ws-send! [:lobby/create
                           (assoc
-                          (select-keys @s [:title :password :allow-spectator
+                          (select-keys @s [:title :password :allow-spectator :include-presents
                                            :spectatorhands :side :format :room])
                           :options (:options @app-state))]))))))
 
@@ -333,6 +334,12 @@
                                (swap! s assoc :protected checked)
                                (when (not checked) (swap! s assoc :password "")))}]
         "Password protected"]]
+      [:p
+       [:label
+        [:input {:type "checkbox" :checked (:include-presents @s)
+                 :on-change #(swap! s assoc :include-presents (.. % -target -checked))}]
+        "🎁Additional festivities🎁"]]
+
       (when (:protected @s)
         [:p
          [:input.game-title {:on-change #(swap! s assoc :password (.. % -target -value))

@@ -119,7 +119,6 @@
 (defn register-presents!
   "Sets up event handlers which gives a present at start of turn"
   [state presents-map]
-
   (doseq [[side present-type] presents-map]
     (let [possible-presents (deckgen/presents-by-faction (if present-type present-type (:faction (get-in @state [side :identity]))))]
       (when possible-presents
@@ -150,8 +149,10 @@
                 (let [side :runner]
                   (wait-for (trigger-event-sync state side :pre-start-game nil)
                             (init-hands state)))))
-    (if presents-map                          ; only happens if mode is jumpstart
-      (register-presents! state presents-map))
+
+    (if (or presents-map (:include-presents game))  ; mode is jumpstart, or 'use presents' option is set
+      ;; nil below implicitly defaults to ID faction
+      (register-presents! state (or presents-map {:runner nil :corp nil})))
     state))
 
 (defn create-basic-action-cards
