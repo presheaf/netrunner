@@ -1559,6 +1559,39 @@
            [:br]
            [:button.win-right {:on-click #(swap! app-state assoc :start-shown true) :type "button"} "✘"]])))))
 
+(defn build-presents-box
+  "Builds the box shown when a present is received"
+  [me-has-unopened-present my-side]
+  ;; TODO: consider what happens for spectators too - they should probably see nothing
+  ;; or should spectators/opponents just see a picture of three presents? might be confusing
+  (fn [me-has-unopened-present my-user my-side]
+    (when @me-has-unopened-present             ; TODO: and not side= spectator?
+      (let [card-1 (nth @me-has-unopened-present 0)
+            card-2 (nth @me-has-unopened-present 1)
+            card-3 (nth @me-has-unopened-present 2)]
+        [:div.win.centered.blue-shade.start-game
+         [:div
+          [:div
+           [:div.intro-blurb (str "Merry Christmas, " (:username @my-user) "!")]
+           [:br]
+           [:div.box
+            [:div.start-game.ident.column
+             (when-let [url (image-url card-1)]
+               [:img {:src     url :alt (:title card-1)
+                      :onLoad #(-> % .-target js/$ .show)
+                      ;; TODO: make the cards clickable to select?
+                      ;; :class   (when @visible-quote "selected")
+                      ;; :onClick #(reset! visible-quote true)
+                      }])]
+            [:div.start-game.ident.column
+             (when-let [url (image-url card-2)]
+               [:img {:src     url :alt (:title card-2)
+                      :onLoad #(-> % .-target js/$ .show)}])]
+            [:div.start-game.ident.column
+             (when-let [url (image-url card-3)]
+               [:img {:src     url :alt (:title card-3)
+                      :onLoad #(-> % .-target js/$ .show)}])]]]]]))))
+
 (defn audio-component [{:keys [sfx] :as cursor}]
   (let [s (r/atom {})
         audio-sfx (fn [name] (list (keyword name)
@@ -1659,7 +1692,9 @@
                                       "octgn-trash-opposing-ice"
                                       "octgn-trash-opposing-program"
                                       "octgn-trash-opposing-resource"
-                                      "octgn-virus-purge"])))]
+                                      "octgn-virus-purge"
+                                      "jnet-jingle-bells"
+                                      "octgn-jingle-bells"])))]
     (r/create-class
      {:display-name "audio-component"
       :component-did-update
@@ -2081,6 +2116,8 @@
                         me-quote (r/cursor game-state [me-side :quote])
                         op-quote (r/cursor game-state [op-side :quote])]
                     [build-start-box me-ident me-user me-hand me-prompt me-keep op-ident op-user op-keep me-quote op-quote side])
+                  (let [i-get-presents (r/cursor game-state [me-side :has-unopened-present])]
+                    [build-presents-box i-get-presents me-user side])
 
                   [build-win-box game-state]
                   [:div {:class @background

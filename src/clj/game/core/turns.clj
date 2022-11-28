@@ -98,34 +98,38 @@
    [{:event (if (= side :runner):runner-turn-begins :corp-turn-begins)
      :silent (req true)
      :condition :always
-     :choices card-titles
+     :async true
      :req  (req (= (:turn @state) turn-number))
-     :prompt (str "You get a " present-str " present! Pick a card to add to your hand.")
      :effect (req
-              (system-msg state side
-                          (str "unpacks a card from a " present-str " present"))
-              (command-summon state side [target]))}]))
-
-(defn- choose-three-random
-  "Return a vector of 3 random (distinct) cards from a vector of choices. Assumes len(choices) >= 3."
-  [choices]
-  (into [] (take 3 (shuffle choices))))
+              ;; TODO: add this
+              ;; (play-sfx state side "jingle-bells")
+              ;; causes the present box to display, in case players don't know the cards
+              (swap! state assoc-in [side :has-unopened-present] (into [] (map server-card card-titles)))
+              (continue-ability state side
+                                {:choices card-titles
+                                 :prompt (str "You get a " present-str " present! Pick a card to add to your hand.")
+                                 :effect (req
+                                          (swap! state assoc-in [side :has-unopened-present] false)
+                                          (system-msg state side
+                                                      (str "unpacks a card from a " present-str " present"))
+                                          (command-summon state side [target])
+                                          (effect-completed state side eid))}
+                                nil nil))}]))
 
 (defn register-presents!
   "Sets up event handlers which gives a present at start of turn"
   [state presents-map]
 
   (doseq [[side present-type] presents-map]
-    (let [possible-presents (deckgen/presents-by-faction (if present-type present-type (:faction (get-in @state [side :identity]))))
-          small-presents  (shuffle (nth possible-presents 0))
-          medium-presents (shuffle (nth possible-presents 1))
-          large-presents  (shuffle (nth possible-presents 2))]
-      (println (str "Possible presents for " side possible-presents))
-
-      (register-single-present! state side 3 (take 3 small-presents) "small")
-      (register-single-present! state side 6 (take 3 medium-presents) "medium")
-      (register-single-present! state side 10 (list (last small-presents) (last medium-presents) (last large-presents)) "large")
-      (register-single-present! state side 14 (take 3 large-presents) "very large"))))
+    (let [possible-presents (deckgen/presents-by-faction (if present-type present-type (:faction (get-in @state [side :identity]))))]
+      (when possible-presents
+        (let [small-presents  (shuffle (nth possible-presents 0))
+              medium-presents (shuffle (nth possible-presents 1))
+              large-presents  (shuffle (nth possible-presents 2))]
+          (register-single-present! state side 3 (take 3 small-presents) "small")
+          (register-single-present! state side 6 (take 3 medium-presents) "medium")
+          (register-single-present! state side 10 (list (last small-presents) (last medium-presents) (last large-presents)) "large")
+          (register-single-present! state side 14 (take 3 large-presents) "very large"))))))
 
 
 
