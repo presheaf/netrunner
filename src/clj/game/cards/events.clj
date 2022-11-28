@@ -2636,6 +2636,7 @@
    :prompt "Choose a server"
    :choices (req runnable-servers)
    :effect (effect (gain-next-run-credits 9)
+                   (play-sfx "play-instant-stimhack")
                    (make-run eid target nil card))
    :events [{:event :run-ends
              :msg "take 1 brain damage"
