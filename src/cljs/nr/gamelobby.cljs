@@ -335,14 +335,14 @@
                                (when (not checked) (swap! s assoc :password "")))}]
         "Password protected"]]
 
-      (when (:format @s "reboot")
+      
                                         ; TODO: ensure this works as you think, and/or add support for it to jumpstart
-        ; TODO: also add a christmas emoji in the game display?
-        [:p
-         [:label
-          [:input {:type "checkbox" :checked (:include-presents @s)
-                   :on-change #(swap! s assoc :include-presents (.. % -target -checked))}]
-          "🎁Additional festivities🎁"]])
+                                        ; TODO: also add a christmas emoji in the game display?
+      [:p
+       [:label
+        [:input {:type "checkbox" :checked (:include-presents @s)
+                 :on-change #(swap! s assoc :include-presents (.. % -target -checked))}]
+        "🎁Additional festivities🎁"]]
 
       (when (:protected @s)
         [:p
