@@ -120,15 +120,22 @@
   "Sets up event handlers which gives a present at start of turn"
   [state presents-map]
   (doseq [[side present-type] presents-map]
-    (let [possible-presents (deckgen/presents-by-faction (if present-type present-type (:faction (get-in @state [side :identity]))))]
+    (let [faction (:faction (get-in @state [side :identity]))
+          possible-presents (if present-type
+                              (deckgen/presents-by-faction present-type)
+                              (if (#{"Apex" "Adam" "Sunny Lebeau"} faction)
+                                ;; ;; TODO: fix the below, so Minifactions get all the other factions lists mashed together
+                                ;; (into [] (map #(into [] (apply concat %)) (partition 3 (apply interleave (map deckgen/presents-by-faction ("Shaper" "Anarch" "Criminal"))))))
+                                (deckgen/presents-by-faction (first (shuffle ["Shaper" "Criminal" "Anarch"])))
+                                (deckgen/presents-by-faction faction)))]
       (when possible-presents
         (let [small-presents  (shuffle (nth possible-presents 0))
               medium-presents (shuffle (nth possible-presents 1))
               large-presents  (shuffle (nth possible-presents 2))]
           (register-single-present! state side 3 (take 3 small-presents) "small")
           (register-single-present! state side 6 (take 3 medium-presents) "medium")
-          (register-single-present! state side 10 (list (last small-presents) (last medium-presents) (last large-presents)) "large")
-          (register-single-present! state side 14 (take 3 large-presents) "very large"))))))
+          (register-single-present! state side 10 (list (last small-presents) (last medium-presents) (last large-presents)) "pretty large")
+          (register-single-present! state side 14 (take 3 large-presents) "large"))))))
 
 
 
