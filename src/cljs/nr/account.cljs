@@ -303,11 +303,12 @@
                custom-bg-url (r/atom (:custom-bg-url @s))]
            [:section
             [:h3  "Game board background"]
-            (let [options-vec [{:name "Adonis Campaign"            :ref "adonis-campaign-bg"}
+            (let [options-vec [{:name "Adonis Christmas Sale"      :ref "adonis-campaign-bg"}
                                {:name "Apex"                       :ref "apex-bg"}
-                               {:name "Caprice Nisei"              :ref "caprice-nisei-bg"}
-                               {:name "Collective Consciousness"   :ref "collective-consciousness-bg"}
-                               {:name "Dinosaurus"                 :ref "dinosaurus-bg"}
+                               {:name "Blaze"                      :ref "blaze-bg"}
+                               {:name "Capriceason's Greetings"    :ref "caprice-nisei-bg"}
+                               {:name "Christmasaurus"             :ref "dinosaurus-bg"}
+                               {:name "Collective Christmasness"   :ref "collective-consciousness-bg"}
                                {:name "Dedicated Server"           :ref "dedicated-server-bg"}
                                {:name "Elizabeth Mills"            :ref "elizabeth-mills-bg"}
                                {:name "Faerie"                     :ref "faerie-bg"}
@@ -318,7 +319,7 @@
                                {:name "Hadrian's Wall"             :ref "hadrians-wall-bg"}
                                {:name "Heimdall 1.0"               :ref "heimdall1-bg"}
                                {:name "House of Knives"            :ref "house-of-knives-bg"}
-                               {:name "Jackson Howard"             :ref "jackson-howard-bg"}
+                               {:name "Jackson Ho-Ho-Howard"       :ref "jackson-howard-bg"}
                                {:name "Lotus Field"                :ref "lotus-field-bg"}
                                {:name "Medium"                     :ref "medium-bg"}
                                {:name "Midseason Replacements"     :ref "midseason-replacements-bg"}
@@ -326,6 +327,7 @@
                                {:name "Mushin No Shin"             :ref "mushin-no-shin-bg"}
                                {:name "NeoTokyo Grid"              :ref "neotokyo-grid-bg"}
                                {:name "Ninja"                      :ref "ninja-bg"}
+                               {:name "On the Trail"               :ref "on-the-trail-bg"}
                                {:name "Parasite"                   :ref "parasite-bg"}
                                {:name "Pawn"                       :ref "pawn-bg"}
                                {:name "Posted Bounty"              :ref "posted-bounty-bg"}
@@ -336,9 +338,10 @@
                                {:name "Rumor Mill"                 :ref "rumor-mill-bg"}
                                {:name "Self-modifying Code"        :ref "self-modifying-code-bg"}
                                {:name "Shi.Kyū"                    :ref "shikyu-bg"}
+                               {:name "Sniper"                     :ref "sniper-bg"}
                                {:name "Sure Gamble"                :ref "sure-gamble-bg"}
                                {:name "Sunset"                     :ref "sunset-bg"}
-                               {:name "The Root"                   :ref "lobby-bg"}
+                               {:name "The Tree"                   :ref "lobby-bg"}
                                {:name "Unorthodox Predictions"     :ref "unorthodox-predictions-bg"}
                                {:name "Wall of Static"             :ref "wall-of-static-bg"}
                                {:name "Wanton Destruction"         :ref "wanton-destruction-bg"}
