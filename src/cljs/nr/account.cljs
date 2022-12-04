@@ -310,7 +310,7 @@
                                {:name "Christmasaurus"             :ref "dinosaurus-bg"}
                                {:name "Collective Christmasness"   :ref "collective-consciousness-bg"}
                                {:name "Dedicated Server"           :ref "dedicated-server-bg"}
-                               {:name "Elizabeth Mills"            :ref "elizabeth-mills-bg"}
+                               {:name "Elizabeth Chills"           :ref "elizabeth-mills-bg"}
                                {:name "Faerie"                     :ref "faerie-bg"}
                                {:name "Find The Truth"             :ref "find-the-truth-bg"}
                                {:name "Freelance Coding Contracts" :ref "freelance-coding-contracts-bg"}
