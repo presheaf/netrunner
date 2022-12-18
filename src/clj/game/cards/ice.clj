@@ -2895,15 +2895,23 @@
                                 card nil))}]}))
 
 (define-card "Snickerdoodle"
-  {:subroutines [(gain-credits-sub 3)
-                 {:label "Give the Runner 1 tag and trash Snickerdoodle"
-                  :async true
-                  :msg "give the Runner 1 tag and trash Snickerdoodle"
-                  :effect (req (wait-for (gain-tags state :corp 1)
-                                         (when current-ice
-                                           (continue state :corp nil)
-                                           (continue state :runner nil))
-                                         (trash state side eid card {:cause :subroutine})))}]})
+  (let [corp-draw {:optional {:prompt "Draw 1 card?"
+                              :yes-ability {:async true
+                                            :msg "draw 1 card"
+                                            :effect (effect (draw eid 1 nil))}}}]
+    {:subroutines [{:label "Gain 3[credit] and optionally draw 1 card"
+                    :async true
+                    :msg "gains 3 [Credits]."
+                    :effect (req (gain-credits state :corp 3)
+                                 (continue-ability state :corp corp-draw card nil))}
+                   {:label "Give the Runner 1 tag and trash Snickerdoodle"
+                    :async true
+                    :msg "give the Runner 1 tag and trash Snickerdoodle"
+                    :effect (req (wait-for (gain-tags state :corp 1)
+                                           (when current-ice
+                                             (continue state :corp nil)
+                                             (continue state :runner nil))
+                                           (trash state side eid card {:cause :subroutine})))}]}))
 
 (define-card "Snoop"
   {:on-encounter {:msg (msg "reveal the Runner's Grip (" (join ", " (map :title (:hand runner))) ")")
