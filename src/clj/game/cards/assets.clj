@@ -2152,8 +2152,8 @@
      :abilities [ability]
      
      :trash-effect {:when-inactive true
-                    :req (req (= side :runner)
-                              (installed? target))
+                    :req (req (and (= side :runner)
+                                   (installed? target)))
                     :msg "do 1 net damage"
                     :async true
                     :effect (effect (damage eid :net 1 {:card target}))}}))

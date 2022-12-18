@@ -1598,7 +1598,7 @@
                                   card nil))}]})
 
 (define-card "Security Chip"
-  {:abilities [{:label "Add [Link] strength to a non-Cloud icebreaker until the end of the run"
+  {:abilities [{:label "Add 2x[Link] strength to a non-Cloud icebreaker until the end of the run"
                 :msg (msg "add " (* 2 (:link runner)) " strength to " (:title target) " until the end of the run")
                 :req (req (:run @state))
                 :prompt "Select one non-Cloud icebreaker"
@@ -1606,7 +1606,7 @@
                                       (not (has-subtype? % "Cloud"))
                                       (installed? %))}
                 :cost [:trash]
-                :effect (effect (pump target (:link runner) :end-of-run))}
+                :effect (effect (pump target (* 2 (:link runner)) :end-of-run))}
                {:label "Add [Link] strength to any Cloud icebreakers until the end of the run"
                 :msg (msg "add " (* 2 (:link runner)) " strength to " (count targets) " Cloud icebreakers until the end of the run")
                 :req (req (:run @state))

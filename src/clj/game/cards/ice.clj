@@ -2901,7 +2901,7 @@
                                             :effect (effect (draw eid 1 nil))}}}]
     {:subroutines [{:label "Gain 3[credit] and optionally draw 1 card"
                     :async true
-                    :msg "gains 3 [Credits]."
+                    :msg "gain 3 [credit]"
                     :effect (req (gain-credits state :corp 3)
                                  (continue-ability state :corp corp-draw card nil))}
                    {:label "Give the Runner 1 tag and trash Snickerdoodle"
