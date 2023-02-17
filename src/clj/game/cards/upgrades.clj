@@ -1533,7 +1533,7 @@
 (define-card "Kampala City Grid"
   {:constant-effects [{:type :run-additional-cost
                        :req (req (= (:server (second targets)) (unknown->kw (:zone card))))
-                       :value (req [:credit 3])}]
+                       :value (req [:credit 4])}]
    :events [{:event :run
              :req (req this-server)
              :msg "trash itself"
