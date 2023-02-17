@@ -157,7 +157,7 @@
                   (wait-for (trigger-event-sync state side :pre-start-game nil)
                             (init-hands state)))))
 
-    (if (or presents-map (:include-presents game))  ; mode is jumpstart, or 'use presents' option is set
+    (if (:include-presents game)  ; 'use presents' option is set
       ;; nil below implicitly defaults to ID faction
       (register-presents! state (or presents-map {:runner nil :corp nil})))
     state))
