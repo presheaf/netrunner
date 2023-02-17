@@ -1,1 +1,2 @@
-[{:description "Alternate art from a variety of sources.", :name "Alternate", :position 0, :version "alt"} {:description "Christmas 2022 alts.", :name "Christmas 2022", :position 1, :version "christmas22"}]
+[{:description "Various full-art cards.", :name "Full arts", :position 1, :version "alt"}
+ {:description "Christmas 2022 alts.", :name "Christmas 2022", :position 2, :version "christmas22"}]
