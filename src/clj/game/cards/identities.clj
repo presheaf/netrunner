@@ -437,6 +437,14 @@
                   :msg "flip their identity to Earth Station: Ascending to Orbit"
                   :effect flip-effect}]}))
 
+(define-card "Echo Memvaults: Reality Simulated"
+  {:effect (req (swap! state assoc-in [:special :cannot-flatline] true))
+   :events [{:event :runner-turn-ends
+             :req (req (= (:turn @state) 1))
+             :async true
+             :msg "do 2 brain damage"
+             :effect (effect (damage eid :brain 2 {:card card}))}]})
+
 (define-card "Edward Kim: Humanity's Hammer"
   {:events [{:event :access
              :once :per-turn
@@ -1523,6 +1531,86 @@
                                   (shuffle! state side :deck))
                               (do (system-msg state side (str "fails to find a target for The Foundry, and shuffles their deck"))
                                   (shuffle! state side :deck))))}}}]})
+
+
+(define-card "The Horde: Defiant Disenfrancistos"
+  (let [gain-credit-ab
+        {:effect (effect (gain-credits 1))
+         :msg "gain 1 [Credit]"}
+
+        draw-card-ab
+        {:effect (effect (draw eid 1 nil))
+         :async true
+         :msg "draw a card"}
+
+        take-net-for-click-ab
+        {:effect (effect (gain :click 1)
+                         (damage eid :net 1 {:card (get-card state card)}))
+         :async true
+         :msg "take 1 net damage and gain [Click]"}
+
+        corp-loses-cred-ab
+        {:effect (effect (lose-credits :corp 1))
+         :msg "make the Corp lose 1 [Credit]"}
+
+        next-card-trashed-ab
+        {:effect (req (update! state side (assoc-in (get-card state card) [:special :trash-next-card-accessed] true))
+                      (effect-completed state side eid))}
+
+        counter-on-virus-ab
+        {:prompt "Choose a virus to place a virus counter on"
+         :choices {:req (req (and (runner? target)
+                                  (installed? target)
+                                  (has-subtype? target "Virus")))}
+         :effect (effect (add-counter (get-card state card) :power -6)
+                         (add-counter target :virus 1))
+         :cancel-effect (effect (add-counter (get-card state card) :power -6)
+                                (effect-completed eid))}]
+    {:events [{:event :successful-run
+               ;; TODO: also need to check that this is actually the first time each turn here
+               :once :per-turn
+               :req (req (or (= target :hq)
+                             (= target :rd)))
+
+               :msg "place 1 power counter on The Horde: Defiant Disenfrancistos and resolve the associated effect."
+               :async true
+
+               :effect (req
+                        (add-counter state side card :power 1)
+                        (let [num-counters (get-counters (get-card state card) :power)]
+                          (if (> num-counters 6)
+                            ;; TODO: fix the virus counter ability not clearing counters if there are no viruses
+                            (add-counter state side (get-card state card) :power (- 1 num-counters))))
+                        (continue-ability state side
+                                          (case (get-counters (get-card state card) :power)
+                                            1 gain-credit-ab
+                                            2 draw-card-ab
+                                            3 take-net-for-click-ab
+                                            4 corp-loses-cred-ab
+                                            5 next-card-trashed-ab
+                                            6 counter-on-virus-ab
+                                            ;; default should never happen...
+                                            {:effect (effect (effect-completed eid))})
+                                          (get-card state card) nil))}
+
+              ;; auto-trash is handled in a kinda hacky way - the ability sets a special key, run-ends always clears it, and the access ability checks for it (and is once-per turn so it doesn't have to clear)
+              {:event :run-ends
+               :effect (req (update! state side (dissoc-in (get-card state card) [:special :trash-next-card-accessed])))}
+              {:event :access
+               :once :per-run
+               :req (req (get-in (get-card state card) [:special :trash-next-card-accessed]))
+               :async true
+               :effect (req (if (in-discard? target)
+                              (effect-completed state side eid)
+                              (do (when run
+                                    (swap! state assoc-in [:run :did-trash] true))
+                                  (swap! state assoc-in [:runner :register :trashed-card] true)
+                                  (system-msg state :runner
+                                              (str "uses The Horde: Defiant Disenfrancistos to"
+                                                   " trash " (:title target)
+                                                   " at no cost"))
+                                  (trash state side eid target nil))))}]}))
+
 
 (define-card "The Masque: Cyber General"
   {:events [{:event :pre-start-game

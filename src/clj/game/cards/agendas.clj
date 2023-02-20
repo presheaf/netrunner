@@ -988,6 +988,24 @@
                 :async true
                 :effect (effect (end-run eid card))}]})
 
+(define-card "Nostalgiologists"
+  {:silent (req true)
+   :effect (effect (add-counter card :agenda 2))
+   :abilities [{:cost [:agenda 1]
+                :label "Add 1 transaction or advertisement from Archives to HQ"
+                :prompt "Choose a card in Archives to add to HQ"
+                :show-discard true
+                :choices {:card #(and (in-discard? %)
+                                      (corp? %)
+                                      (or (has-subtype? % "Advertisement")
+                                          (has-subtype? % "Transaction")))}
+                :req (req (pos? (get-counters card :agenda)))
+                :msg (msg "add "
+                          (if (:seen target)
+                            (:title target) "an unseen card ")
+                          " to HQ from Archives")
+                :effect (effect (move target :hand))}]})
+
 (define-card "Oaktown Renovation"
   {:install-state :face-up
    :events [{:event :advance

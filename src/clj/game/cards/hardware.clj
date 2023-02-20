@@ -1788,6 +1788,27 @@
                 :cost [:trash]
                 :effect (effect (prompt! card (str "The top card of R&D is " (:title (first (:deck corp)))) ["OK"] {}))}]})
 
+(define-card "Stim Graft"
+  {:data [:counter {:power 6}]
+   :interactions {:pay-credits {:req (req run) :type :credit}}
+   :abilities [{:cost [:click 1]
+                :label "make a run on any server"
+                :msg (msg "make a run on " target " and place " (get-counters (get-card state card) :power) "credits on Stim Graft")
+                :makes-run true
+                :prompt "Choose a server to run with Stim Graft"
+                :choices (req runnable-servers)
+                :effect (req
+                         (add-counter state side card :credit (get-counters (get-card state card) :power))
+                         (make-run state side target nil (get-card state card))
+                         (register-events
+                          state side card
+                          [{:event :run-ends
+                            :duration :end-of-run
+                            :async true
+                            :effect (req (add-counter state side (get-card state card) :power -1)
+                                         (add-counter state side (get-card state card) :credit (- (get-counters (get-card state card) :credit)))
+                                         (damage state side eid :brain 1 {:card (get-card state card)}))}]))}]})
+
 (define-card "Subsidized Processor"
   (let [flip-info  {:front-face-code "50009"
                     :back-face-code "50009_flip"

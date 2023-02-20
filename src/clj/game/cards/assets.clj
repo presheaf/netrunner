@@ -247,6 +247,23 @@
   {:effect (effect (lock-zone (:cid card) :runner :discard))
    :leave-play (effect (release-zone (:cid card) :runner :discard))})
 
+(define-card "Brain Campaign"
+  (let [ability {:once :per-turn
+                 :req (req (:corp-phase-12 @state))
+                 :label "Remove 1 counter (start of turn)"
+                 :async true
+                 :effect (req (add-counter state side card :power -1)
+                              (if (zero? (get-counters (get-card state card) :power))
+                                (wait-for (trash state side card nil)
+                                          (gain-credits state :corp 9)
+                                          (system-msg state :corp " uses Brain Campaign to gain 9[Credits]")
+                                          (effect-completed state side eid))
+                                (effect-completed state side eid)))}]
+    {:effect (effect (add-counter card :power (count (:hand runner))))
+     :derezzed-events [corp-rez-toast]
+     :events [(assoc ability :event :corp-turn-begins)]
+     :ability [ability]}))
+
 (define-card "Brain-Taping Warehouse"
   {:constant-effects [{:type :rez-cost
                        :req (req (and (ice? target)

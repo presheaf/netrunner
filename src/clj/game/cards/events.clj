@@ -2132,9 +2132,9 @@
                  card nil))}]})
 
 (define-card "Process Automation"
-  {:msg "gain 2 [Credits] and draw 1 card"
+  {:msg "gain 3 [Credits] and draw 1 card"
    :async true
-   :effect (effect (gain-credits 2)
+   :effect (effect (gain-credits 3)
                    (draw eid 1 nil))})
 
 (define-card "Push Your Luck"

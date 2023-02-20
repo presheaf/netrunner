@@ -1248,6 +1248,11 @@
    :effect (effect (gain-credits 8)
                    (gain-credits :runner 2))})
 
+(define-card "Microtransactions"
+  {:effect (effect (gain-credits 8)
+                   (lose-credits :corp (count (:hand runner))))
+   :msg (msg "gain 8 [Credits], then lose " (count (:hand runner)) " [Credits]")})
+
 (define-card "Midseason Replacements"
   {:req (req (last-turn? state :runner :stole-agenda))
    :trace {:base 3
@@ -1962,11 +1967,16 @@
                     card nil)))})
 
 (define-card "Shipment from Tennin"
-  {:req (req (not-last-turn? state :runner :successful-run))
-   :choices {:card #(and (corp? %)
-                         (installed? %))}
-   :msg (msg "place 2 advancement tokens on " (card-str state target))
-   :effect (effect (add-prop target :advance-counter 2 {:placed true}))})
+  ;; TODO: does this work?
+  {:effect (effect (update! (assoc-in card [:special :rfg-instead-of-trashing] true)))
+   :abilities [{:label "place 2 advancement tokens on an installed card"
+                :cost [:click 1]
+                :req (req (not-last-turn? state :runner :successful-run))
+                :choices {:card #(and (corp? %)
+                                      (installed? %))}
+                :msg (msg "remove itself from the game and place 2 advancement tokens on " (card-str state target))
+                :effect (effect (add-prop target :advance-counter 2 {:placed true})
+                                (remove-old-current state side eid :corp))}]})
 
 (define-card "Shoot the Moon"
   (letfn [(rez-helper [ice]

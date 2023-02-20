@@ -641,6 +641,12 @@
 (define-card "Cerberus \"Rex\" H2"
   (power-counter-break "Code Gate"))
 
+(define-card "Walrus"
+  (auto-icebreaker {:data {:counter {:power 2}}
+                    :abilities [(strength-pump 1 1)
+                                (break-sub 3 0 "Barrier")
+                                (break-sub [:power 1] 1 ["AP" "Destroyer"])]}))
+
 (define-card "Chakana"
   {:leave-play (effect (update-all-advancement-costs))
    :events [{:event :successful-run
