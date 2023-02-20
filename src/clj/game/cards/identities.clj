@@ -386,6 +386,7 @@
 (define-card "Custom Biotics: Engineered for Success"
   ;; No special implementation
   {})
+
 (define-card "Cybernetics Division: Humanity Upgraded"
   {:effect (effect (lose :hand-size 1)
                    (lose :runner :hand-size 1))

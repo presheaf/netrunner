@@ -2610,6 +2610,21 @@
                    (shuffle! :deck)
                    (move target :hand))})
 
+(define-card "Special Access"
+  {:prompt "Choose a cloud icebreaker"
+   :choices (req (cancellable (filter #(and (has-subtype? % "Icebreaker") (has-subtype? % "Cloud")) (:deck runner)) :sorted))
+   :async true
+   :msg (msg "install " (:title target) " from their stack with +1 strength")
+   :constant-effects [{:type :breaker-strength
+                       :req (req (same-card? target (:host card)))
+                       :value 1}]
+   :effect (req (trigger-event state side :searched-stack nil)
+                (shuffle! state side :deck)
+                (wait-for (runner-install state side (make-eid state {:source card :source-type :runner-install}) target nil)
+                          ;; get-card gets the zone wrong here, but find-latest doesn't
+                          (host state side (find-latest state target) (assoc (get-card state card) :condition true))
+                          (effect-completed state side eid)))})
+
 (define-card "Spooned"
   (cutlery "Code Gate"))
 
