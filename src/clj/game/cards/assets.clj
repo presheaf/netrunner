@@ -248,21 +248,34 @@
    :leave-play (effect (release-zone (:cid card) :runner :discard))})
 
 (define-card "Brain Campaign"
-  (let [ability {:once :per-turn
-                 :req (req (:corp-phase-12 @state))
-                 :label "Remove 1 counter (start of turn)"
-                 :async true
-                 :effect (req (add-counter state side card :power -1)
-                              (if (zero? (get-counters (get-card state card) :power))
-                                (wait-for (trash state side card nil)
-                                          (gain-credits state :corp 9)
-                                          (system-msg state :corp " uses Brain Campaign to gain 9[Credits]")
-                                          (effect-completed state side eid))
-                                (effect-completed state side eid)))}]
-    {:effect (effect (add-counter card :power (count (:hand runner))))
-     :derezzed-events [corp-rez-toast]
-     :events [(assoc ability :event :corp-turn-begins)]
-     :ability [ability]}))
+  (let [ability {:async true
+                 :interactive (req true)
+                 :req (req (> (count (:hand corp)) (+ 2 (count (:hand runner)))))
+                 :effect (effect (continue-ability
+                                   {:optional
+                                    {:prompt "Use Brain Campaign to draw 1 card?"
+                                     :yes-ability {:async true
+                                                   :msg "draw 1 card"
+                                                   :effect (effect (draw eid 1 nil))}}}
+                                   card nil))}]
+    {:derezzed-events [corp-rez-toast]
+     :flags {:corp-phase-12 (req true)}
+     :events [{:event :corp-turn-begins
+               :req (req (> (count (:hand corp)) (count (:hand runner))))
+               :interactive (req true)
+               :async true
+               :effect (req (gain-credits state :corp 1)
+                            (system-msg state :corp " uses Brain Campaign to gain 1[Credit]")
+                            (if (> (count (:hand corp)) (+ 2 (count (:hand runner))))
+                              (continue-ability
+                               state side
+                               {:optional
+                                {:prompt "Use Brain Campaign to draw 1 card?"
+                                 :yes-ability {:async true
+                                               :msg "draw 1 card"
+                                               :effect (effect (draw eid 1 nil))}}}
+                               card nil)
+                              (effect-completed state side eid)))}]}))
 
 (define-card "Brain-Taping Warehouse"
   {:constant-effects [{:type :rez-cost

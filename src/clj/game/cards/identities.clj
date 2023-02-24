@@ -438,7 +438,7 @@
                   :msg "flip their identity to Earth Station: Ascending to Orbit"
                   :effect flip-effect}]}))
 
-(define-card "Echo Memvaults: Reality Simulated"
+(define-card "Echo Memvaults: Reality Reimagined"
   {:effect (req (swap! state assoc-in [:special :cannot-flatline] true))
    :events [{:event :runner-turn-ends
              :req (req (= (:turn @state) 1))
