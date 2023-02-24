@@ -3275,6 +3275,43 @@
 (define-card "Virgo"
   (constellation-ice 2 (give-tags 1)))
 
+
+(define-card "Vulcan 1.0"
+  (let [flip-info  {:front-face-code "51005"
+                    :back-face-code "51005_flip"
+                    :front-face-title "Vulcan 1.0"
+                    :back-face-title "Mind Maze"}]
+    {:implementation "Must be manually flipped by clicking the card"
+     :abilities [{:msg "flip this card"
+                  :effect (effect (flip-card card flip-info))}]}))
+
+(define-card "Caterpillar"
+  (let [flip-info  {:front-face-code "51009"
+                    :back-face-code "51009_flip"
+                    :front-face-title "Caterpillar"
+                    :back-face-title "Monarch"}]
+    {:implementation "Must be manually flipped by clicking the card"
+     :abilities [{:msg "flip this card"
+                  :effect (effect (flip-card card flip-info))}]}))
+
+(define-card "News Flash"
+  (let [flip-info  {:front-face-code "51011"
+                    :back-face-code "51011_flip"
+                    :front-face-title "News Flash"
+                    :back-face-title "Star Treatment"}]
+    {:implementation "Must be manually flipped by clicking the card"
+     :abilities [{:msg "flip this card"
+                  :effect (effect (flip-card card flip-info))}]}))
+
+(define-card "Blockade"
+  (let [flip-info  {:front-face-code "51011"
+                    :back-face-code "51011_flip"
+                    :front-face-title "Blockade"
+                    :back-face-title "Foxtrot"}]
+    {:implementation "Must be manually flipped by clicking the card"
+     :abilities [{:msg "flip this card"
+                  :effect (effect (flip-card card flip-info))}]}))
+
 (define-card "Waiver"
   {:subroutines [(trace-ability
                    5 {:label "Reveal the grip and trash cards"
@@ -3290,7 +3327,7 @@
 (define-card "Waldemar 1.0"
   (let [ability {:req (req (and (ice? target)
                                 (has-subtype? target "Bioroid")))
-                 :effect (effect (reset-variable-subs card (subtype-ice-count corp "Bioroid") end-the-run))}]
+                 :effect (effect (reset-variable-subs card (min 6 (subtype-ice-count corp "Bioroid")) end-the-run))}]
     {:runner-abilities [(bioroid-break 1 1)]
      :events [(assoc ability :event :rez)
               (assoc ability :event :derez)]}))
