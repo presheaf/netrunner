@@ -2314,6 +2314,11 @@
                             (continue-ability state side
                                               (put-down async-result)
                                               card nil)))}))
+(define-card "Repurpose"
+  {:additional-cost [:installed 3]
+   :async true
+   :msg "draw 7 cards"
+   :effect (effect (draw eid 7 nil))})
 
 (define-card "Reshape"
   {:prompt "Select two non-rezzed ICE to swap positions"

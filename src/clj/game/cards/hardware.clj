@@ -862,6 +862,16 @@
                                (:effects @state)))
                       (update-breaker-strength state side host)))})
 
+(define-card "Glee"
+  (let [glee-event {;; TODO: as written this will not give enough creds if multiple corp cards are trashed in the same event, but i don't think that's possible? check
+               :req (req (and (some corp? targets)
+                              run
+                              #{:hq :archives :rd} (:server run)))
+               :msg (msg "gain 1 [Credit]")
+                    :effect (req (gain-credits state :runner 1))}]
+    {:events [(assoc glee-event :event :runner-trash)  ; TODO: check that this works instead
+              (assoc glee-event :event :corp-trash)]}))
+
 (define-card "GPI Net Tap"
   {:implementation "Trash and jack out effect is manual"
    :abilities [{:req (req (and (ice? current-ice) (not (rezzed? current-ice))))
@@ -1125,6 +1135,22 @@
                   :cost [:trash-program-from-grip 1]
                   :effect (effect (damage-prevent :brain 1)
                                   (damage-prevent :net 1))}]}))
+(define-card "Multitask Augment"
+  {:effect (effect (damage eid :meat 1 {:unboostable true :card card}))
+   :events [{:event :run-ends
+             :req (req (:successful target))
+             :effect (req
+                      (let [revs (:events target)
+
+                            ;; TODO: does this work on loses of e.g. a click + 2 creds? spend does work on ikawah
+                            click-losses (map #(second (first (second %))) (filter #(and (= :runner-lose (first %))
+                                                                                         (= :click (first (first (second %))))) revs))
+                            click-spends (map #(second (second %)) (filter #(= :runner-spent-click (first %)) revs))
+                            num-clicks (+ (apply + click-losses) (apply + click-spends))]
+                        (when (> num-clicks 0)
+                          ;; we avoid :msg to avoid saying anything unless >0 creds gained
+                          (system-msg state :runner (str "uses Multitask Augment to gain " num-clicks " credits"))
+                          (gain-credits state :runner num-clicks))))}]})
 
 (define-card "Mu Safecracker"
   {:implementation "Stealth credit restriction not enforced"
@@ -1341,6 +1367,18 @@
                          :cancel-effect (effect (effect-completed (make-result eid 0)))}
                         nil nil)))
        :type :custom}}}))
+
+(define-card "Pineapple"
+  {:events [{:event :rez
+             :req (req (and (ice? target)
+                            run
+                            (< (:cost target 0) 5)))
+             :msg (msg "trash Pineapple, suffer 1 brain damage, trash " (:title target) " and jack out")
+             :async true
+             :effect (req (wait-for (trash state side target nil)
+                                    (wait-for (damage state :runner :brain 1 {:card card})
+                                              (wait-for (trash state side card nil)
+                                                        (jack-out state side eid)))))}]})
 
 (define-card "Plascrete Carapace"
   {:data [:counter {:power 4}]

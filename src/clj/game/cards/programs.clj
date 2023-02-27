@@ -645,7 +645,7 @@
   (auto-icebreaker {:data {:counter {:power 2}}
                     :abilities [(strength-pump 1 1)
                                 (break-sub 3 0 "Barrier")
-                                (break-sub [:power 1] 1 ["AP" "Destroyer"])]}))
+                                (break-sub [:power 1] 1 ["AP" "Destroyer"] {:break-label "AP or Destroyer"})]}))
 
 (define-card "Chakana"
   {:leave-play (effect (update-all-advancement-costs))
@@ -1825,6 +1825,7 @@
                     :back-face-title "Blaze"}]
     {; molotov is supposed to be 0 MU when flipped, which we make work by freeing a MU on flip, so de-free it now
      :leave-play (req (when (:is-flipped card)
+                        ;; if the card is flipped, the engine erroneously thinks it is spending 1 MU
                         (use-mu state 1))
                       (ensure-unflipped state side card flip-info))
      :recurring (req (when (:is-flipped card)
@@ -2489,6 +2490,13 @@
                                   :no-ability {:msg "continue the run"}}}
                                 card nil)))}}}]})
 
+(define-card "Sniper"
+  (auto-icebreaker
+   {:strength-bonus (req (if (and run (has-subtype? (:initiating-card run) "Run")) 3 0))
+    :abilities [(break-sub 1 0 "Sentry" {:req (req (and run (has-subtype? (:initiating-card run) "Run")))})
+                (break-sub 1 1 "Sentry")
+                (strength-pump 3 1)]}))
+
 (define-card "Snowball"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Barrier"
                                            {:additional-ability {:msg "gain +1 strength for the remainder of the run"
@@ -2616,6 +2624,26 @@
      :events [(assoc ability :event :runner-turn-begins)
               {:event :purge
                :effect (effect (move card :rfg))}]}))
+
+(define-card "Termite"
+  {:events [{:event :access
+             :once :per-run
+             :req (req (let [z (:zone target)]
+                         (and (not= (first z) :discard)          ; card is not in archives
+                              (or (#{:hand :deck} (first z))     ; card is inside HQ or R&D
+                                  (and (= :servers (first z))    ; card is in the root of HQ, R&D or Archives
+                                       (#{:hq :rd :archives} (second z))
+                                       (= :content (nth z 2)))))))
+             :async true
+             :effect (req (if (in-discard? target)
+                            (effect-completed state side eid)
+                            (do (when run
+                                  (swap! state assoc-in [:run :did-trash] true))
+                                (swap! state assoc-in [:runner :register :trashed-card] true)
+                                (system-msg state :runner
+                                            (str "uses Termite to trash " (:title target)
+                                                 " at no cost"))
+                                (trash state side eid target nil))))}]})
 
 (define-card "Torch"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
@@ -2785,11 +2813,3 @@
   (cloud-icebreaker
    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
                                   (strength-pump 1 1)]})))
-
-
-(define-card "Sniper"
-  (auto-icebreaker
-   {:strength-bonus (req (if (and run (has-subtype? (:initiating-card run) "Run")) 3 0))
-    :abilities [(break-sub 1 0 "Sentry" {:req (req (and run (has-subtype? (:initiating-card run) "Run")))})
-                (break-sub 1 1 "Sentry")
-                (strength-pump 3 1)]}))
