@@ -1968,7 +1968,7 @@
                                         (in-hand? %)
                                         (runner? %))}
                   :effect (req (let [base-cost (:cost target)
-                                     num-active-sds (count (filter #(and (= (:title %) "Subsidized Drive")
+                                     num-active-sds (count (filter #(and (= (:title %) "Subsidized Processor")
                                                                          (not (:is-flipped %)))
                                                                    (all-active-installed state :runner)))
                                      adjusted-cost (- base-cost num-active-sds)]
