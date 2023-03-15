@@ -67,9 +67,9 @@
         (do (swap! state update-in [:stats side :lose cost-type] (fnil + 0) actual-amount)
             (swap! state assoc-in [side cost-type] 0))
         (do (when (number? amount)
-              (swap! state update-in [:stats side :lose cost-type] (fnil + 0) (min amount actual-amount)))
+              (swap! state update-in [:stats side :lose cost-type] (fnil + 0) amount))
             (deduct state side [cost-type amount])))
-      (when (> actual-amount 0)
+      (when (or (not (number? actual-amount)) (> actual-amount 0))
         (trigger-event state side (if (= side :corp) :corp-lose :runner-lose) [cost-type amount])))))
 
 (defn lose-no-event [state side & args]

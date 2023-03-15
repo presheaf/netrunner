@@ -866,10 +866,11 @@
   (let [glee-event {;; TODO: as written this will not give enough creds if multiple corp cards are trashed in the same event, but i don't think that's possible? check
                :req (req (and (some corp? targets)
                               run
-                              #{:hq :archives :rd} (:server run)))
+                              (#{:hq :archives :rd} (first (:server run)))))
                :msg (msg "gain 1 [Credit]")
                     :effect (req (gain-credits state :runner 1))}]
-    {:events [(assoc glee-event :event :runner-trash)  ; TODO: check that this works instead
+    {:in-play [:memory 2]
+     :events [(assoc glee-event :event :runner-trash)  ; TODO: check that this works instead
               (assoc glee-event :event :corp-trash)]}))
 
 (define-card "GPI Net Tap"
