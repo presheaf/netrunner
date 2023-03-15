@@ -869,7 +869,7 @@
                               (#{:hq :archives :rd} (first (:server run)))))
                :msg (msg "gain 1 [Credit]")
                     :effect (req (gain-credits state :runner 1))}]
-    {:in-play [:memory 2]
+    {:in-play [:memory 1]
      :events [(assoc glee-event :event :runner-trash)  ; TODO: check that this works instead
               (assoc glee-event :event :corp-trash)]}))
 
