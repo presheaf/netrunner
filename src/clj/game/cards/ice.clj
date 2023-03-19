@@ -76,6 +76,11 @@
   ([cost qty args]
    (break-sub [:click cost {:action :bioroid-cost}] qty nil args)))
 
+(defn discard-break
+  ([cost qty] (discard-break cost qty nil))
+  ([cost qty args]
+   (break-sub [:trash-from-hand cost "a label maybe"] qty nil args)))
+
 ;;; General subroutines
 (def end-the-run
   "Basic ETR subroutine"
@@ -3025,6 +3030,11 @@
 
 (define-card "Taurus"
   (constellation-ice 2 trash-hardware))
+
+(define-card "Thicket"
+  {:subroutines [end-the-run
+                 end-the-run]
+   :runner-abilities [(discard-break 1 1)]})
 
 (define-card "Thimblerig"
   (let [ability {:optional
