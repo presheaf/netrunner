@@ -1821,8 +1821,8 @@
      :leave-play (req (when (:is-flipped card)
                         (use-mu state 1))
                       (ensure-unflipped state side card flip-info))
-     :recurring (req (when (:is-flipped card)
-                       (set-prop state side card :rec-counter 1)))
+     :recurring (req (when (:is-flipped (find-latest state card))
+                       (set-prop state side (find-latest state card) :rec-counter 1)))
      ;; need something like this, with a check that it's the current encounter
      :interactions {:pay-credits {:req (req (and (= :ability (:source-type eid))
                                                  (has-subtype? target "Icebreaker")
@@ -1840,10 +1840,11 @@
                :req (req (and (not (:is-flipped card))
                               (ice? target)))
                :msg (msg "flip " (card-title card) " and host it on " (card-title target))
-               :effect (req (when (host state side target card {:prevent-init true})
+               :effect (req (when (host state side target card)
                               (free-mu state 1)
                               (set-prop state side (get-card state (find-latest state card)) :rec-counter 1)
                               (flip-card state side (get-card state (find-latest state card)) flip-info)))}]}))
+
 (define-card "Mongoose"
   (auto-icebreaker {:implementation "Usage restriction is not implemented"
                     :abilities [(break-sub 1 2 "Sentry")
