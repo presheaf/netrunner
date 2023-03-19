@@ -262,6 +262,14 @@
                empty?))
      #(do (new-game s)
           (resume-sound))]
+    [cond-button "Leave all games"
+     (and (not (or @gameid (:editing @s)))
+          (->> @games
+               (mapcat :players)
+               (filter #(= (-> % :user :_id) (:_id @user)))
+               empty?
+               not))
+     #(ws/ws-send! [:lobby/leave-all])]
     [:div.rooms
      [room-tab user s games "competitive" "Competitive"]
      [room-tab user s games "casual" "Casual"]]]
