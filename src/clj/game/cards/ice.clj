@@ -3602,7 +3602,7 @@
                     :front-face-title "Foxtrot"
                     :back-face-title "Blockade"
                     :front-face-strength 4
-                    :back-face-strength 4
+                    :back-face-strength 5
                     :front-face-subtypes ["Sentry" "Tracer" "Observer"]
                     :back-face-subtypes ["Barrier"]
                     :front-face-subs [(tag-trace 4) (trace-ability 3 (do-meat-damage 2)) ]
@@ -3617,13 +3617,13 @@
                               (remove-subs! state side card)
                               (doseq [sub subs-to-add]
                                 (add-sub! state side (get-card state card) sub))))
-        flip-card-abi {:msg "flip this card"
-                       :label "flip itself"
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
                        :effect (effect (flip-card card flip-info)
                                        (set-subtypes-fn (get-card state card))
                                        (update-subs-fn (get-card state card)))}]
     {:implementation "Must be manually flipped by clicking the card"
-     ;; Card strength is 4 on both sides, so strength-bonus is unneeded here
+     :strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
      :abilities [flip-card-abi]
      ; Necessary if the card is flipped while derezzed
      :effect (req (update-subs-fn state side card))}))
