@@ -81,21 +81,6 @@
   ([cost qty args]
    (break-sub [:trash-from-hand cost "a label maybe"] qty nil args)))
 
-(defn flip-change-subtypes-strength
-  "new-types, old-types are both arrays"
-  [state side card new-types old-types]
-  (update! state side (assoc card
-                              ;; :subtype-target new-types   ;; This would be necessary for marking modified types in the frontend
-                             :subtype (apply combine-subtypes true
-                                                        (apply remove-subtypes (:subtype card) old-types)
-                                                        new-types)))
-  (update-ice-strength state side card))
-
-(defn flipped-ice-strength-toggle
-  [faceup-strength facedown-strength]
-  (req (if (:is-flipped card) (- facedown-strength faceup-strength) 0)))
-
-
 ;;; General subroutines
 (def end-the-run
   "Basic ETR subroutine"
@@ -3467,6 +3452,20 @@
                  (do-brain-damage 2)]
    :runner-abilities [(bioroid-break 2 2)]})
 
+(defn flip-change-subtypes
+  "new-types, old-types are both arrays"
+  [state side card new-types old-types]
+  (update! state side (assoc card
+                              ;; :subtype-target new-types   ;; This would be necessary for marking modified types in the frontend
+                             :subtype (apply combine-subtypes true
+                                                        (apply remove-subtypes (:subtype card) old-types)
+                                                        new-types)))
+  (update-ice-strength state side card))
+
+(defn flipped-ice-strength-toggle
+  [faceup-strength facedown-strength]
+  (req (if (:is-flipped card) (- facedown-strength faceup-strength) 0)))
+
 (define-card "Vulcan 1.0"
   (let [flip-info  {:front-face-code "51005"
                     :back-face-code "51005_flip"
@@ -3601,7 +3600,7 @@
   (let [flip-info  {:front-face-code "51013"
                     :back-face-code "51013_flip"
                     :front-face-title "Foxtrot"
-                    :back-face-title "Blockage"
+                    :back-face-title "Blockade"
                     :front-face-strength 4
                     :back-face-strength 4
                     :front-face-subtypes ["Sentry" "Tracer" "Observer"]
@@ -3624,10 +3623,6 @@
                                        (set-subtypes-fn (get-card state card))
                                        (update-subs-fn (get-card state card)))}]
     {:implementation "Must be manually flipped by clicking the card"
-     :on-encounter (assoc (give-tags 1)
-                          :req (req (and (:is-flipped card) (is-remote? (second (:zone card)))))
-                          :msg "give the runner 1 tag")
-
      ;; Card strength is 4 on both sides, so strength-bonus is unneeded here
      :abilities [flip-card-abi]
      ; Necessary if the card is flipped while derezzed

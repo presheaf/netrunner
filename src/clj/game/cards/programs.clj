@@ -2625,25 +2625,21 @@
               {:event :purge
                :effect (effect (move card :rfg))}]}))
 
+
 (define-card "Termite"
-  {:events [{:event :access
-             :once :per-run
-             :req (req (let [z (:zone target)]
-                         (and (not= (first z) :discard)          ; card is not in archives
-                              (or (#{:hand :deck} (first z))     ; card is inside HQ or R&D
-                                  (and (= :servers (first z))    ; card is in the root of HQ, R&D or Archives
-                                       (#{:hq :rd :archives} (second z))
-                                       (= :content (nth z 2)))))))
-             :async true
-             :effect (req (if (in-discard? target)
-                            (effect-completed state side eid)
-                            (do (when run
-                                  (swap! state assoc-in [:run :did-trash] true))
-                                (swap! state assoc-in [:runner :register :trashed-card] true)
-                                (system-msg state :runner
-                                            (str "uses Termite to trash " (:title target)
-                                                 " at no cost"))
-                                (trash state side eid target nil))))}]})
+  {:implementation "Ability requires user to press the button marked 'mandatory'"
+   :events [{:event :purge
+             :effect (req (swap! state update-in [:corp :register] dissoc :cannot-score)
+                          (move state side card :rfg))}]
+   :interactions {:access-ability {:label "Trash card (mandatory)"
+                                   :req (req (and (not (get-in @state [:per-run (:cid card)]))
+                                                  run
+                                                  (#{:hq :rd :archives} (first (:server run)))))
+                                   :msg (msg "trash " (:title target) " at no cost")
+                                   :once :per-run
+                                   :async true
+                                   :effect (effect (trash eid (assoc target :seen true) nil))}}})
+
 
 (define-card "Torch"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
