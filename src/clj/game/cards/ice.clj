@@ -81,6 +81,21 @@
   ([cost qty args]
    (break-sub [:trash-from-hand cost "a label maybe"] qty nil args)))
 
+(defn flip-change-subtypes-strength
+  "new-types, old-types are both arrays"
+  [state side card new-types old-types]
+  (update! state side (assoc card
+                              ;; :subtype-target new-types   ;; This would be necessary for marking modified types in the frontend
+                             :subtype (apply combine-subtypes true
+                                                        (apply remove-subtypes (:subtype card) old-types)
+                                                        new-types)))
+  (update-ice-strength state side card))
+
+(defn flipped-ice-strength-toggle
+  [faceup-strength facedown-strength]
+  (req (if (:is-flipped card) (- facedown-strength faceup-strength) 0)))
+
+
 ;;; General subroutines
 (def end-the-run
   "Basic ETR subroutine"
@@ -3452,3 +3467,168 @@
                  (do-brain-damage 2)]
    :runner-abilities [(bioroid-break 2 2)]})
 
+(define-card "Vulcan 1.0"
+  (let [flip-info  {:front-face-code "51005"
+                    :back-face-code "51005_flip"
+                    :front-face-title "Vulcan 1.0"
+                    :back-face-title "Mind Maze"
+                    :front-face-strength 5
+                    :back-face-strength 9
+                    :front-face-subtypes ["Sentry" "AP" "Bioroid"]
+                    :back-face-subtypes ["Code Gate"]
+                    :front-face-subs [(do-brain-damage 1) (do-brain-damage 1)]
+                    :back-face-subs [end-the-run]}
+        set-subtypes-fn (fn [state side card]
+                          ;; This is called after being flipped, so if the card now is facedown, it should have the back face subtypes
+                         (if (:is-flipped card)
+                           (flip-change-subtypes state side card (:back-face-subtypes flip-info) (:front-face-subtypes flip-info))
+                           (flip-change-subtypes state side card (:front-face-subtypes flip-info) (:back-face-subtypes flip-info))))
+        update-subs-fn (fn [state side card]
+                         (let [subs-to-add (if (:is-flipped card) (:back-face-subs flip-info) (:front-face-subs flip-info))]
+                              (remove-subs! state side card)
+                              (doseq [sub subs-to-add]
+                                (add-sub! state side (get-card state card) sub))))
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info)
+                                       (set-subtypes-fn (get-card state card))
+                                       (update-subs-fn (get-card state card)))}]
+    {:implementation "Must be manually flipped by clicking the card"
+     ;; :strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
+     :strength-bonus (req (if (:is-flipped card) (- (- (:back-face-strength flip-info) (:front-face-strength flip-info)) (count (:hand runner))) 0))
+     :abilities [flip-card-abi]
+     ; Necessary if the card is flipped while derezzed
+     :effect (req (update-subs-fn state side card))
+     :runner-abilities [(assoc (bioroid-break 1 1) ; TODO: not sure this req-ing works...
+                               :req (req (not (:is-flipped (get-card state card)))))]}))
+
+(define-card "Caterpillar"
+  (let [flip-info  {:front-face-code "51009"
+                    :back-face-code "51009_flip"
+                    :front-face-title "Caterpillar"
+                    :back-face-title "Monarch"
+                    :front-face-strength 2
+                    :back-face-strength 6
+                    :front-face-subtypes ["Mythic"]
+                    :back-face-subtypes ["Barrier" "AP"]
+                    :front-face-subs [{:label "Runner loses 1 [Credits]"
+                                       :msg "make the Runner lose 1 [Credits]"
+                                       :effect (effect (lose-credits :runner 1))}]
+                    :back-face-subs [(do-net-damage 1) end-the-run (do-net-damage 1)]}
+        set-subtypes-fn (fn [state side card]
+                          ;; This is called after being flipped, so if the card now is facedown, it should have the back face subtypes
+                         (if (:is-flipped card)
+                           (flip-change-subtypes state side card (:back-face-subtypes flip-info) (:front-face-subtypes flip-info))
+                           (flip-change-subtypes state side card (:front-face-subtypes flip-info) (:back-face-subtypes flip-info))))
+        update-subs-fn (fn [state side card]
+                         (let [subs-to-add (if (:is-flipped card) (:back-face-subs flip-info) (:front-face-subs flip-info))]
+                              (remove-subs! state side card)
+                              (doseq [sub subs-to-add]
+                                (add-sub! state side (get-card state card) sub))))
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info)
+                                       (set-subtypes-fn (get-card state card))
+                                       (update-subs-fn (get-card state card)))}]
+    {:strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
+     :abilities [flip-card-abi]
+     :events [{:event :corp-turn-begins
+               :req (req (not (:is-flipped card)))
+               :effect (req (add-counter state side card :power -1)
+                            (when (= 0 (get-counters (get-card state card) :power))
+                              (continue-ability state side flip-card-abi (get-card state card) nil)))}]
+     :flags {:cannot-lower-strength (req (:is-flipped (get-card state card)))}
+     ; Necessary if the card is flipped while derezzed
+     :effect (req (when (not (:is-flipped card))
+                    (add-counter state side card :power 3))
+                  (update-subs-fn state side (get-card state card)))}))
+
+(define-card "News Flash"
+  (let [etr-unless-runner-pay-per-tag   ; TODO: copy-paste of other stuff, but it's dynamic...
+        {:player :runner
+         :async true
+         :label (str "End the run unless the Runner pays 1 [Credits] per tag")
+         :prompt (str "End the run or pay 1 [Credits] per tag?")
+         :choices ["End the run"
+                   (str "Pay 1 [Credits] per tag")]
+         :effect (req (if (= "End the run" target)
+                        (do (system-msg state :corp
+                                        (str "uses " (:title card) " to end the run"))
+                            (end-run state :corp eid card))
+                        (wait-for (pay-sync state :runner card [:credit (count-tags state)])
+                                  (when async-result
+                                    (let [cost-str (str async-result
+                                                        " due to " (:title card)
+                                                        " subroutine")]
+                                      (system-msg state :runner cost-str)))
+                                  (effect-completed state side eid))))}
+        flip-info  {:front-face-code "51011"
+                    :back-face-code "51011_flip"
+                    :front-face-title "News Flash"
+                    :back-face-title "Star Treatment"
+                    :front-face-strength 2
+                    :back-face-strength 6
+                    :front-face-subtypes ["Code Gate" "Observer"]
+                    :back-face-subtypes ["Sentry" "Observer"]
+                    :front-face-subs [(end-the-run-unless-runner "takes 1 tag" "take 1 tag" (give-tags 1))
+                                      runner-loses-click]
+                    :back-face-subs [(give-tags 1) (give-tags 1) etr-unless-runner-pay-per-tag]}
+        set-subtypes-fn (fn [state side card]
+                          ;; This is called after being flipped, so if the card now is facedown, it should have the back face subtypes
+                         (if (:is-flipped card)
+                           (flip-change-subtypes state side card (:back-face-subtypes flip-info) (:front-face-subtypes flip-info))
+                           (flip-change-subtypes state side card (:front-face-subtypes flip-info) (:back-face-subtypes flip-info))))
+        update-subs-fn (fn [state side card]
+                         (let [subs-to-add (if (:is-flipped card) (:back-face-subs flip-info) (:front-face-subs flip-info))]
+                              (remove-subs! state side card)
+                              (doseq [sub subs-to-add]
+                                (add-sub! state side (get-card state card) sub))))
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info)
+                                       (set-subtypes-fn (get-card state card))
+                                       (update-subs-fn (get-card state card)))}]
+    {:strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
+     :abilities [flip-card-abi]
+     :events [(assoc flip-card-abi
+                     :event :corp-turn-begins
+                     :req (req (and tagged (not (:is-flipped card)))))]
+     ; Necessary if the card is flipped while derezzed
+     :effect (req (update-subs-fn state side card))}))
+
+
+(define-card "Foxtrot"
+  (let [flip-info  {:front-face-code "51013"
+                    :back-face-code "51013_flip"
+                    :front-face-title "Foxtrot"
+                    :back-face-title "Blockage"
+                    :front-face-strength 4
+                    :back-face-strength 4
+                    :front-face-subtypes ["Sentry" "Tracer" "Observer"]
+                    :back-face-subtypes ["Barrier"]
+                    :front-face-subs [(tag-trace 4) (trace-ability 3 (do-meat-damage 2)) ]
+                    :back-face-subs [end-the-run end-the-run end-the-run]}
+        set-subtypes-fn (fn [state side card]
+                          ;; This is called after being flipped, so if the card now is facedown, it should have the back face subtypes
+                         (if (:is-flipped card)
+                           (flip-change-subtypes state side card (:back-face-subtypes flip-info) (:front-face-subtypes flip-info))
+                           (flip-change-subtypes state side card (:front-face-subtypes flip-info) (:back-face-subtypes flip-info))))
+        update-subs-fn (fn [state side card]
+                         (let [subs-to-add (if (:is-flipped card) (:back-face-subs flip-info) (:front-face-subs flip-info))]
+                              (remove-subs! state side card)
+                              (doseq [sub subs-to-add]
+                                (add-sub! state side (get-card state card) sub))))
+        flip-card-abi {:msg "flip this card"
+                       :label "flip itself"
+                       :effect (effect (flip-card card flip-info)
+                                       (set-subtypes-fn (get-card state card))
+                                       (update-subs-fn (get-card state card)))}]
+    {:implementation "Must be manually flipped by clicking the card"
+     :on-encounter (assoc (give-tags 1)
+                          :req (req (and (:is-flipped card) (is-remote? (second (:zone card)))))
+                          :msg "give the runner 1 tag")
+
+     ;; Card strength is 4 on both sides, so strength-bonus is unneeded here
+     :abilities [flip-card-abi]
+     ; Necessary if the card is flipped while derezzed
+     :effect (req (update-subs-fn state side card))}))
