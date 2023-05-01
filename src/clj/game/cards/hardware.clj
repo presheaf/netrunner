@@ -1373,7 +1373,7 @@
   {:events [{:event :rez
              :req (req (and (ice? target)
                             run
-                            (< (:cost target 0) 5)))
+                            (< (:cost target 0) 4)))
              :msg (msg "trash Pineapple, suffer 1 brain damage, trash " (:title target) " and jack out")
              :async true
              :effect (req (wait-for (trash state side target nil)
