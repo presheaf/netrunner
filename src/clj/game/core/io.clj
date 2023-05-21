@@ -97,6 +97,7 @@
        (swap! state update-in [:sfx-current-id] inc)))))
 
 ;;; "ToString"-like methods
+;;; TODO: card-str needs to use the card-title function 
 (defn card-str
   "Gets a string description of an installed card, reflecting whether it is rezzed,
   in/protecting a server, facedown, or hosted."
