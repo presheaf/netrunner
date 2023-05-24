@@ -3024,3 +3024,25 @@
 
              :msg "add Connect the Dots to their hand from their discard pile"
              :effect (req (move state side card :hand))}]})
+
+
+(define-card "Hit and Run"
+  {:async true
+   :makes-run true
+   :msg "draw a card and make a run on HQ"
+   :effect (req (wait-for (draw state side 1 nil)
+                          (make-run state side eid :hq nil card)))
+   :interactions {:access-ability {:label "Trash at no cost"
+                                   :req (req (and (not (get-in @state [:per-run (:cid card)]))
+                                                  run
+                                                  (= :rd (first (:server run)))))
+                                   :msg (msg "trash " (:title target) " at no cost")
+                                   :once :per-run
+                                   :async true
+                                   :effect (effect (trash eid (assoc target :seen true) nil))}}
+   :events [{:event :agenda-scored
+             :location :discard
+             :condition :in-discard
+
+             :msg "add Hit and Run to their hand from their discard pile"
+             :effect (req (move state side card :hand))}]})

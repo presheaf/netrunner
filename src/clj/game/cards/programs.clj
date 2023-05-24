@@ -2629,12 +2629,12 @@
 (define-card "Termite"
   {:implementation "Ability requires user to press the button marked 'mandatory'"
    :events [{:event :purge
-             :effect (req (swap! state update-in [:corp :register] dissoc :cannot-score)
-                          (move state side card :rfg))}]
+             :async true
+             :effect (effect (trash eid card {:cause :purge}))}]
    :interactions {:access-ability {:label "Trash card (mandatory)"
                                    :req (req (and (not (get-in @state [:per-run (:cid card)]))
                                                   run
-                                                  (#{:hq :rd :archives} (first (:server run)))))
+                                                  (= :rd (first (:server run)))))
                                    :msg (msg "trash " (:title target) " at no cost")
                                    :once :per-run
                                    :async true
