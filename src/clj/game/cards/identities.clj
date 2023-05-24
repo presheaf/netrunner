@@ -1558,17 +1558,32 @@
         {:effect (req (update! state side (assoc-in (get-card state card) [:special :trash-next-card-accessed] true))
                       (effect-completed state side eid))}
 
-        counter-on-virus-ab
-        {:prompt "Choose a virus to place a virus counter on"
-         :choices {:req (req (and (runner? target)
-                                  (installed? target)
-                                  (has-subtype? target "Virus")))}
-         :effect (effect (add-counter (get-card state card) :power -6)
-                         (add-counter target :virus 1))
-         :cancel-effect (effect (add-counter (get-card state card) :power -6)
+        ab-labels ["Gain 1 [Credit]"
+                   "Draw a card"
+                   "Take 1 net damage and gain [Click]"
+                   "Make the Corp lose 1 [Credit]"
+                   "Trash the next card accessed"]
+
+        choose-other-ab-ab
+        {:prompt "Which ability to resolve?"
+         :choices ab-labels
+         :async true
+         :effect (effect (add-counter (get-card state card) :power (- (get-counters (get-card state card) :power)))
+                         (continue-ability
+                          (condp = target
+                            (nth ab-labels 0) gain-credit-ab
+                            (nth ab-labels 1) draw-card-ab
+                            (nth ab-labels 2) take-net-for-click-ab
+                            (nth ab-labels 3) corp-loses-cred-ab
+                            (nth ab-labels 4) next-card-trashed-ab
+                            ;; should never happen...
+                            :default {:effect (effect (effect-completed eid))})
+                          (get-card state card) nil))
+
+         :cancel-effect (effect (add-counter (get-card state card) :power (- (get-counters (get-card state card) :power)))
                                 (effect-completed eid))}]
     {:events [{:event :successful-run
-               ;; TODO: also need to check that this is actually the first time each turn here
+               ;; TODO: check that this is actually the first time each turn here in case of cerebral static/rebirth
                :once :per-turn
                :req (req (or (= target :hq)
                              (= target :rd)))
@@ -1580,7 +1595,7 @@
                         (add-counter state side card :power 1)
                         (let [num-counters (get-counters (get-card state card) :power)]
                           (if (> num-counters 6)
-                            ;; TODO: fix the virus counter ability not clearing counters if there are no viruses
+                            ;; should not be needed, but who knows?
                             (add-counter state side (get-card state card) :power (- 1 num-counters))))
                         (continue-ability state side
                                           (case (get-counters (get-card state card) :power)
@@ -1589,7 +1604,7 @@
                                             3 take-net-for-click-ab
                                             4 corp-loses-cred-ab
                                             5 next-card-trashed-ab
-                                            6 counter-on-virus-ab
+                                            6 choose-other-ab-ab
                                             ;; default should never happen...
                                             {:effect (effect (effect-completed eid))})
                                           (get-card state card) nil))}
