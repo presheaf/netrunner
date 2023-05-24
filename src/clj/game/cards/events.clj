@@ -3034,8 +3034,7 @@
                           (make-run state side eid :hq nil card)))
    :interactions {:access-ability {:label "Trash at no cost"
                                    :req (req (and (not (get-in @state [:per-run (:cid card)]))
-                                                  run
-                                                  (= :rd (first (:server run)))))
+                                                  run))
                                    :msg (msg "trash " (:title target) " at no cost")
                                    :once :per-run
                                    :async true
