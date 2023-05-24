@@ -3533,13 +3533,13 @@
      :abilities [flip-card-abi]
      :events [{:event :corp-turn-begins
                :req (req (not (:is-flipped card)))
-               :effect (req (add-counter state side card :power -1)
-                            (when (= 0 (get-counters (get-card state card) :power))
+               :effect (req (add-counter state side card :advancement -1)
+                            (when (= 0 (get-counters (get-card state card) :advancement))
                               (continue-ability state side flip-card-abi (get-card state card) nil)))}]
      :flags {:cannot-lower-strength (req (:is-flipped (get-card state card)))}
      ; Necessary if the card is flipped while derezzed
      :effect (req (when (not (:is-flipped card))
-                    (add-counter state side card :power 3))
+                    (add-counter state side card :advancement 3))
                   (update-subs-fn state side (get-card state card)))}))
 
 (define-card "News Flash"
