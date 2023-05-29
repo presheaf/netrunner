@@ -3046,31 +3046,40 @@
              :msg "add Hit and Run to their hand from their discard pile"
              :effect (req (move state side card :hand))}]})
 
-
-(define-card "Warm-up Run"
-  {;; :async true
-   ;; :makes-run true
-   :msg "warm-up"
-   :effect (req
-            ;; (println (str "Old card: " (:type card) card ))
-            (update! state side (assoc card
-                               :type "Program"
-                               :memoryunits 1))
-            (let [new-card (get-card state card)]
-              ;; (println (str "New card: " (:type new-card) new-card ))
-              (wait-for (runner-install state side (make-eid state {:source new-card :source-type :runner-install})
-                                        new-card {:no-install-effect true})
-                        (println (str async-result))
-                        (if async-result
-                          (let [installed-card async-result]
-                            ;; (println (str "Newest card: " (:type installed-card) installed-card ))
-                            (add-counter state side installed-card :credit 6)
-                            (effect-completed state side eid))
-                          (effect-completed state side eid)))))
-
-   :interactions {:pay-credits {:req (req (or (and (= :runner-install (:source-type eid))
-                                                   (has-subtype? target "Icebreaker")
-                                                   (program? target))
-                                              (and (= :ability (:source-type eid))
-                                                   (has-subtype? target "Icebreaker"))))
-                                :type :credit}}})
+(define-card "Futureproofing"
+  (let [flip-info  {:front-face-code "51025"
+                    :back-face-code "51025_flip"
+                    :front-face-title "Futureproofing"
+                    :back-face-title "Epiph4ny"}]
+    {:leave-play (req (ensure-unflipped state side card flip-info))
+     :makes-run true
+     :prompt "Choose a server"
+     :choices ["HQ" "R&D"]
+     :async true
+     :effect (effect (make-run eid target nil card))
+     :events [{:async true
+               :event :run-ends
+               :req (req (and (not (:is-flipped (get-card state card)))
+                              (:successful target)
+                              (#{:rd :hq} (first (:server target)))))
+               :msg "flip and install itself"
+               :effect (req (let [card (get-card state card)]
+                              (update! state side (assoc card
+                                                         :type "Program"
+                                                         :memoryunits 1))
+                              (let [new-card (get-card state card)]
+                                (wait-for (runner-install state side (make-eid state {:source new-card :source-type :runner-install})
+                                                          new-card {:no-install-effect true
+                                                                    :ignore-all-cost true})
+                                          (if async-result
+                                            (let [installed-card async-result]
+                                              (add-counter state side installed-card :credit 6)
+                                              (flip-card state side (get-card state installed-card) flip-info)
+                                              (effect-completed state side eid))
+                                            (effect-completed state side eid))))))}]
+     :interactions {:pay-credits {:req (req (or (and (= :runner-install (:source-type eid))
+                                                     (has-subtype? target "Icebreaker")
+                                                     (program? target))
+                                                (and (= :ability (:source-type eid))
+                                                     (has-subtype? target "Icebreaker"))))
+                                  :type :credit}}}))
