@@ -1369,7 +1369,7 @@
                         nil nil)))
        :type :custom}}}))
 
-(define-card "Pineapple"
+(define-card "P4inappl3"
   {:events [{:event :rez
              :req (req (and (ice? target)
                             run
