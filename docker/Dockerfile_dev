@@ -3,7 +3,7 @@ FROM clojure:lein-alpine as builder
 RUN apk --no-cache add \
     git \
     nodejs \
-    nodejs-npm
+    npm
 
 RUN npm install -g bower stylus
 
