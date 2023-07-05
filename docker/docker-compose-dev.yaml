@@ -1,5 +1,7 @@
 version: '3'
 
+# see .env.example for environment variable setup
+
 services:
   jnet_dev:
     build:
@@ -7,10 +9,10 @@ services:
       dockerfile: docker/Dockerfile_dev
     volumes:
       - ./config.edn:/netrunner/config.edn
-      - /path/to/netrunner/src:/netrunner/src
-      - /path/to/netrunner/data:/netrunner/data
-      - /path/to/netrunner-data:/netrunner-data
-      - /path/to/netrunner/resources/public/img/cards:/netrunner/resources/public/img/cards
+      - ${NETRUNNER}/src:/netrunner/src
+      - ${NETRUNNER}/data:/netrunner/data
+      - ${NETRUNNER}/resources/public/img/cards:/netrunner/resources/public/img/cards
+      - ${NETRUNNER_DATA}:/netrunner-data
     networks:
       - db_network
     depends_on:
@@ -18,13 +20,14 @@ services:
     ports:
       - 1042:1042               # jinteki port
       - 42053:42053             # lein repl port
+
   # jnet_card_fetch:   # only needs to run once unless you want to change stuff
   #   build:
   #     context: ../
   #     dockerfile: docker/Dockerfile_fetch
   #   volumes:
   #     - ./config.edn:/netrunner/config.edn
-  #     - /path/to/netrunner-data/edn/:/netrunner/edn/
+  #     - ${NETRUNNER_DATA}/edn/:/netrunner/edn/
   #   networks:
   #     - db_network
   #   depends_on:
@@ -35,7 +38,7 @@ services:
     networks:
       - db_network
     volumes:
-      - /home/karlerik/scratch/jinteki_dev_mongodb_dir:/data/db 
+      - ${MONGODB_DIR}:/data/db
 
 networks:
   db_network:

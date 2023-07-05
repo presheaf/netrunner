@@ -41,3 +41,7 @@ data/WiredTiger
 data/diagnostic.data
 data/journal
 data/storage.bson
+
+# local development environment variables
+# see ./docker/.env.example
+/docker/.env
