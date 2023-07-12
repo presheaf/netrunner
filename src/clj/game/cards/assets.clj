@@ -247,13 +247,13 @@
   {:effect (effect (lock-zone (:cid card) :runner :discard))
    :leave-play (effect (release-zone (:cid card) :runner :discard))})
 
-(define-card "Brain Campaign"
+(define-card "Nootropics Campaign"
   (let [ability {:async true
                  :interactive (req true)
                  :req (req (> (count (:hand corp)) (+ 2 (count (:hand runner)))))
                  :effect (effect (continue-ability
                                    {:optional
-                                    {:prompt "Use Brain Campaign to draw 1 card?"
+                                    {:prompt "Use Nootropics Campaign to draw 1 card?"
                                      :yes-ability {:async true
                                                    :msg "draw 1 card"
                                                    :effect (effect (draw eid 1 nil))}}}
@@ -265,12 +265,12 @@
                :interactive (req true)
                :async true
                :effect (req (gain-credits state :corp 1)
-                            (system-msg state :corp " uses Brain Campaign to gain 1[Credit]")
+                            (system-msg state :corp " uses Nootropics Campaign to gain 1[Credit]")
                             (if (> (count (:hand corp)) (+ 2 (count (:hand runner))))
                               (continue-ability
                                state side
                                {:optional
-                                {:prompt "Use Brain Campaign to draw 1 card?"
+                                {:prompt "Use Nootropics Campaign to draw 1 card?"
                                  :yes-ability {:async true
                                                :msg "draw 1 card"
                                                :effect (effect (draw eid 1 nil))}}}
