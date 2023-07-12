@@ -3455,8 +3455,14 @@
                        :effect (effect (flip-card card flip-info)
                                        (set-subtypes-fn (get-card state card))
                                        (update-subs-fn (get-card state card)))}]
-    {:implementation "Must be manually flipped by clicking the card"
+    {:implementation "Can (but shouldn't need to) be manually flipped by clicking the card"
      ;; :strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
+     :events [{:event :pass-ice
+               :req (req (and (not (:is-flipped target))
+                              (same-card? card target)
+                              (empty? (remove :broken (:subroutines target)))))
+               :async true
+               :effect (effect (continue-ability flip-card-abi (get-card state card) nil))}]
      :strength-bonus (req (if (:is-flipped card) (- (- (:back-face-strength flip-info) (:front-face-strength flip-info)) (count (:hand runner))) 0))
      :abilities [flip-card-abi]
      ; Necessary if the card is flipped while derezzed
