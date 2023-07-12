@@ -439,12 +439,21 @@
                   :effect flip-effect}]}))
 
 (define-card "Echo Memvaults: Reality Reimagined"
-  {:effect (req (swap! state assoc-in [:special :cannot-flatline] true))
-   :events [{:event :runner-turn-ends
-             :req (req (= (:turn @state) 1))
-             :async true
-             :msg "do 2 brain damage"
-             :effect (effect (damage eid :brain 2 {:card card}))}]})
+  ;; Note: When flipped, this should gain the "Digital" subtype, but no cards care.
+  (let [flip-info  {:front-face-code "51001"
+                    :back-face-code "51001_flip"
+                    :front-face-title "Echo Memvaults: Reality Reimagined"
+                    :back-face-title "Echo Memvaults: Reality Reimagined"}
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info))}]
+    {:events [{:event :runner-turn-ends
+               :req (req (not (:is-flipped card)))
+               :async true
+               :msg "do 2 brain damage and flip itself"
+               :effect (req (wait-for (damage state side :brain 2 {:unpreventable true :card card}))
+                            (swap! state assoc-in [:special :cannot-flatline] true)
+                            (continue-ability state side flip-card-abi (get-card state card) nil))}]}))
 
 (define-card "Edward Kim: Humanity's Hammer"
   {:events [{:event :access
