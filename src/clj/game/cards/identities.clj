@@ -386,6 +386,7 @@
 (define-card "Custom Biotics: Engineered for Success"
   ;; No special implementation
   {})
+
 (define-card "Cybernetics Division: Humanity Upgraded"
   {:effect (effect (lose :hand-size 1)
                    (lose :runner :hand-size 1))
@@ -436,6 +437,23 @@
                   :cost [:click 1]
                   :msg "flip their identity to Earth Station: Ascending to Orbit"
                   :effect flip-effect}]}))
+
+(define-card "Echo Memvaults: Reality Reimagined"
+  ;; Note: When flipped, this should gain the "Digital" subtype, but no cards care.
+  (let [flip-info  {:front-face-code "51001"
+                    :back-face-code "51001_flip"
+                    :front-face-title "Echo Memvaults: Reality Reimagined"
+                    :back-face-title "Echo Memvaults: Reality Reimagined"}
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info))}]
+    {:events [{:event :runner-turn-ends
+               :req (req (not (:is-flipped card)))
+               :async true
+               :msg "do 2 brain damage and flip itself"
+               :effect (req (wait-for (damage state side :brain 2 {:unpreventable true :card card}))
+                            (swap! state assoc-in [:special :cannot-flatline] true)
+                            (continue-ability state side flip-card-abi (get-card state card) nil))}]}))
 
 (define-card "Edward Kim: Humanity's Hammer"
   {:events [{:event :access
@@ -1523,6 +1541,101 @@
                                   (shuffle! state side :deck))
                               (do (system-msg state side (str "fails to find a target for The Foundry, and shuffles their deck"))
                                   (shuffle! state side :deck))))}}}]})
+
+
+(define-card "The Horde: Defiant Disenfrancistos"
+  (let [gain-credit-ab
+        {:effect (effect (gain-credits 1))
+         :msg "gain 1 [Credit]"}
+
+        draw-card-ab
+        {:effect (effect (draw eid 1 nil))
+         :async true
+         :msg "draw a card"}
+
+        take-net-for-click-ab
+        {:effect (effect (gain :click 1)
+                         (damage eid :net 1 {:card (get-card state card)}))
+         :async true
+         :msg "take 1 net damage and gain [Click]"}
+
+        corp-loses-cred-ab
+        {:effect (effect (lose-credits :corp 1))
+         :msg "make the Corp lose 1 [Credit]"}
+
+        next-card-trashed-ab
+        {:effect (req (update! state side (assoc-in (get-card state card) [:special :trash-next-card-accessed] true))
+                      (effect-completed state side eid))}
+
+        ab-labels ["Gain 1 [Credit]"
+                   "Draw a card"
+                   "Take 1 net damage and gain [Click]"
+                   "Make the Corp lose 1 [Credit]"
+                   "Trash the next card accessed"]
+
+        choose-other-ab-ab
+        {:prompt "Which ability to resolve?"
+         :choices ab-labels
+         :async true
+         :effect (effect (add-counter (get-card state card) :power (- (get-counters (get-card state card) :power)))
+                         (continue-ability
+                          (condp = target
+                            (nth ab-labels 0) gain-credit-ab
+                            (nth ab-labels 1) draw-card-ab
+                            (nth ab-labels 2) take-net-for-click-ab
+                            (nth ab-labels 3) corp-loses-cred-ab
+                            (nth ab-labels 4) next-card-trashed-ab
+                            ;; should never happen...
+                            :default {:effect (effect (effect-completed eid))})
+                          (get-card state card) nil))
+
+         :cancel-effect (effect (add-counter (get-card state card) :power (- (get-counters (get-card state card) :power)))
+                                (effect-completed eid))}]
+    {:events [{:event :successful-run
+               ;; TODO: check that this is actually the first time each turn here in case of cerebral static/rebirth
+               :once :per-turn
+               :req (req (or (= target :hq)
+                             (= target :rd)))
+
+               :msg "place 1 power counter on The Horde: Defiant Disenfrancistos and resolve the associated effect."
+               :async true
+
+               :effect (req
+                        (add-counter state side card :power 1)
+                        (let [num-counters (get-counters (get-card state card) :power)]
+                          (if (> num-counters 6)
+                            ;; should not be needed, but who knows?
+                            (add-counter state side (get-card state card) :power (- 1 num-counters))))
+                        (continue-ability state side
+                                          (case (get-counters (get-card state card) :power)
+                                            1 gain-credit-ab
+                                            2 draw-card-ab
+                                            3 take-net-for-click-ab
+                                            4 corp-loses-cred-ab
+                                            5 next-card-trashed-ab
+                                            6 choose-other-ab-ab
+                                            ;; default should never happen...
+                                            {:effect (effect (effect-completed eid))})
+                                          (get-card state card) nil))}
+
+              ;; auto-trash is handled in a kinda hacky way - the ability sets a special key, run-ends always clears it, and the access ability checks for it (and is once-per turn so it doesn't have to clear)
+              {:event :run-ends
+               :effect (req (update! state side (dissoc-in (get-card state card) [:special :trash-next-card-accessed])))}
+              {:event :access
+               :once :per-run
+               :req (req (get-in (get-card state card) [:special :trash-next-card-accessed]))
+               :async true
+               :effect (req (if (in-discard? target)
+                              (effect-completed state side eid)
+                              (do (when run
+                                    (swap! state assoc-in [:run :did-trash] true))
+                                  (swap! state assoc-in [:runner :register :trashed-card] true)
+                                  (system-msg state :runner
+                                              (str "uses The Horde: Defiant Disenfrancistos to"
+                                                   " trash " (:title target)
+                                                   " at no cost"))
+                                  (trash state side eid target nil))))}]}))
+
 
 (define-card "The Masque: Cyber General"
   {:events [{:event :pre-start-game

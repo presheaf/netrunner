@@ -62,15 +62,16 @@
 
 (defn lose [state side & args]
   (doseq [[cost-type amount] (partition 2 args)]
-    (if (= amount :all)
-      (do (swap! state assoc-in [side cost-type] 0)
-          (swap! state update-in [:stats side :lose cost-type] (fnil + 0) (get-in @state [side cost-type])))
-      (do (when (number? amount)
-            (swap! state update-in [:stats side :lose cost-type] (fnil + 0) amount))
-          (deduct state side [cost-type amount])))
-    (trigger-event state side (if (= side :corp) :corp-lose :runner-lose) [cost-type amount])))
+    (let [actual-amount (get-in @state [side cost-type])]
+      (if (= amount :all)
+        (do (swap! state update-in [:stats side :lose cost-type] (fnil + 0) actual-amount)
+            (swap! state assoc-in [side cost-type] 0))
+        (do (when (number? amount)
+              (swap! state update-in [:stats side :lose cost-type] (fnil + 0) amount))
+            (deduct state side [cost-type amount])))
+      (when (or (not (number? actual-amount)) (> actual-amount 0))
+        (trigger-event state side (if (= side :corp) :corp-lose :runner-lose) [cost-type amount])))))
 
-;;; TODO: this is really "pay", but the cost paying function unfortunately uses lose, so until this is properly cleared up
 (defn lose-no-event [state side & args]
   (doseq [[cost-type amount] (partition 2 args)]
     (if (= amount :all)

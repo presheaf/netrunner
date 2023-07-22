@@ -2132,9 +2132,9 @@
                  card nil))}]})
 
 (define-card "Process Automation"
-  {:msg "gain 2 [Credits] and draw 1 card"
+  {:msg "gain 3 [Credits] and draw 1 card"
    :async true
-   :effect (effect (gain-credits 2)
+   :effect (effect (gain-credits 3)
                    (draw eid 1 nil))})
 
 (define-card "Push Your Luck"
@@ -2314,6 +2314,11 @@
                             (continue-ability state side
                                               (put-down async-result)
                                               card nil)))}))
+(define-card "Repurpose"
+  {:additional-cost [:installed 3]
+   :async true
+   :msg "draw 7 cards"
+   :effect (effect (draw eid 7 nil))})
 
 (define-card "Reshape"
   {:prompt "Select two non-rezzed ICE to swap positions"
@@ -2609,6 +2614,21 @@
    :effect (effect (trigger-event :searched-stack nil)
                    (shuffle! :deck)
                    (move target :hand))})
+
+(define-card "Special Access"
+  {:prompt "Choose a cloud icebreaker"
+   :choices (req (cancellable (filter #(and (has-subtype? % "Icebreaker") (has-subtype? % "Cloud")) (:deck runner)) :sorted))
+   :async true
+   :msg (msg "install " (:title target) " from their stack with +1 strength")
+   :constant-effects [{:type :breaker-strength
+                       :req (req (same-card? target (:host card)))
+                       :value 1}]
+   :effect (req (trigger-event state side :searched-stack nil)
+                (shuffle! state side :deck)
+                (wait-for (runner-install state side (make-eid state {:source card :source-type :runner-install}) target nil)
+                          ;; get-card gets the zone wrong here, but find-latest doesn't
+                          (host state side (find-latest state target) (assoc (get-card state card) :condition true))
+                          (effect-completed state side eid)))})
 
 (define-card "Spooned"
   (cutlery "Code Gate"))
@@ -3004,3 +3024,62 @@
 
              :msg "add Connect the Dots to their hand from their discard pile"
              :effect (req (move state side card :hand))}]})
+
+
+(define-card "For the Laughs"
+  {:async true
+   :makes-run true
+   :msg "draw a card and make a run on HQ"
+   :effect (req (wait-for (draw state side 1 nil)
+                          (make-run state side eid :hq nil card)))
+   :interactions {:access-ability {:label "Trash at no cost"
+                                   :req (req (and (not (get-in @state [:per-run (:cid card)]))
+                                                  run))
+                                   :msg (msg "trash " (:title target) " at no cost")
+                                   :once :per-run
+                                   :async true
+                                   :effect (effect (trash eid (assoc target :seen true) nil))}}
+   :events [{:event :agenda-scored
+             :location :discard
+             :condition :in-discard
+
+             :msg "add For the Laughs to their hand from their discard pile"
+             :effect (req (move state side card :hand))}]})
+
+(define-card "Futureproofing"
+  (let [flip-info  {:front-face-code "51025"
+                    :back-face-code "51025_flip"
+                    :front-face-title "Futureproofing"
+                    :back-face-title "Epiph4ny"}]
+    {:leave-play (req (ensure-unflipped state side card flip-info))
+     :makes-run true
+     :prompt "Choose a server"
+     :choices ["HQ" "R&D"]
+     :async true
+     :effect (effect (make-run eid target nil card))
+     :events [{:async true
+               :event :run-ends
+               :req (req (and (not (:is-flipped (get-card state card)))
+                              (:successful target)
+                              (#{:rd :hq} (first (:server target)))))
+               :msg "flip and install itself"
+               :effect (req (let [card (get-card state card)]
+                              (update! state side (assoc card
+                                                         :type "Program"
+                                                         :memoryunits 1))
+                              (let [new-card (get-card state card)]
+                                (wait-for (runner-install state side (make-eid state {:source new-card :source-type :runner-install})
+                                                          new-card {:no-install-effect true
+                                                                    :ignore-all-cost true})
+                                          (if async-result
+                                            (let [installed-card async-result]
+                                              (add-counter state side installed-card :credit 6)
+                                              (flip-card state side (get-card state installed-card) flip-info)
+                                              (effect-completed state side eid))
+                                            (effect-completed state side eid))))))}]
+     :interactions {:pay-credits {:req (req (or (and (= :runner-install (:source-type eid))
+                                                     (has-subtype? target "Icebreaker")
+                                                     (program? target))
+                                                (and (= :ability (:source-type eid))
+                                                     (has-subtype? target "Icebreaker"))))
+                                  :type :credit}}}))

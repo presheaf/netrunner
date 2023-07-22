@@ -538,6 +538,7 @@
 
 (define-card "Bishop"
   {:abilities [{:cost [:click 1]
+                :async true
                 :effect (req (let [b (get-card state card)
                                    hosted? (ice? (:host b))
                                    remote? (is-remote? (second (:zone (:host b))))]
@@ -560,7 +561,8 @@
                                                           (not-any? (fn [c] (has-subtype? c "Caïssa"))
                                                                     (:hosted %))))}
                                   :msg (msg "host it on " (card-str state target))
-                                  :effect (effect (host target (get-card state card)))}
+                                  :effect (effect (host target (get-card state card))
+                                                  (effect-completed eid))}
                                  card nil)))}]
    :constant-effects [{:type :ice-strength
                        :req (req (and (= (:cid target)
@@ -640,6 +642,12 @@
 
 (define-card "Cerberus \"Rex\" H2"
   (power-counter-break "Code Gate"))
+
+(define-card "Walrus"
+  (auto-icebreaker {:data {:counter {:power 2}}
+                    :abilities [(strength-pump 1 1)
+                                (break-sub 3 0 "Barrier")
+                                (break-sub [:power 1] 1 ["AP" "Destroyer"] {:break-label "AP or Destroyer"})]}))
 
 (define-card "Chakana"
   {:leave-play (effect (update-all-advancement-costs))
@@ -1597,10 +1605,11 @@
   (let [knight-req (req (and (same-card? current-ice (get-nested-host card))
                              (<= (get-strength current-ice) (get-strength card))))]
     {:abilities [{:label "Host Knight on a piece of ICE"
+                  :async true
                   :effect (req (let [k (get-card state card)
                                      hosted (ice? (:host k))
                                      icepos (ice-index state (get-card state (:host k)))]
-                                 (resolve-ability
+                                 (continue-ability
                                    state side
                                    {:prompt (msg "Host Knight on a piece of ICE"
                                                  (when hosted " not before or after the current host ICE"))
@@ -1618,7 +1627,8 @@
                                                             (can-host? %)
                                                             (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
                                     :msg (msg "host it on " (card-str state target))
-                                    :effect (effect (host target (get-card state card)))} card nil)))}
+                                    :effect (effect (host target (get-card state card))
+                                                    (effect-completed eid))} card nil)))}
                  (break-sub 2 1 "All" {:req knight-req})]}))
 
 (define-card "Kyuban"
@@ -1819,6 +1829,7 @@
                     :back-face-title "Blaze"}]
     {; molotov is supposed to be 0 MU when flipped, which we make work by freeing a MU on flip, so de-free it now
      :leave-play (req (when (:is-flipped card)
+                        ;; if the card is flipped, the engine erroneously thinks it is spending 1 MU
                         (use-mu state 1))
                       (ensure-unflipped state side card flip-info))
      :recurring (req (when (:is-flipped (find-latest state card))
@@ -2082,6 +2093,7 @@
                     (host state side next-ice card)))}
         trash-and-install-ab
         {:async true
+         :implementation "Trash is implemented as happening after install, which can cause problems with Caissa install restrictions. Pawn can be trashed manually to avoid this."
          :effect (req (wait-for (resolve-ability  ; the trash should really happen simultaneously, but this ordering prevents the picking the same pawn
                                  state side
                                  {:prompt "Choose a Caïssa program to install from your Grip or Heap"
@@ -2097,7 +2109,6 @@
                :req (req (ice? (:host card)))   ;is hosted on a piece of ice
                :async true
                :effect (req
-                        ;; (system-msg state side " pawn event triggred")
                         (continue-ability state side
                                           (if (pos? (:index (:host card)))
                                             advance-ab
@@ -2336,28 +2347,31 @@
 
 (define-card "Rook"
   {:abilities [{:cost [:click 1]
+                :async true
                 :effect (req (let [r (get-card state card)
                                    hosted? (ice? (:host r))
                                    icepos (ice-index state (get-card state (:host r)))]
-                               (resolve-ability
-                                 state side
-                                 {:prompt (if hosted?
-                                            (msg "Host Rook on a piece of ICE protecting this server or at position "
-                                                 icepos " of a different server")
-                                            (msg "Host Rook on a piece of ICE protecting any server"))
-                                  :choices {:card #(if hosted?
-                                                     (and (or (= (:zone %) (:zone (:host r)))
-                                                              (= (ice-index state %) icepos))
-                                                          (= (last (:zone %)) :ices)
-                                                          (ice? %)
-                                                          (can-host? %)
-                                                          (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %)))
-                                                     (and (ice? %)
-                                                          (can-host? %)
-                                                          (= (last (:zone %)) :ices)
-                                                          (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
-                                  :msg (msg "host it on " (card-str state target))
-                                  :effect (effect (host target (get-card state card)))} card nil)))}]
+                               (continue-ability
+                                state side
+                                {:prompt (if hosted?
+                                           (msg "Host Rook on a piece of ICE protecting this server or at position "
+                                                icepos " of a different server")
+                                           (msg "Host Rook on a piece of ICE protecting any server"))
+                                 :choices {:card #(if hosted?
+                                                    (and (or (= (:zone %) (:zone (:host r)))
+                                                             (= (ice-index state %) icepos))
+                                                         (= (last (:zone %)) :ices)
+                                                         (ice? %)
+                                                         (can-host? %)
+                                                         (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %)))
+                                                    (and (ice? %)
+                                                         (can-host? %)
+                                                         (= (last (:zone %)) :ices)
+                                                         (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
+                                 :async true
+                                 :msg (msg "host it on " (card-str state target))
+                                 :effect (effect (host target (get-card state card))
+                                                 (effect-completed eid))} card nil)))}]
    :constant-effects [{:type :rez-cost
                        :req (req (and (ice? target)
                                       (= (:zone (:host card)) (:zone target))))
@@ -2483,6 +2497,13 @@
                                                 :effect (effect (jack-out eid))}
                                   :no-ability {:msg "continue the run"}}}
                                 card nil)))}}}]})
+
+(define-card "Sniper"
+  (auto-icebreaker
+   {:strength-bonus (req (if (and run (has-subtype? (:initiating-card run) "Run")) 3 0))
+    :abilities [(break-sub 1 2 "Sentry" {:req (req (and run (has-subtype? (:initiating-card run) "Run")))})
+                (break-sub 1 1 "Sentry")
+                (strength-pump 3 1)]}))
 
 (define-card "Snowball"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Barrier"
@@ -2611,6 +2632,22 @@
      :events [(assoc ability :event :runner-turn-begins)
               {:event :purge
                :effect (effect (move card :rfg))}]}))
+
+
+(define-card "Termite"
+  {:implementation "Ability requires user to press the button marked 'mandatory'"
+   :events [{:event :purge
+             :async true
+             :effect (effect (trash eid card {:cause :purge}))}]
+   :interactions {:access-ability {:label "Trash card (mandatory)"
+                                   :req (req (and (not (get-in @state [:per-run (:cid card)]))
+                                                  run
+                                                  (= :rd (first (:server run)))))
+                                   :msg (msg "trash " (:title target) " at no cost")
+                                   :once :per-run
+                                   :async true
+                                   :effect (effect (trash eid (assoc target :seen true) nil))}}})
+
 
 (define-card "Torch"
   (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
@@ -2780,11 +2817,3 @@
   (cloud-icebreaker
    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
                                   (strength-pump 1 1)]})))
-
-
-(define-card "Sniper"
-  (auto-icebreaker
-   {:strength-bonus (req (if (and run (has-subtype? (:initiating-card run) "Run")) 3 0))
-    :abilities [(break-sub 1 0 "Sentry" {:req (req (and run (has-subtype? (:initiating-card run) "Run")))})
-                (break-sub 1 1 "Sentry")
-                (strength-pump 3 1)]}))

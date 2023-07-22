@@ -247,6 +247,36 @@
   {:effect (effect (lock-zone (:cid card) :runner :discard))
    :leave-play (effect (release-zone (:cid card) :runner :discard))})
 
+(define-card "Nootropics Campaign"
+  (let [ability {:async true
+                 :interactive (req true)
+                 :req (req (> (count (:hand corp)) (+ 2 (count (:hand runner)))))
+                 :effect (effect (continue-ability
+                                   {:optional
+                                    {:prompt "Use Nootropics Campaign to draw 1 card?"
+                                     :yes-ability {:async true
+                                                   :msg "draw 1 card"
+                                                   :effect (effect (draw eid 1 nil))}}}
+                                   card nil))}]
+    {:derezzed-events [corp-rez-toast]
+     :flags {:corp-phase-12 (req true)}
+     :events [{:event :corp-turn-begins
+               :req (req (> (count (:hand corp)) (count (:hand runner))))
+               :interactive (req true)
+               :async true
+               :effect (req (gain-credits state :corp 1)
+                            (system-msg state :corp " uses Nootropics Campaign to gain 1[Credit]")
+                            (if (> (count (:hand corp)) (+ 2 (count (:hand runner))))
+                              (continue-ability
+                               state side
+                               {:optional
+                                {:prompt "Use Nootropics Campaign to draw 1 card?"
+                                 :yes-ability {:async true
+                                               :msg "draw 1 card"
+                                               :effect (effect (draw eid 1 nil))}}}
+                               card nil)
+                              (effect-completed state side eid)))}]}))
+
 (define-card "Brain-Taping Warehouse"
   {:constant-effects [{:type :rez-cost
                        :req (req (and (ice? target)

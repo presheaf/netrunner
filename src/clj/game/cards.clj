@@ -319,7 +319,8 @@
                                               :recurring
                                               (do (set-prop state side target :rec-counter (dec current-counters)) 1)
                                               :credit
-                                              (do (set-prop state side target :counter {:credit (dec current-counters)}) 1)
+                                              ;; We do this awkwardly to avoid clearing non-credit counters if multiple counter types exist
+                                              (do (set-prop state side target :counter (assoc-in (:counter target) [:credit] (dec current-counters))) 1)
                                               ; Custom credits will be handled separately later
                                               0)
                              selected-cards (update selected-cards (:cid target)

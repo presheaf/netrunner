@@ -1,6 +1,6 @@
 (in-ns 'game.core)
 
-(declare get-zones ice-index parse-command swap-ice swap-installed)
+(declare get-zones ice-index parse-command swap-ice swap-installed card-title)
 
 (defn say
   "Prints a message to the log as coming from the given username. The special user string
@@ -104,7 +104,7 @@
   ([state {:keys [zone host title facedown] :as card} {:keys [visible] :as args}]
   (str (if (corp? card)
          ; Corp card messages
-         (str (if (or (rezzed? card) visible) title (if (ice? card) "ICE" "a card"))
+         (str (if (or (rezzed? card) visible) (card-title card) (if (ice? card) "ICE" "a card"))
               ; Hosted cards do not need "in server 1" messages, host has them
               (if-not host
                 (str (cond (ice? card)

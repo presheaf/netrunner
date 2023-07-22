@@ -149,20 +149,20 @@
 
 (define-card "Armed Intimidation"
   {:async true
-   :effect (effect (show-wait-prompt :corp "Runner to suffer 5 meat damage or take 2 tags")
+   :effect (effect (show-wait-prompt :corp "Runner to suffer 5 meat damage or take 3 tags")
                    (continue-ability
                      :runner
                      {:async true
-                      :choices ["Suffer 5 meat damage" "Take 2 tags"]
+                      :choices ["Suffer 5 meat damage" "Take 3 tags"]
                       :prompt "Choose Armed Intimidation score effect"
                       :effect (req (clear-wait-prompt state :corp)
                                    (case target
                                      "Suffer 5 meat damage"
                                      (do (damage state :runner eid :meat 5 {:card card :unboostable true})
                                          (system-msg state :runner "chooses to suffer 5 meat damage from Armed Intimidation"))
-                                     "Take 2 tags"
-                                     (do (gain-tags state :runner eid 2 {:card card})
-                                         (system-msg state :runner "chooses to take 2 tags from Armed Intimidation"))))}
+                                     "Take 3 tags"
+                                     (do (gain-tags state :runner eid 3 {:card card})
+                                         (system-msg state :runner "chooses to take 3 tags from Armed Intimidation"))))}
                      card nil))})
 
 (define-card "Armored Servers"
@@ -987,6 +987,24 @@
                 :msg "end the run"
                 :async true
                 :effect (effect (end-run eid card))}]})
+
+(define-card "Nostalgiologists"
+  {:silent (req true)
+   :effect (effect (add-counter card :agenda 2))
+   :abilities [{:cost [:agenda 1]
+                :label "Add 1 transaction or advertisement from Archives to HQ"
+                :prompt "Choose a card in Archives to add to HQ"
+                :show-discard true
+                :choices {:card #(and (in-discard? %)
+                                      (corp? %)
+                                      (or (has-subtype? % "Advertisement")
+                                          (has-subtype? % "Transaction")))}
+                :req (req (pos? (get-counters card :agenda)))
+                :msg (msg "add "
+                          (if (:seen target)
+                            (:title target) "an unseen card ")
+                          " to HQ from Archives")
+                :effect (effect (move target :hand))}]})
 
 (define-card "Oaktown Renovation"
   {:install-state :face-up

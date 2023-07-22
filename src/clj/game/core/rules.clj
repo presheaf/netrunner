@@ -179,7 +179,7 @@
 
 ;;; Damage
 (defn flatline [state]
-  (when-not (:winner state)
+  (when-not (or (:winner state) (get-in @state [:special :cannot-flatline]))
     (system-msg state :runner "is flatlined")
     (win state :corp "Flatline")))
 
@@ -282,7 +282,8 @@
                     (swap! state update-in [:runner :hand-size :mod] #(- % n)))
                   (when-let [trashed-msg (join ", " (map card-title cards-trashed))]
                     (system-msg state :runner (str "trashes " trashed-msg " due to " (name type) " damage")))
-                  (if (< (count hand) n)
+                  (if (and (< (count hand) n))
+                    ;; if cannot-flatline flag is set, flatline will do nothing, then all cards are trashed
                     (do (flatline state)
                         (swap! state update-in [:stats :corp :damage :all] (fnil + 0) n)
                         (swap! state update-in [:stats :corp :damage type] (fnil + 0) n)

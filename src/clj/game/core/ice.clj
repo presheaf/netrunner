@@ -235,7 +235,7 @@
    (if-let [subroutines (remove #(or (:broken %) (= false (:resolve %))) (:subroutines ice))]
      (wait-for (resolve-next-unbroken-sub state side (make-eid state eid) ice subroutines)
                (system-msg state :corp (str "resolves " (quantify (count async-result) "unbroken subroutine")
-                                            " on " (:title ice)
+                                            " on " (card-title ice)
                                             " (\"[subroutine] "
                                             (join "\" and \"[subroutine] "
                                                   (map :label (sort-by :index async-result)))
@@ -252,7 +252,8 @@
 (defn sum-ice-strength-effects
   "Sums the results from get-effects."
   [state side ice]
-  (let [can-lower? (not (card-flag? ice :cannot-lower-strength true))]
+  (let [can-lower? (not (or (card-flag? ice :cannot-lower-strength true)
+                            (card-flag-fn? state side ice :cannot-lower-strength true)))]
     (->> (get-effects state side ice :ice-strength nil)
          (filter #(and % (or can-lower? (pos? %))))
          (reduce +))))

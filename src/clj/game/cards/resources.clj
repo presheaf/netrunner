@@ -1194,7 +1194,14 @@
 (letfn [(target-in-rd-or-hq [t]
           (#{:deck :hand} (first (:previous-zone t))))]
   (define-card "Human Rights Riot"
-    {;; :implementation "Ability must be triggered manually"
+    {:implementation "Ability can be triggered manually in case of bugs."
+     :abilities [{:label "gain 1 [Credit] and force the Corp to trash a random card from HQ"
+                  :once :per-turn
+                  :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
+                  :async true
+                  :effect (req (gain-credits state :runner 1)
+                               (let [card-to-trash (first (shuffle (:hand corp)))]
+                                 (trash state :corp eid card-to-trash nil)))}]
      :events [{:event :trash-during-access
                :req (req (first-event? state side :trash-during-access #(target-in-rd-or-hq (first %))))
                :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
