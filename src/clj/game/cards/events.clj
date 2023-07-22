@@ -3026,7 +3026,7 @@
              :effect (req (move state side card :hand))}]})
 
 
-(define-card "Hit and Run"
+(define-card "For the Laughs"
   {:async true
    :makes-run true
    :msg "draw a card and make a run on HQ"
@@ -3043,7 +3043,7 @@
              :location :discard
              :condition :in-discard
 
-             :msg "add Hit and Run to their hand from their discard pile"
+             :msg "add For the Laughs to their hand from their discard pile"
              :effect (req (move state side card :hand))}]})
 
 (define-card "Futureproofing"

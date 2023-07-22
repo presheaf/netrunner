@@ -3461,7 +3461,6 @@
                                        (set-subtypes-fn (get-card state card))
                                        (update-subs-fn (get-card state card)))}]
     {:implementation "Can (but shouldn't need to) be manually flipped by clicking the card"
-     ;; :strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
      :events [{:event :pass-ice
                :req (req (and (not (:is-flipped target))
                               (same-card? card target)

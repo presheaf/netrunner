@@ -1136,7 +1136,8 @@
                   :cost [:trash-program-from-grip 1]
                   :effect (effect (damage-prevent :brain 1)
                                   (damage-prevent :net 1))}]}))
-(define-card "Multitask Augment"
+
+(define-card "Synaptic Remodulator"
   {:effect (effect (damage eid :meat 1 {:unboostable true :card card}))
    :events [{:event :run-ends
              :req (req (:successful target))
