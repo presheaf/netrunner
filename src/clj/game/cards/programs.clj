@@ -538,6 +538,7 @@
 
 (define-card "Bishop"
   {:abilities [{:cost [:click 1]
+                :async true
                 :effect (req (let [b (get-card state card)
                                    hosted? (ice? (:host b))
                                    remote? (is-remote? (second (:zone (:host b))))]
@@ -560,7 +561,8 @@
                                                           (not-any? (fn [c] (has-subtype? c "Caïssa"))
                                                                     (:hosted %))))}
                                   :msg (msg "host it on " (card-str state target))
-                                  :effect (effect (host target (get-card state card)))}
+                                  :effect (effect (host target (get-card state card))
+                                                  (effect-completed eid))}
                                  card nil)))}]
    :constant-effects [{:type :ice-strength
                        :req (req (and (= (:cid target)
@@ -1603,10 +1605,11 @@
   (let [knight-req (req (and (same-card? current-ice (get-nested-host card))
                              (<= (get-strength current-ice) (get-strength card))))]
     {:abilities [{:label "Host Knight on a piece of ICE"
+                  :async true
                   :effect (req (let [k (get-card state card)
                                      hosted (ice? (:host k))
                                      icepos (ice-index state (get-card state (:host k)))]
-                                 (resolve-ability
+                                 (continue-ability
                                    state side
                                    {:prompt (msg "Host Knight on a piece of ICE"
                                                  (when hosted " not before or after the current host ICE"))
@@ -1624,7 +1627,8 @@
                                                             (can-host? %)
                                                             (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
                                     :msg (msg "host it on " (card-str state target))
-                                    :effect (effect (host target (get-card state card)))} card nil)))}
+                                    :effect (effect (host target (get-card state card))
+                                                    (effect-completed eid))} card nil)))}
                  (break-sub 2 1 "All" {:req knight-req})]}))
 
 (define-card "Kyuban"
@@ -2088,6 +2092,7 @@
                     (host state side next-ice card)))}
         trash-and-install-ab
         {:async true
+         :implementation "Trash is implemented as happening after install, which can cause problems with Caissa install restrictions. Pawn can be trashed manually to avoid this."
          :effect (req (wait-for (resolve-ability  ; the trash should really happen simultaneously, but this ordering prevents the picking the same pawn
                                  state side
                                  {:prompt "Choose a Caïssa program to install from your Grip or Heap"
@@ -2103,7 +2108,6 @@
                :req (req (ice? (:host card)))   ;is hosted on a piece of ice
                :async true
                :effect (req
-                        ;; (system-msg state side " pawn event triggred")
                         (continue-ability state side
                                           (if (pos? (:index (:host card)))
                                             advance-ab
@@ -2342,28 +2346,31 @@
 
 (define-card "Rook"
   {:abilities [{:cost [:click 1]
+                :async true
                 :effect (req (let [r (get-card state card)
                                    hosted? (ice? (:host r))
                                    icepos (ice-index state (get-card state (:host r)))]
-                               (resolve-ability
-                                 state side
-                                 {:prompt (if hosted?
-                                            (msg "Host Rook on a piece of ICE protecting this server or at position "
-                                                 icepos " of a different server")
-                                            (msg "Host Rook on a piece of ICE protecting any server"))
-                                  :choices {:card #(if hosted?
-                                                     (and (or (= (:zone %) (:zone (:host r)))
-                                                              (= (ice-index state %) icepos))
-                                                          (= (last (:zone %)) :ices)
-                                                          (ice? %)
-                                                          (can-host? %)
-                                                          (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %)))
-                                                     (and (ice? %)
-                                                          (can-host? %)
-                                                          (= (last (:zone %)) :ices)
-                                                          (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
-                                  :msg (msg "host it on " (card-str state target))
-                                  :effect (effect (host target (get-card state card)))} card nil)))}]
+                               (continue-ability
+                                state side
+                                {:prompt (if hosted?
+                                           (msg "Host Rook on a piece of ICE protecting this server or at position "
+                                                icepos " of a different server")
+                                           (msg "Host Rook on a piece of ICE protecting any server"))
+                                 :choices {:card #(if hosted?
+                                                    (and (or (= (:zone %) (:zone (:host r)))
+                                                             (= (ice-index state %) icepos))
+                                                         (= (last (:zone %)) :ices)
+                                                         (ice? %)
+                                                         (can-host? %)
+                                                         (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %)))
+                                                    (and (ice? %)
+                                                         (can-host? %)
+                                                         (= (last (:zone %)) :ices)
+                                                         (not-any? (fn [c] (has-subtype? c "Caïssa")) (:hosted %))))}
+                                 :async true
+                                 :msg (msg "host it on " (card-str state target))
+                                 :effect (effect (host target (get-card state card))
+                                                 (effect-completed eid))} card nil)))}]
    :constant-effects [{:type :rez-cost
                        :req (req (and (ice? target)
                                       (= (:zone (:host card)) (:zone target))))

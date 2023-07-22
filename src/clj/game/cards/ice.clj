@@ -76,6 +76,11 @@
   ([cost qty args]
    (break-sub [:click cost {:action :bioroid-cost}] qty nil args)))
 
+(defn credit-break
+  ([cost qty] (credit-break cost qty nil))
+  ([cost qty args]
+   (break-sub [:credit cost {}] qty nil args)))
+
 (defn discard-break
   ([cost qty] (discard-break cost qty nil))
   ([cost qty args]
@@ -2283,7 +2288,7 @@
 (define-card "Negotiator"
   {:subroutines [(gain-credits-sub 2)
                  trash-program]
-   :runner-abilities [(bioroid-break 2 1)]})
+   :runner-abilities [(credit-break 2 1)]})
 
 (define-card "Nerine 2.0"
   (let [sub {:label "Do 1 brain damage and Corp may draw 1 card"
