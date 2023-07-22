@@ -1263,6 +1263,7 @@
 
 (deftest haarpsichord-studios-entertainment-unleashed
   ;; Haarpsichord Studios
+
   (testing "Prevent stealing more than 1 agenda per turn"
     (do-game
       (new-game {:corp {:id "Haarpsichord Studios: Entertainment Unleashed"
@@ -1281,6 +1282,7 @@
       (score-agenda state :corp (get-content state :remote1 0))
       (click-prompt state :runner "Steal")
       (is (= 2 (:agenda-point (get-runner))) "Steal prevention didn't carry over to Corp turn")))
+
   (testing "Interactions with Employee Strike. Issue #1313"
     (do-game
       (new-game {:corp {:id "Haarpsichord Studios: Entertainment Unleashed"
@@ -1298,7 +1300,24 @@
       (play-from-hand state :runner "Scrubbed")
       (run-empty-server state "HQ")
       (click-prompt state :runner "No action")
-      (is (= 2 (:agenda-point (get-runner))) "Third steal prevented"))))
+      (is (= 2 (:agenda-point (get-runner))) "Third steal prevented")))
+
+  (testing "Haarp is disabled for archives"
+    (do-game
+      (new-game {:corp {:id "Haarpsichord Studios: Entertainment Unleashed"
+                        :discard ["15 Minutes"]
+                        :deck [(qty "15 Minutes" 1)]}
+                 :runner {:deck []}})
+      (take-credits state :corp)
+
+      (run-empty-server state "HQ")
+      (click-prompt state :runner "Steal")
+      (is (= 1 (:agenda-point (get-runner))))
+
+      (run-empty-server state "Archives")
+      (click-prompt state :runner "Steal")
+
+      (is (= 2 (:agenda-point (get-runner))) "Archives steal not prevented"))))
 
 (deftest haas-bioroid-architects-of-tomorrow
   ;; Architects of Tomorrow - prompt to rez after passing bioroid
