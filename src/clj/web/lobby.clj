@@ -385,10 +385,29 @@
                     :first-player player-name
                     :date (java.util.Date.)})))))
 
+(defn remove-user-from-all-games
+  "Remove a user from all games they are currently in. Intended for manual correction of 'zombie games'."
+  [user-id]
+  (doseq [{:keys [players gameid] :as game} (vals @all-games)]
+    (do
+      (when (some #(= user-id (:_id %)) (map :user players))
+        ;; We need to get the old client-id coresponding to the existing (presumably dead) websocket, not the new, fresh one sending this message
+        (let [existing-user-client-id
+              (:ws-id (first (filter #(= user-id (:_id (:user %))) (concat (:players game)))))]
+
+          (remove-user existing-user-client-id gameid))))))
+
+(defn handle-leave-all-games
+  [{{{:keys [_id] :as user} :user} :ring-req
+    client-id                                     :client-id}]
+  (remove-user-from-all-games _id))
+
+
 (ws/register-ws-handlers!
   :chsk/uidport-open handle-ws-connect
   :lobby/create handle-lobby-create
   :lobby/leave handle-lobby-leave
+  :lobby/leave-all handle-leave-all-games
   :lobby/join handle-lobby-join
   :lobby/watch handle-lobby-watch
   :lobby/say handle-lobby-say

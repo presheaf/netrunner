@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  jnet_dev:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile_dev
+    volumes:
+      - ./config.edn:/netrunner/config.edn
+      - /path/to/netrunner/src:/netrunner/src
+      - /path/to/netrunner/data:/netrunner/data
+      - /path/to/netrunner-data:/netrunner-data
+      - /path/to/netrunner/resources/public/img/cards:/netrunner/resources/public/img/cards
+    networks:
+      - db_network
+    depends_on:
+      - mongodb
+    ports:
+      - 1042:1042               # jinteki port
+      - 42053:42053             # lein repl port
+  # jnet_card_fetch:   # only needs to run once unless you want to change stuff
+  #   build:
+  #     context: ../
+  #     dockerfile: docker/Dockerfile_fetch
+  #   volumes:
+  #     - ./config.edn:/netrunner/config.edn
+  #     - /path/to/netrunner-data/edn/:/netrunner/edn/
+  #   networks:
+  #     - db_network
+  #   depends_on:
+  #     - mongodb
+
+  mongodb:
+    image: mongo:3.6.8
+    networks:
+      - db_network
+    volumes:
+      - /home/karlerik/scratch/jinteki_dev_mongodb_dir:/data/db 
+
+networks:
+  db_network:
