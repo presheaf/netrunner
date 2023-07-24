@@ -1372,7 +1372,7 @@
              :async true
              :effect (effect (trash eid card nil))}]})
 
-(define-card "O₂ Shortage"
+(define-card "O2 Shortage"
   {:async true
    :effect (req (if (empty? (:hand runner))
                   (do (gain state :corp :click 2)
