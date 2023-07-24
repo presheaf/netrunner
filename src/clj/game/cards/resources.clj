@@ -1995,8 +1995,7 @@
                                    (do (host state side card
                                              (assoc target
                                                     :counter {:power adjusted-cost}
-                                                    :abilities [remove-counter-when-clicked-ab])
-                                             {:installed true})
+                                                    :abilities [remove-counter-when-clicked-ab]))
                                        (effect-completed state side eid)))))
                   :msg (msg "host " (:title target) "")}
                  (assoc remove-counter
