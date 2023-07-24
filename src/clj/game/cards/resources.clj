@@ -1978,7 +1978,7 @@
                     (effect-completed state side eid)))}]
     {:flags {:drip-economy true}
      :abilities [{:async true
-                  :label "Schmmmost a program or piece of hardware"
+                  :label "Host a program or piece of hardware"
                   :cost [:click 1]
                   :prompt "Select a card to host on Personal Workshop"
                   :choices {:card #(and (or (program? %)
