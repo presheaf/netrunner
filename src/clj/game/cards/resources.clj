@@ -1964,10 +1964,21 @@
          :effect (req (add-counter state side target :power -1)
                       (if (not (pos? (get-counters (get-card state target) :power)))
                         (runner-install state side eid (dissoc target :counter) {:ignore-all-cost true})
-                        (effect-completed state side eid)))}]
+                        (effect-completed state side eid)))}
+        remove-counter-when-clicked-ab
+        {:label "Pay 1[credit] to remove a hosted power counter"
+         :cost [:credit 1]
+         :async true
+         :overrides-cdef-abs true ;; hacky workaround for play-ability getting the abilities from the cdef, not the card object
+         :msg (msg "remove a hosted power counter")
+         :effect (req
+                  (add-counter state side (get-card state card) :power -1)
+                  (if (= (get-counters (get-card state card) :power) 0)
+                    (runner-install state side (assoc eid :source card :source-type :runner-install) (dissoc (get-card state card) :abilities) {:ignore-all-cost true})
+                    (effect-completed state side eid)))}]
     {:flags {:drip-economy true}
      :abilities [{:async true
-                  :label "Host a program or piece of hardware"
+                  :label "Schmmmost a program or piece of hardware"
                   :cost [:click 1]
                   :prompt "Select a card to host on Personal Workshop"
                   :choices {:card #(and (or (program? %)
@@ -1982,7 +1993,10 @@
                                  (if (not (pos? adjusted-cost))
                                    (runner-install state side (assoc eid :source card :source-type :runner-install) target nil)
                                    (do (host state side card
-                                             (assoc target :counter {:power adjusted-cost}))
+                                             (assoc target
+                                                    :counter {:power adjusted-cost}
+                                                    :abilities [remove-counter-when-clicked-ab])
+                                             {:installed true})
                                        (effect-completed state side eid)))))
                   :msg (msg "host " (:title target) "")}
                  (assoc remove-counter
