@@ -2615,7 +2615,7 @@
                    (shuffle! :deck)
                    (move target :hand))})
 
-(define-card "Special Access"
+(define-card "Cloudburst"
   {:prompt "Choose a cloud icebreaker"
    :choices (req (cancellable (filter #(and (has-subtype? % "Icebreaker") (has-subtype? % "Cloud")) (:deck runner)) :sorted))
    :async true
