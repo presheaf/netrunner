@@ -3515,7 +3515,7 @@
                     (add-counter state side card :advancement 3))
                   (update-subs-fn state side (get-card state card)))}))
 
-(define-card "News Flash"
+(define-card "Talent Scout"
   (let [etr-unless-runner-pay-per-tag   ; TODO: copy-paste of other stuff, but it's dynamic...
         {:player :runner
          :async true
@@ -3536,8 +3536,8 @@
                                   (effect-completed state side eid))))}
         flip-info  {:front-face-code "51011"
                     :back-face-code "51011_flip"
-                    :front-face-title "News Flash"
-                    :back-face-title "Star Treatment"
+                    :front-face-title "Talent Scout"
+                    :back-face-title "Red Carpet"
                     :front-face-strength 2
                     :back-face-strength 6
                     :front-face-subtypes ["Code Gate" "Observer"]

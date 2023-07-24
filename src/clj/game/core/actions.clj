@@ -320,15 +320,12 @@
                            (gain state side :credit 1)
                            (trigger-event-sync state side eid :spent-credits-from-card card))}
              (get-in cdef [:abilities ability]))
+        cardobj-ab (get-in card [:abilities ability])
+        ab (if (and cardobj-ab (:overrides-cdef-abs cardobj-ab))
+             cardobj-ab
+             ab)
         cannot-play (or (:disabled card)
                         (any-effects state side :prevent-ability true? card [ab ability]))]
-    ;; (println "\n\nplay-ability says:")
-    ;; (println (str card))
-    ;; (println (str abilities))
-    ;; problem: only abilities in :cdef has an :effect ...
-    ;; possible fix: make all abilities on flippable cards dynamic?
-    ;; (println (str ab))
-    ;; (println (str (get-in cdef [:abilities ability])))
     (when-not cannot-play
       (do-play-ability state side card ab ability targets))))
 
