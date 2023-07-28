@@ -389,7 +389,7 @@
                                   (when (not= "All" subtype)
                                     (str (or (:break-label args) subtype) " ")))
                                 "subroutine"))
-        " on " (:title ice)
+        " on " (card-title ice)
         " (\"[subroutine] "
         (join "\" and \"[subroutine] "
               (map :label (sort-by :index broken-subs)))
