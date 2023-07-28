@@ -40,7 +40,7 @@
         version-path (if (and has-art show-art)
                        (get art-options (keyword art) (:code card))
                        (:code card))]
-    (str "/img/cards/" version-path ".png")))
+    (str "https://reteki.fun/img/cards/" version-path ".png")))
 
 (defn get-side [state]
   (let [user-id (:_id (:user @app-state))]
@@ -627,6 +627,9 @@
       (str ": " subtypes))]
    [:div.text
     (render-icons (:text (first (filter #(= (:title %) (:title card)) @all-cards))))]
+
+   ;; This is where the card zoom image is determined, I believe
+
    (when-let [url (image-url card)]
      [:img {:src url :alt (:title card) :onLoad #(-> % .-target js/$ .show)}])])
 
@@ -2130,8 +2133,42 @@
                   [:div.rightpane
                    [:div.card-zoom
                     [card-zoom zoom-card]]
+
+                   ;; ;; wonky size
+                   ;; (when (= (:code @zoom-card) "51005")
+                   ;;   [:div.card-zoom {:style {:z-index 200}}
+                   ;;    [card-zoom zoom-card]])
+
+                   ;; ;; Blocks mouseovers
+                   ;; [:div.card-zoom
+                   ;;  (when (= (:code @zoom-card) "51005")
+                   ;;    {:style {:z-index 200}}
+                   ;;    [card-zoom zoom-card])]
+
+                   ;; Kinda works, except ofc if you lookup a flip card, it's flickering..
+                   [:div.card-zoom
+                    (if (= (:code @zoom-card) "51005")
+                      (do {:style {:z-index 1}}
+                          [card-zoom zoom-card])
+                      (do {:style {:z-index 1}}
+                          ;; [card-zoom zoom-card]
+                          )
+                      )]
+
+
+                    ; This is a dropdown which currently appears over the chat.
+                   ;; TODO: make it 1) dynamically be empty if card is not a flip card, and
+                   ;; 2) If the card is a flip card, use the "other side" than the currently faceup one
+                   ;; Currently the problem is the size of the image is weird. Also have had problems with image being on top, blocking mouseovers...
+
+
+                   ;; Looks mildly weird for chat to flicker while you peek at your hand. Maybe this fix is only needed when there is chat zooming? See if this can be done in chat.cljs maybe?
                    [card-implementation zoom-card]
                    [:div.log
+                    (if (= (:code @zoom-card) "51005")
+                      {:style {:opacity 0.01}}
+                      {:style {:opacity 0.9}})
+
                     [log-pane]
                     [log-typing]
                     [log-input]]]
