@@ -257,7 +257,6 @@
   (auto-icebreaker
     {:abilities [(break-sub (:break-cost break) (:break break) (:breaks break)
                             {:req (req (and (#{:hq :rd :archives} (first (:server run)))
-                                            (<= (get-strength current-ice) (get-strength card))
                                             (has-subtype? current-ice (:breaks break))))})
                  pump]}))
 

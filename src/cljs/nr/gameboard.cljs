@@ -25,6 +25,29 @@
 (defonce board-dom (atom {}))
 (defonce sfx-state (atom {}))
 
+(defn reverse-face-code [card-code]
+  ({"09001" "sync"
+    "sync" "09001"
+    "50001" "50001_flip"
+    "50001_flip" "50001"
+    "50004" "50004_flip"
+    "50004_flip" "50004"
+    "50009" "50009_flip"
+    "50009_flip" "50009"
+    "51001" "51001_flip"
+    "51001_flip" "51001"
+    "51005" "51005_flip"
+    "51005_flip" "51005"
+    "51009" "51009_flip"
+    "51009_flip" "51009"
+    "51011" "51011_flip"
+    "51011_flip" "51011"
+    "51013" "51013_flip"
+    "51013_flip" "51013"
+    "51025" "51025_flip"
+    "51025_flip" "51025"}
+   card-code))
+
 (defn image-url [{:keys [side code] :as card}]
   (let [art (or (:art card) ; use the art set on the card itself, or fall back to the user's preferences.
                 (get-in @game-state [(keyword (lower-case side)) :user :options :alt-arts (keyword code)]))
@@ -630,11 +653,22 @@
    (when-let [url (image-url card)]
      [:img {:src url :alt (:title card) :onLoad #(-> % .-target js/$ .show)}])])
 
-(defn card-zoom [zoom-card]
-  (if-let [card @zoom-card]
-    (do (-> ".card-zoom" js/$ (.addClass "fade"))
-        [card-as-text card])
-    (do (-> ".card-zoom" js/$ (.removeClass "fade")) nil)))
+(defn card-zoom
+  ([zoom-card] (card-zoom zoom-card false))
+  ([zoom-card show-reverse-face]
+   (if-let [card @zoom-card]
+     (do (-> ".card-zoom" js/$ (.addClass "fade"))
+         [card-as-text (if show-reverse-face
+                         (assoc card :code (reverse-face-code (:code card)))
+                         card)])
+     (do (-> ".card-zoom" js/$ (.removeClass "fade")) nil))))
+
+(defn flip-card-zoom [zoom-card]
+  [:div.panel.blue-shade.card-zoom.flip-card-zoom
+   {:style
+    {:opacity (if (and @zoom-card (reverse-face-code (:code @zoom-card))) 0.7 0)
+     :right (get-in @app-state [:options :log-width])}}
+   [card-zoom zoom-card true]])
 
 (defn server-menu
   "The pop-up on a card in hand when clicked"
@@ -2123,14 +2157,15 @@
                   [:div {:class @background
                          :style (if (= @background "custom-bg")
                                   {:background (str "url(\"" @custom-bg-url "\")")
-                                   ;; "backgroundSize" "100% 100%"
                                    "backgroundSize" "cover"}
                                   {})}]
 
                   [:div.rightpane
                    [:div.card-zoom
-                    [card-zoom zoom-card]]
+                    [card-zoom zoom-card]
+                    [flip-card-zoom zoom-card]]
                    [card-implementation zoom-card]
+
                    [:div.log
                     [log-pane]
                     [log-typing]

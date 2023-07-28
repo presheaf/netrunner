@@ -119,27 +119,20 @@
   {:events [{:event :pre-start-game
              :req (req (= side :runner))
              :async true
-             :effect (req (show-wait-prompt state :corp "Runner to choose starting directives")
-                          (let [directives (->> (server-cards)
+             :effect (req (let [directives (->> (server-cards)
                                                 (filter #(and (has-subtype? % "Directive")
                                                               (not= (:title %) "Find the Truth")))
                                                 (map make-card)
-                                                (zone :play-area))]
-                            ;; Add directives to :play-area - assumed to be empty
+                                                (zone :play-area))
+                                ;; Purely aesthetic - by default ordered by title, now ordered by first, second, third directives
+                                directives [(nth directives 2) (nth directives 0) (nth directives 1)]]
                             (swap! state assoc-in [:runner :play-area] directives)
-                            (continue-ability state side
-                                              {:prompt (str "Choose 3 starting directives")
-                                               :choices {:max 3
-                                                         :all true
-                                                         :card #(and (runner? %)
-                                                                     (in-play-area? %))}
-                                               :effect (req (doseq [c targets]
-                                                              (runner-install state side c
-                                                                              {:ignore-all-cost true
-                                                                               :custom-message (fn [_] (str "starts with " (:title c) " in play"))}))
-                                                            (swap! state assoc-in [:runner :play-area] [])
-                                                            (clear-wait-prompt state :corp))}
-                                              card nil)))}]})
+                            (doseq [c directives]
+                              (runner-install state side c
+                                              {:ignore-all-cost true
+                                               :custom-message (fn [_] (str "starts with " (:title c) " in play"))}))
+
+                            (effect-completed state side eid)))}]})
 
 (define-card "AgInfusion: New Miracles for a New World"
   {:abilities [{:label "Trash a piece of ice to choose another server- the runner is now running that server"
@@ -1073,6 +1066,7 @@
                                cost (rez-cost state side target)]
                            [{:event :encounter-ice
                              :duration :end-of-encounter
+                             :interactive (req true)
                              :req (req (same-card? target ice))
                              :msg (msg "lose all credits and gain " cost
                                        " [Credits] from the rez of " (:title ice))

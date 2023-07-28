@@ -1151,7 +1151,7 @@
                             num-clicks (+ (apply + click-losses) (apply + click-spends))]
                         (when (> num-clicks 0)
                           ;; we avoid :msg to avoid saying anything unless >0 creds gained
-                          (system-msg state :runner (str "uses Multitask Augment to gain " num-clicks " credits"))
+                          (system-msg state :runner (str "uses Synaptic Remodulator to gain " num-clicks " credits"))
                           (gain-credits state :runner num-clicks))))}]})
 
 (define-card "Mu Safecracker"
@@ -2050,6 +2050,7 @@
                     (seq (filter
                            #(and (rezzed? %)
                                  (installed? %)
+                                 (not (ice? %))
                                  (or (has-subtype? % "Bioroid")
                                      (has-subtype? % "Clone")
                                      (has-subtype? % "Executive")
