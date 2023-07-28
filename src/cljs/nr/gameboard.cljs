@@ -650,9 +650,6 @@
       (str ": " subtypes))]
    [:div.text
     (render-icons (:text (first (filter #(= (:title %) (:title card)) @all-cards))))]
-
-   ;; This is where the card zoom image is determined, I believe
-
    (when-let [url (image-url card)]
      [:img {:src url :alt (:title card) :onLoad #(-> % .-target js/$ .show)}])])
 
