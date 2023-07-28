@@ -2050,6 +2050,7 @@
                     (seq (filter
                            #(and (rezzed? %)
                                  (installed? %)
+                                 (not (ice? %))
                                  (or (has-subtype? % "Bioroid")
                                      (has-subtype? % "Clone")
                                      (has-subtype? % "Executive")
