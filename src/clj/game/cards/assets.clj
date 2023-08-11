@@ -1586,6 +1586,7 @@
   {:effect (effect (add-counter card :credit 14))
    :events [(trash-on-empty :credit)]
    :abilities [{:cost [:click 1]
+                :label "Take 2 [Credits]"
                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
                 :effect (req (let [credits (min 2 (get-counters card :credit))]
                                (add-counter state side card :credit (- credits))
