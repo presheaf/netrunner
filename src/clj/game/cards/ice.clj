@@ -3479,8 +3479,8 @@
                     :back-face-code "51009_flip"
                     :front-face-title "Caterpillar"
                     :back-face-title "Monarch"
-                    :front-face-strength 2
-                    :back-face-strength 6
+                    :front-face-strength 1
+                    :back-face-strength 3
                     :front-face-subtypes ["Mythic"]
                     :back-face-subtypes ["Barrier" "AP"]
                     :front-face-subs [{:label "Runner loses 1 [Credits]"
@@ -3506,13 +3506,13 @@
      :abilities [flip-card-abi]
      :events [{:event :corp-turn-begins
                :req (req (not (:is-flipped card)))
-               :effect (req (add-counter state side card :advancement -1)
-                            (when (= 0 (get-counters (get-card state card) :advancement))
+               :effect (req (add-counter state side card :power -1)
+                            (when (= 0 (get-counters (get-card state card) :power))
                               (continue-ability state side flip-card-abi (get-card state card) nil)))}]
      :flags {:cannot-lower-strength (req (:is-flipped (get-card state card)))}
      ; Necessary if the card is flipped while derezzed
      :effect (req (when (not (:is-flipped card))
-                    (add-counter state side card :advancement 3))
+                    (add-counter state side card :power 3))
                   (update-subs-fn state side (get-card state card)))}))
 
 (define-card "Talent Scout"
