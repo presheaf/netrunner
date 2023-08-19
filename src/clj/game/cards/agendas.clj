@@ -1782,13 +1782,14 @@
    :interactive (req true)})
 
 (define-card "Power Grid Reroute"
-  {:choices {:card #(and (installed? %)
-                         (resource? %))
-             :max 2}
-   :msg (msg "trash " (join ", " (map :title targets)))
-   :interactive (req true)
+  {:interactive (req true)
    :async true
-   :effect (req
-            (count-clan [state] (count ))
-            (let [all-hardware (filter hardware? (all-active-installed state :runner))]
-              (trash-cards state :corp eid all-hardware {:unpreventable true})))})
+   :effect (req (let [all-hardware (filter hardware? (all-active-installed state :runner))]
+                  (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title targets))))
+                  (trash-cards state :corp eid all-hardware {:unpreventable true})))})
+
+(define-card "Time Thieves"
+  {:events [{:event :corp-turn-begins
+             :req (req false)           ; TODO: check whether a click was spent/lost during a run
+             :msg "gain [click]"
+             :effect (effect (gain :click 1))}]})
