@@ -153,6 +153,18 @@
                                 :seen seen
                                 :zone zone)))))
 
+(defn- is-ephemeral?
+  [state card]
+  (let [ephemeral-cids (get-in @state [:special :ephemeral-card-cids])]
+
+    (and ephemeral-cids
+         ((set ephemeral-cids) (:cid card)))))
+
+(defn mark-ephemeral!
+  [state card]
+  (swap! state update-in [:special :ephemeral-card-cids]
+         #(if % (concat % [(:cid card)]) [(:cid card)])))
+
 (defn move
   "Moves the given card to the given new zone."
   ([state side card to] (move state side card to nil))
@@ -160,55 +172,60 @@
    (let [zone (if host (map to-keyword (:zone host)) zone)
          src-zone (first zone)
          target-zone (if (vector? to) (first to) to)]
-     (if (fake-identity? card)
-       ;; Make Fake-Identity cards "disappear"
-       (do (deactivate state side card false)
-           (remove-old-card state side card))
-       (when (and card
-                  (or host
-                      (some #(same-card? card %) (get-in @state (cons :runner (vec zone))))
-                      (some #(same-card? card %) (get-in @state (cons :corp (vec zone)))))
-                  (or force
-                      (empty? (get-in @state [(to-keyword (:side card)) :locked (-> card :zone first)]))))
-         (trigger-event state side :pre-card-moved card src-zone target-zone)
-         (let [dest (if (sequential? to) (vec to) [to])
-               moved-card (get-moved-card state side card to)]
-           (remove-old-card state side card)
-           (let [pos-to-move-to (cond index index
-                                      front 0
-                                      :else (count (get-in @state (cons side dest))))]
-             (swap! state update-in (cons side dest) #(into [] (concat (take pos-to-move-to %) [moved-card] (drop pos-to-move-to %)))))
-           (swap! state update-in (cons side dest)
-                  #(into [] (map-indexed (fn [idx card] (assoc card :index idx)) %)))
-           (let [z (vec (cons :corp (butlast zone)))]
-             (when (and (not keep-server-alive)
-                        (is-remote? z)
-                        (empty? (get-in @state (conj z :content)))
-                        (empty? (get-in @state (conj z :ices))))
-               (swap! state dissoc-in z)))
-           (when-let [move-zone-fn (:move-zone (card-def moved-card))]
-             (move-zone-fn state side (make-eid state) moved-card card))
-           (trigger-event state side :card-moved card (assoc moved-card :move-to-side side))
-           ; This is for removing `:location :X` events that are non-default locations,
-           ; such as Subliminal Messaging only registering in :discard. We first unregister
-           ; any non-default events from the previous zone and the register the non-default
-           ; events for the current zone.
-           ; NOTE: I (NoahTheDuke) experimented with using this as the basis for all event
-           ; registration and handling, but there are too many edge-cases in the engine
-           ; right now. Maybe at some later date it'll work, but currently (Oct '19),
-           ; there are more important things to focus on.
-           (let [zone #{(first (:previous-zone moved-card))}
-                 old-events (filter #(zone (:location %)) (:events (card-def moved-card)))]
-             (when (seq old-events)
-               (unregister-events state side moved-card {:events (into [] old-events)})))
-           (let [zone #{(first (:zone moved-card))}
-                 events (filter #(zone (:location %)) (:events (card-def moved-card)))]
-             (when (seq events)
-               (register-events state side moved-card events)))
-           ;; Default a card when moved to inactive zones (except :persistent key)
-           (when (#{:discard :hand :deck :rfg} to)
-             (reset-card state side moved-card))
-           (get-card state moved-card)))))))
+     (if (and (is-ephemeral? state card) (= :deck to))
+       (move state side card :rfg)      ; do not shuffle it into deck, RFG it instead
+       (if (fake-identity? card)
+         ;; Make Fake-Identity cards "disappear"
+         (do (deactivate state side card false)
+             (remove-old-card state side card))
+         (when (and card
+                    (or host
+                        (some #(same-card? card %) (get-in @state (cons :runner (vec zone))))
+                        (some #(same-card? card %) (get-in @state (cons :corp (vec zone)))))
+                    (or force
+                        (empty? (get-in @state [(to-keyword (:side card)) :locked (-> card :zone first)]))))
+           (trigger-event state side :pre-card-moved card src-zone target-zone)
+           (let [dest (if (sequential? to) (vec to) [to])
+                 moved-card (get-moved-card state side card to)]
+
+             (when (is-ephemeral? state card)
+               (mark-ephemeral! state moved-card))
+             (remove-old-card state side card)
+             (let [pos-to-move-to (cond index index
+                                        front 0
+                                        :else (count (get-in @state (cons side dest))))]
+               (swap! state update-in (cons side dest) #(into [] (concat (take pos-to-move-to %) [moved-card] (drop pos-to-move-to %)))))
+             (swap! state update-in (cons side dest)
+                    #(into [] (map-indexed (fn [idx card] (assoc card :index idx)) %)))
+             (let [z (vec (cons :corp (butlast zone)))]
+               (when (and (not keep-server-alive)
+                          (is-remote? z)
+                          (empty? (get-in @state (conj z :content)))
+                          (empty? (get-in @state (conj z :ices))))
+                 (swap! state dissoc-in z)))
+             (when-let [move-zone-fn (:move-zone (card-def moved-card))]
+               (move-zone-fn state side (make-eid state) moved-card card))
+             (trigger-event state side :card-moved card (assoc moved-card :move-to-side side))
+             ; This is for removing `:location :X` events that are non-default locations,
+             ; such as Subliminal Messaging only registering in :discard. We first unregister
+             ; any non-default events from the previous zone and the register the non-default
+             ; events for the current zone.
+             ; NOTE: I (NoahTheDuke) experimented with using this as the basis for all event
+             ; registration and handling, but there are too many edge-cases in the engine
+             ; right now. Maybe at some later date it'll work, but currently (Oct '19),
+             ; there are more important things to focus on.
+             (let [zone #{(first (:previous-zone moved-card))}
+                   old-events (filter #(zone (:location %)) (:events (card-def moved-card)))]
+               (when (seq old-events)
+                 (unregister-events state side moved-card {:events (into [] old-events)})))
+             (let [zone #{(first (:zone moved-card))}
+                   events (filter #(zone (:location %)) (:events (card-def moved-card)))]
+               (when (seq events)
+                 (register-events state side moved-card events)))
+             ;; Default a card when moved to inactive zones (except :persistent key)
+             (when (#{:discard :hand :deck :rfg} to)
+               (reset-card state side moved-card))
+             (get-card state moved-card))))))))
 
 (defn move-zone
   "Moves all cards from one zone to another, as in Chronos Project."
