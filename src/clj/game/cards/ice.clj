@@ -3600,3 +3600,8 @@
      :abilities [flip-card-abi]
      ; Necessary if the card is flipped while derezzed
      :effect (req (update-subs-fn state side card))}))
+
+(define-card "Anklebiter"
+  {:effect take-bad-pub
+   :subroutines [add-runner-card-to-grip
+                 end-the-run]})

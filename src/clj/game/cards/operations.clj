@@ -2405,3 +2405,7 @@
                                                :msg (msg "place " num-trashed " advancement tokens on " (card-str state target))
                                                :effect (effect (add-prop target :advance-counter num-trashed {:placed true}))}
                                               card nil))))})
+
+(define-card "Retrospective"
+  {:msg (msg "gain " (+ 5 (count (into (set nil) (map card-title (:scored corp))))) "[Credits]")
+   :effect (effect (gain-credits (+ 5 (count (into (set nil) (map card-title (:scored corp)))))))})

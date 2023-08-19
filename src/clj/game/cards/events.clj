@@ -959,11 +959,11 @@
 
 (define-card "Exclusive Party"
   {:msg (msg "draw 1 card and gain "
-             (count (filter #(= (:title %) "Exclusive Party") (:discard runner)))
+             (+ 1 (count (filter #(= (:title %) "Exclusive Party") (:discard runner))))
              " [Credits]")
    :async true
    :effect (req (wait-for (draw state side 1 nil)
-                          (gain-credits state side (count (filter #(= (:title %) "Exclusive Party") (:discard runner))))
+                          (gain-credits state side (+ 1 (count (filter #(= (:title %) "Exclusive Party") (:discard runner)))))
                           (effect-completed state side eid)))})
 
 (define-card "Executive Wiretaps"
@@ -2979,7 +2979,6 @@
 
 
 
-;;; On the Trail
 (define-card "On the Trail"
   (let [flip-info  {:front-face-code "50004"
                     :back-face-code "50004_flip"
@@ -3083,3 +3082,7 @@
                                                 (and (= :ability (:source-type eid))
                                                      (has-subtype? target "Icebreaker"))))
                                   :type :credit}}}))
+
+
+(define-card "Stolen Contacts"
+  {:effect (req (dotimes [_ 3] (command-summon state :runner ["Easy Mark"])))})

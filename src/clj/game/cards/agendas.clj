@@ -1739,3 +1739,56 @@
                                       (not (has-subtype? target "Virtual"))
                                       (not (:facedown (second targets)))))
                        :value 1}]})
+
+
+(define-card "Gish Gallop"
+  ;; TODO: this displays a waiting-for-corp-to-pick prompt to the runner, letting them know gish gallop is there...
+  ;; possible workaround: have it insist corp-phase-12 happens, and give it an ability that can be used in that phase - however, requires me to figure out how to have agendas do abilities
+  {:events [{:event :corp-turn-begins
+             :interactive (req true)
+             :req (req (installed? (get-card state card)))
+             :location :servers
+             :optional {:prompt "Score Gish Gallop?"
+                        :msg (msg "score itself")
+                        :autoresolve (get-autoresolve :auto-score)
+                        :yes-ability {:async true
+                                      :effect (effect (set-prop card :advance-counter (:advancementcost card))
+                                                      (score eid (get-card state card)))}}}]})
+
+(define-card "Plausible Deniability"
+  {:flags {:rd-reveal (req true)}
+   :access {:req (req (and (not installed) (not (get-in @state [:special :plausible-deniability-used]))))
+            :async true
+            :effect (req (continue-ability
+                          state :corp
+                          {:optional
+                           {:player :corp
+                            :prompt "Pay 3[credit] to prevent Plausible Deniability from being stolen?"
+                            :yes-ability {:msg "pay 3[credit] to prevent it from being stolen this turn"
+                                          :cost [:credit 3]
+                                          :effect (req
+                                                   (swap! state assoc-in [:special :plausible-deniability-used] true)
+                                                   (register-turn-flag! state side
+                                                    card :can-steal
+                                                    (fn [_ _ c] (not (same-card? c card))))
+                                                   (effect-completed state side eid))}}}
+                          card nil))}})
+
+(define-card "Smear Campaign"
+  {:msg (msg "take 1 bad publicity and make the Runner lose " (count (:hand runner)) " [Credits]")
+   :async true
+   :effect (req  (lose-credits state :runner (count (:hand runner)))
+                 (gain-bad-publicity state :corp eid 1))
+   :interactive (req true)})
+
+(define-card "Power Grid Reroute"
+  {:choices {:card #(and (installed? %)
+                         (resource? %))
+             :max 2}
+   :msg (msg "trash " (join ", " (map :title targets)))
+   :interactive (req true)
+   :async true
+   :effect (req
+            (count-clan [state] (count ))
+            (let [all-hardware (filter hardware? (all-active-installed state :runner))]
+              (trash-cards state :corp eid all-hardware {:unpreventable true})))})

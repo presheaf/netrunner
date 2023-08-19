@@ -1585,9 +1585,9 @@
   (let [ability {:once :per-turn
                  :msg "draw 1 card and add a power counter"
                  :async true
-                 :effect (req (wait-for (draw state :runner 1 nil)
+                 :effect (req (wait-for (draw state :runner 2 nil)
                                         (add-counter state side (get-card state card) :power 1)
-                                        (if (= 5 (get-counters (get-card state card) :power))
+                                        (if (= 3 (get-counters (get-card state card) :power))
                                           (do (system-msg state :runner "trashes Respirocytes as it reached 5 power counters")
                                               (trash state side eid card {:unpreventable true}))
                                           (effect-completed state side eid))))}

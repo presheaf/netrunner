@@ -2816,3 +2816,26 @@
   (cloud-icebreaker
    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
                                   (strength-pump 1 1)]})))
+
+(letfn [(luxury-icebreaker-events [flag-kw]
+          [{:event :encounter-ice-ends
+           :req (req (any-subs-broken-by-card? target card))
+           :msg (msg "trash " (:title card))
+           :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
+           {:event :run-ends
+            :effect (req (when (and (:successful target)
+                                    (get-in target [:special flag-kw]))
+                           (continue-ability state :runner
+                                             {:msg "lose 2 [Credits]"
+                                              :effect (effect (lose-credits :runner 2))}
+                                             card nil)))}])]
+  (define-card "Bullseye"
+    (auto-icebreaker {:abilities [(break-sub 1 2 "Sentry") (strength-pump 2 1)]
+                      :events (luxury-icebreaker-events :bullseye-used)}))
+  (define-card "Almanac"
+    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate") (strength-pump 1 3)]
+                      :events (luxury-icebreaker-events :almanac-used)}))
+  (define-card "Detour"
+    (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")
+                                  (strength-pump 2 2)]
+                      :events (luxury-icebreaker-events :detour-used)})))

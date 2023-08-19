@@ -1699,3 +1699,21 @@
              :effect (effect (move :runner (last (:discard runner)) :deck)
                              (shuffle! :runner :deck)
                              (trigger-event :searched-stack nil))}]})
+
+(define-card "Sizzler: Igniting the Discourse"
+  {:events [{:event :agenda-scored
+             :req (req (= (count (filter #(= (card-title %) (card-title target)) (:scored corp))) 1))
+             :msg (msg "gain 2[credit] and remove 1 bad publicity")
+             :interactive (req true)
+             :effect (req (gain-credits state :corp 2)
+                          (lose-bad-publicity state :corp 1))}]})
+
+(define-card "Dionysus Bagbiter: Luxurious Larcenist"
+  {:in-play [:hq-access 1 :rd-access 1]
+   :events [{:event :agenda-stolen
+             :msg (msg "lose all " (:credit runner) " [Credits] in their credit pool")
+             :interactive (req true)
+             :effect (effect (lose-credits :runner :all)
+                             (lose :runner :run-credit :all))}]})
+
+
