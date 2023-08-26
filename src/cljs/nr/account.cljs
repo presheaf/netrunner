@@ -29,7 +29,7 @@
 (defn image-url [card-code version]
   (let [card (get (:alt-arts @app-state) card-code)
         version-path (get (:alt_art card) (keyword version) card-code)]
-    (str "/img/cards/" version-path ".png")))
+    (str "https://media.reteki.fun/img/cards/" version-path ".png")))
 
 (defn- all-alt-art-types
   []
