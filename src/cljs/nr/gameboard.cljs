@@ -63,7 +63,7 @@
         version-path (if (and has-art show-art)
                        (get art-options (keyword art) (:code card))
                        (:code card))]
-    (str "/img/cards/" version-path ".png")))
+    (str "https://media.reteki.fun/img/cards/" version-path ".png")))
 
 (defn get-side [state]
   (let [user-id (:_id (:user @app-state))]

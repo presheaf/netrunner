@@ -25,6 +25,7 @@
     (swap! ws-handlers assoc event handler-fn))
 
   (defn handle-state-msg [[old-state new-state]]
+    (js/console.log (str "Old state:\n " old-state "\nNew state:\n "new-state))
     (when (= (:type old-state) (:type new-state))
       (when (and (:open? old-state)
                  (not (:open? new-state))
