@@ -8,7 +8,8 @@
 (defonce ws-router (atom nil))
 
 (let [{:keys [ch-recv send-fn connected-uids ajax-post-fn ajax-get-or-ws-handshake-fn]}
-      (sente/make-channel-socket! (get-sch-adapter) {:user-id-fn (fn [ring-req] (:client-id ring-req))})]
+      (sente/make-channel-socket! (get-sch-adapter) {:user-id-fn (fn [ring-req] (:client-id ring-req))
+                                                     :ms-allow-reconnect-before-close-ws 30000})]
   (defonce handshake-handler ajax-get-or-ws-handshake-fn)
   (defonce post-handler ajax-post-fn)
   (defonce <recv ch-recv)
