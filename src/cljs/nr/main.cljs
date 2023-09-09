@@ -15,6 +15,7 @@
             [nr.news :refer [news news-state]]
             [nr.player-view :refer [player-view]]
             [nr.stats :refer [stats]]
+            [nr.ws :as ws]
             [reagent.core :as r])
   (:import goog.history.Html5History))
 
@@ -53,6 +54,11 @@
      [:div.float-right
       (let [c (count (filter-blocked-games @user @games))]
         (str c " Game" (when (not= c 1) "s")))]
+     (r/with-let [c (r/track (fn [] (count (filter-blocked-games @user @games))))]
+       [:div.float-right
+        ;; (tr [:nav/game-count] @c)
+        (when (zero? @c)
+          [:a.reconnect-button {:on-click #(ws/chsk-reconnect!)} "Attempt reconnect"])])
      (if-let [game (some #(when (= @gameid (:gameid %)) %) @games)]
        (let [user-id (-> @user :_id)
              is-player (some #(= user-id (-> % :user :_id)) (:players game))]

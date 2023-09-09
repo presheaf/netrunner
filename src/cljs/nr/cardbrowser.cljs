@@ -64,7 +64,7 @@
          version-path (if has-art
                         (get (:alt_art alt-card) (keyword art) (:code card))
                         (:code card))]
-     (str "/img/cards/" version-path ".png"))))
+     (str "https://media.reteki.fun/img/cards/" version-path ".png"))))
 
 (defn- alt-version-from-string
   "Given a string name, get the keyword version or nil"

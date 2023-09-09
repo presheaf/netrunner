@@ -16,11 +16,16 @@
 
 (enable-console-print!)
 
+(defn chsk-reconnect!
+  []
+  (sente/chsk-reconnect! chsk))
+
 (let [ws-handlers (atom {})]
   (defn register-ws-handler! [event handler-fn]
     (swap! ws-handlers assoc event handler-fn))
 
   (defn handle-state-msg [[old-state new-state]]
+    (js/console.log (str "Old state:\n " old-state "\nNew state:\n "new-state))
     (when (= (:type old-state) (:type new-state))
       (when (and (:open? old-state)
                  (not (:open? new-state))
