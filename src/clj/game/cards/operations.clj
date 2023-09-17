@@ -2409,3 +2409,17 @@
 (define-card "Retrospective"
   {:msg (msg "gain " (+ 5 (count (into (set nil) (map card-title (:scored corp))))) "[Credits]")
    :effect (effect (gain-credits (+ 5 (count (into (set nil) (map card-title (:scored corp)))))))})
+
+(define-card "Hit Piece"
+  {:async true
+   :prompt  "Choose a Gray Ops from R&D to play"
+   :choices (req (cancellable
+                  (filter #(and (operation? %)
+                                (has-subtype? % "Gray Ops")
+                                (<= (:cost %) (:credit corp)))
+                          (:deck corp))
+                  :sorted))
+   :msg (msg "search R&D for " (:title target) " and play it")
+   :effect (effect (shuffle! :deck)
+                   (system-msg "shuffles their deck")
+                   (play-instant eid target nil))})

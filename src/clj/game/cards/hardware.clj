@@ -2097,3 +2097,13 @@
                 :async true
                 :effect (effect (gain-credits 1)
                                 (draw eid 2 nil))}]})
+
+(define-card "Elysium"
+  (letfn [(half-runner-points [s] (quot (max (get-in s [:runner :agenda-point] 0) 0) 2))]
+    {:in-play [:memory 2]
+     :recurring (req (when (< (get-counters card :recurring) (half-runner-points @state))
+                       (set-prop state side card :rec-counter (half-runner-points @state))))
+     :effect (req (when (< (get-counters card :recurring) (half-runner-points @state))
+                       (set-prop state side card :rec-counter (half-runner-points @state))))
+     :interactions {:pay-credits {:req (req run)
+                                  :type :recurring}}}))
