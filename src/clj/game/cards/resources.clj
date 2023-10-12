@@ -2964,7 +2964,7 @@
                   :effect (effect (gain-credits (get-counters card :credit))
                                   (add-counter card :credit
                                                (- (get-counters card :credit))))}]}))
-(define-card "Prototype Pilfering"
+(define-card "ZDNet"
   {:data {:counter {:credit 15}}
    :events [(trash-on-empty :credit)]
    :abilities [{:cost [:click 1]

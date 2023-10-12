@@ -1708,7 +1708,7 @@
              :effect (req (gain-credits state :corp 2)
                           (lose-bad-publicity state :corp 1))}]})
 
-(define-card "Dionysus Bagbiter: Luxurious Larcenist"
+(define-card "Dionysus Bagbiter: Luxe Larcenist"
   {:in-play [:hq-access 1 :rd-access 1]
    :events [{:event :agenda-stolen
              :msg (msg "lose all " (:credit runner) " [Credits] in their credit pool")
