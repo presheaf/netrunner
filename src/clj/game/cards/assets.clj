@@ -1204,8 +1204,8 @@
                                  (gain-credits 1))}]
     {:abilities [ability
                  {:cost [:click 1]
-                  :msg "store 3 [Credits]"
-                  :effect (effect (add-counter card :credit 3))}]
+                  :msg "store 4 [Credits]"
+                  :effect (effect (add-counter card :credit 4))}]
      :events [(assoc ability :event :corp-turn-begins)]}))
 
 (define-card "MCA Austerity Policy"
