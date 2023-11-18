@@ -1785,11 +1785,42 @@
   {:interactive (req true)
    :async true
    :effect (req (let [all-hardware (filter hardware? (all-active-installed state :runner))]
-                  (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title targets))))
-                  (trash-cards state :corp eid all-hardware {:unpreventable true})))})
+                  (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title all-hardware))))
+                  (trash-cards state :corp eid all-hardware)))})
 
 (define-card "Time Thieves"
   {:events [{:event :corp-turn-begins
              :req (req false)           ; TODO: check whether a click was spent/lost during a run
              :msg "gain [click]"
              :effect (effect (gain :click 1))}]})
+
+(define-card "Adaptive Membranes"
+  {                                     ;cost reduction currently does not update properly - if agenda is 3-advanced, then some other card is 3-advanced, it's weird
+   :advancement-cost-bonus (req (if (some #(and (> (+ (get-counters % :advancement) (:extra-advance-counter % 0)) 2)
+                                                (not (same-card? card %)))
+                                          (get-all-installed state))
+                                  -1
+                                  0))
+   :abilities [{:label "Move an advancement counter between ICE" ; Workaround for convenience
+                :req (req (and run (= (:position run) (count run-ices))))
+                :once :per-run
+                :effect (req (show-wait-prompt state :runner "Corp to use Adaptive Membrances")
+                             (continue-ability
+                              state side
+                              {:choices {:card #(and (installed? %)
+                                                     (get-counters % :advancement))}
+                               :effect (req (let [from-card target]
+                                              (continue-ability
+                                               state side
+                                               {:prompt "Move to where?"
+                                                :choices {:card #(and (installed? %)
+                                                                      (not (same-card? from-card %)))}
+                                                :msg (msg "move an advancement token from "
+                                                          (card-str state from-card)
+                                                          " to "
+                                                          (card-str state target))
+                                                :effect (effect (add-prop :corp target :advance-counter 1)
+                                                                (add-prop :corp from-card :advance-counter -1)
+                                                                (clear-wait-prompt :runner))}
+                                               card nil)))}
+                              card nil))}]})

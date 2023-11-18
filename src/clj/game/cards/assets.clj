@@ -2407,3 +2407,55 @@
                 :cost [:click 1 :credit 1]
                 :msg (msg "give the Runner 1 tag")
                 :effect (effect (gain-tags eid 1))}]})
+
+(define-card "Debt Collector"
+  (let [draw-ability
+        {:async true
+         :effect (effect (add-counter card :credit 1)
+                         (continue-ability
+                          {:optional
+                           {:prompt "Use Debt Collector to draw 1 card?"
+                            :yes-ability {:async true
+                                          :msg "draw 1 card"
+                                          :effect (effect (draw eid 1 nil))}}}
+                          (get-card state card) nil))}
+
+        take-cred-ability
+        {:msg (msg "take 1[Credits] from Debt Collector")
+         :async true
+         :effect (effect (gain-credits 1)
+                         (add-counter eid card :credit -1 nil))}
+
+        draw-or-take-cred
+        {:once :per-turn
+         :async true
+         :label "Place 1[Credits] or optionally draw 1 card"
+         :interactive (req true)
+         :effect (effect (continue-ability
+                          (if (>= (get-counters card :credit) 1)
+                            take-cred-ability
+                            draw-ability)
+                          card nil))}]
+    {:derezzed-events [corp-rez-toast]
+     :flags {:corp-phase-12 (req true)}
+     :events [(assoc draw-or-take-cred :event :corp-turn-begins)]
+     :abilities [draw-or-take-cred]}))
+
+
+(define-card "Recycling Plant"
+  ;; TODO: currently mandatory...
+  (let [trash-for-draw-ab
+        {:label "Trash a card from HQ to draw 1 card and gain 1[Credit]"
+         :once :per-turn
+         :req (req (and (pos? (count (:hand corp)))))
+         :async true
+         :effect (req (wait-for (pay-sync state :corp card [:trash-from-hand 1])
+                                (if async-result
+                                  (do (system-msg state :corp "uses Recycling Plant to trash a card to gain 1[Credit] and draw 1 card")
+                                      (gain-credits state side 1)
+                                      (draw state side eid 1 nil))
+                                  (effect-completed state side eid))))}]
+    {:derezzed-events [corp-rez-toast]
+     :flags {:corp-phase-12 (req true)}
+     :events [(assoc trash-for-draw-ab :event :corp-turn-begins)]
+     :abilities [trash-for-draw-ab]}))
