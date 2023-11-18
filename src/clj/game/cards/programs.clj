@@ -2839,3 +2839,12 @@
     (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")
                                   (strength-pump 2 2)]
                       :events (luxury-icebreaker-events :detour-used)})))
+
+(define-card "Trojan Stable"
+  {:implementation "To remove a counter from Hivemind, manually click Hivemind to move the counter to this card"
+   :events [{:event :runner-turn-begins
+             :req (req (> (get-counters card :virus) 0)) ; Intentionally ignoring Hivemind to avoid being at 0 counters, then going to -1 to gain 3 creds without paying anything
+             :cost [:virus 1]
+             :effect (effect (gain-credits 3))
+             :msg "gain 3 [Credits]"}]
+   :data {:counter {:virus 3}}})
