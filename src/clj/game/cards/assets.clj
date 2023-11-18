@@ -2419,13 +2419,11 @@
                                           :msg "draw 1 card"
                                           :effect (effect (draw eid 1 nil))}}}
                           (get-card state card) nil))}
-
         take-cred-ability
         {:msg (msg "take 1[Credits] from Debt Collector")
          :async true
          :effect (effect (gain-credits 1)
                          (add-counter eid card :credit -1 nil))}
-
         draw-or-take-cred
         {:once :per-turn
          :async true
@@ -2441,20 +2439,19 @@
      :events [(assoc draw-or-take-cred :event :corp-turn-begins)]
      :abilities [draw-or-take-cred]}))
 
-
 (define-card "Recycling Plant"
-  ;; TODO: currently mandatory...
   (let [trash-for-draw-ab
         {:label "Trash a card from HQ to draw 1 card and gain 1[Credit]"
          :once :per-turn
          :req (req (and (pos? (count (:hand corp)))))
          :async true
-         :effect (req (wait-for (pay-sync state :corp card [:trash-from-hand 1])
-                                (if async-result
-                                  (do (system-msg state :corp "uses Recycling Plant to trash a card to gain 1[Credit] and draw 1 card")
-                                      (gain-credits state side 1)
-                                      (draw state side eid 1 nil))
-                                  (effect-completed state side eid))))}]
+         :choices {:card #(and (in-hand? %)
+                               (corp? %))}
+         :cancel-effect (effect (effect-completed eid))
+         :effect (req (wait-for (trash state side target nil)
+                                (system-msg state :corp "uses Recycling Plant to trash a card to gain 1[Credit] and draw 1 card")
+                                (gain-credits state side 1)
+                                (draw state side eid 1 nil)))}]
     {:derezzed-events [corp-rez-toast]
      :flags {:corp-phase-12 (req true)}
      :events [(assoc trash-for-draw-ab :event :corp-turn-begins)]

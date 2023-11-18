@@ -1795,12 +1795,16 @@
              :effect (effect (gain :click 1))}]})
 
 (define-card "Adaptive Membranes"
-  {                                     ;cost reduction currently does not update properly - if agenda is 3-advanced, then some other card is 3-advanced, it's weird
+  {:implementation "Moving of adv. tokens is not restricted to run start"
+   :derezzed-events
+   [{:event :advance
+     :effect (effect (update-advancement-cost card))}
+    {:event :advancement-placed
+     :effect (effect (update-advancement-cost card))}]
    :advancement-cost-bonus (req (if (some #(and (> (+ (get-counters % :advancement) (:extra-advance-counter % 0)) 2)
                                                 (not (same-card? card %)))
                                           (get-all-installed state))
-                                  -1
-                                  0))
+                                  -1 0))
    :abilities [{:label "Move an advancement counter between ICE" ; Workaround for convenience
                 :req (req (and run (= (:position run) (count run-ices))))
                 :once :per-run
