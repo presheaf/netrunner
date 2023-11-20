@@ -2833,7 +2833,7 @@
     (auto-icebreaker {:abilities [(break-sub 1 2 "Sentry") (strength-pump 2 1)]
                       :events (luxury-icebreaker-events :bullseye-used)}))
   (define-card "Gemon"
-    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate") (strength-pump 1 3)]
+    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate") (strength-pump 1 2)]
                       :events (luxury-icebreaker-events :almanac-used)}))
   (define-card "Lamis"
     (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")

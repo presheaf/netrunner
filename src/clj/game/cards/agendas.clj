@@ -1763,9 +1763,9 @@
                           state :corp
                           {:optional
                            {:player :corp
-                            :prompt "Pay 3[credit] to prevent Plausible Deniability from being stolen?"
-                            :yes-ability {:msg "pay 3[credit] to prevent it from being stolen this turn"
-                                          :cost [:credit 3]
+                            :prompt "Pay 2[credit] to prevent Plausible Deniability from being stolen?"
+                            :yes-ability {:msg "pay 2[credit] to prevent it from being stolen this turn"
+                                          :cost [:credit 2]
                                           :effect (req
                                                    (swap! state assoc-in [:special :plausible-deniability-used] true)
                                                    (register-turn-flag! state side
@@ -1781,20 +1781,22 @@
                  (gain-bad-publicity state :corp eid 1))
    :interactive (req true)})
 
-(define-card "Power Grid Reroute"
-  {:interactive (req true)
-   :async true
-   :effect (req (let [all-hardware (filter hardware? (all-active-installed state :runner))]
-                  (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title all-hardware))))
-                  (trash-cards state :corp eid all-hardware)))})
-
 (define-card "Time Thieves"
   {:events [{:event :corp-turn-begins
              :req (req false)           ; TODO: check whether a click was spent/lost during a run
              :msg "gain [click]"
              :effect (effect (gain :click 1))}]})
 
-(define-card "Adaptive Membranes"
+(define-card "Power Grid Reroute"
+  {:interactive (req true)
+   :async true
+   :effect (req (let [to-trash (filter #(or (hardware? %)
+                                            (and (resource? %) (has-subtype? % "Virtual")))
+                                       (all-active-installed state :runner))]
+                  (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title to-trash))))
+                  (trash-cards state :corp eid to-trash)))})
+
+(define-card "Adaptive Netbranes"
   {:implementation "Moving of adv. tokens is not restricted to run start"
    :derezzed-events
    [{:event :advance
@@ -1808,7 +1810,7 @@
    :abilities [{:label "Move an advancement counter between ICE" ; Workaround for convenience
                 :req (req (and run (= (:position run) (count run-ices))))
                 :once :per-run
-                :effect (req (show-wait-prompt state :runner "Corp to use Adaptive Membrances")
+                :effect (req (show-wait-prompt state :runner "Corp to use Adaptive Netbranes")
                              (continue-ability
                               state side
                               {:choices {:card #(and (installed? %)

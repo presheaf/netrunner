@@ -2407,8 +2407,8 @@
                                               card nil))))})
 
 (define-card "Retrospective"
-  {:msg (msg "gain " (+ 5 (count (into (set nil) (map card-title (:scored corp))))) "[Credits]")
-   :effect (effect (gain-credits (+ 5 (count (into (set nil) (map card-title (:scored corp)))))))})
+  {:msg (msg "gain " (+ 7 (count (into (set nil) (map card-title (:scored corp))))) "[Credits]")
+   :effect (effect (gain-credits (+ 7 (count (into (set nil) (map card-title (:scored corp)))))))})
 
 (define-card "Hit Piece"
   {:async true
