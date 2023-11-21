@@ -3084,7 +3084,7 @@
                                   :type :credit}}}))
 
 (define-card "Stolen Contacts"
-  {:effect (req (dotimes [_ 1]
+  {:effect (req (dotimes [_ 3]
                   (command-summon state :runner ["Easy Mark"] true)))})
 
 (define-card "Stroke of Inspiration"
