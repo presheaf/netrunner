@@ -2408,7 +2408,7 @@
                 :msg (msg "give the Runner 1 tag")
                 :effect (effect (gain-tags eid 1))}]})
 
-(define-card "Debt Collector"
+(define-card "CDO Portfolio"
   (let [draw-ability
         {:async true
          :effect (effect (add-counter card :credit 1)

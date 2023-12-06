@@ -3087,7 +3087,7 @@
   {:effect (req (dotimes [_ 3]
                   (command-summon state :runner ["Easy Mark"] true)))})
 
-(define-card "Stroke of Inspiration"
+(define-card "Reverse Engineering"
   {:async true
    :makes-run true
    :msg "make a run on R&D"
