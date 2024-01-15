@@ -1831,7 +1831,6 @@
                                                card nil)))}
                               card nil))}]})
 
-
 (let [pmp-prog "The Runner trashes 1 installed program"
       pmp-brain "The Runner suffers 1 brain damage"
       pmp-net "The Runner suffers 2 net damage"
@@ -1842,22 +1841,42 @@
             (vec (filter #(not ((set first-group) %))
                          [pmp-prog pmp-brain pmp-net pmp-clicks])))
 
-
           (pmp-resolve-effects [effects-to-do]
-            ;; Slightly hacky recursion - resolve this ability over and over, removing a thing each time
+            ;; Resolve this ability over and over, removing an effect each time
             {:async true
              :effect (req
                       (cond
                         (effects-to-do pmp-prog)
-                        (do 
-                          (system-msg state :runner " would trash a program here")
-                          (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil))
-                        
+                        (do
+                          (if (some program? (all-active-installed state :runner))
+                            (wait-for (resolve-ability
+                                       state :runner
+                                       {:async true
+                                        :prompt "Select an installed program to trash"
+                                        :label "Trash an installed program "
+                                        :msg (msg "trash " (:title target))
+                                        :choices {:card #(and (installed? %)
+                                                              (program? %)
+                                                              (runner? %))}
+                                        :effect (effect (trash :runner eid target nil))}
+                                       card nil)
+                                      (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil))
+                            (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil)))
+
+                        (effects-to-do pmp-brain)
+                        (wait-for (damage state :runner :brain 1 {:card card})
+                                  (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-brain)) card nil))
+
+                        (effects-to-do pmp-net)
+                        (wait-for (damage state :runner :net 2 {:card card})
+                                  (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-net)) card nil))
+
                         :else
                         (do (when (effects-to-do pmp-clicks)
                               (system-msg state :runner "has 2 fewer [Click] next turn")
                               (swap! state update-in [:runner :extra-click-temp] (fnil #(- % 2) 0)))
                             (effect-completed state side eid))))})
+
           (runner-pick-group-abi [first-group-choices]
             (let [second-group-choices (pmp-other-group first-group-choices)
                   choice-1-str (str "First group (" (join ", " first-group-choices)")")
@@ -1866,12 +1885,10 @@
                :prompt "Which group of effects to resolve?"
                :choices [choice-1-str choice-2-str]
                :effect (req (clear-wait-prompt state :corp)
-                            
                             (let [effects-to-do
                                   (if (= target choice-1-str)
                                     first-group-choices
                                     second-group-choices)]
-                              
                               (system-msg state :runner (str "chooses to resolve " effects-to-do))
                               (continue-ability state :corp (pmp-resolve-effects (set effects-to-do)) card nil)))}))
 
@@ -1889,7 +1906,7 @@
 
                         :else           ; target is "Done"
                         (do (clear-wait-prompt state :runner)
-                            (system-msg state :corp (str "divides Psychomagnetic Pulse effects as [" (join ", " curr-chosen) "] and [" (join ", " (pmp-other-group curr-chosen)) "]"))
+                            (system-msg state :corp (str "divides Psychomagnetic Pulse effects as [" (join ", " curr-chosen) "] in the first group and [" (join ", " (pmp-other-group curr-chosen)) "] in the other"))
                             (show-wait-prompt state :corp "Runner to pick their favorite group")
                             (continue-ability state :runner (runner-pick-group-abi curr-chosen) card nil))))})]
     
@@ -1897,7 +1914,5 @@
       {:async true
        :interactive (req true)
        :effect (effect (show-wait-prompt :runner "Corp to divide effects into two groups")
-                       (continue-ability (rec-choose-abi []) card nil))
-        ; TODO: remove
-       :advancement-cost-bonus (req (- 5))})))
+                       (continue-ability (rec-choose-abi []) card nil))})))
 

@@ -2837,7 +2837,7 @@
                       :events (luxury-icebreaker-events :almanac-used)}))
   (define-card "Lamis"
     (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")
-                                  (strength-pump 2 4)]
+                                  (strength-pump 2 3)]
                       :events (luxury-icebreaker-events :detour-used)})))
 
 (define-card "Trojan Stable"
