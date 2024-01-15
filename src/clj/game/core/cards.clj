@@ -172,7 +172,7 @@
    (let [zone (if host (map to-keyword (:zone host)) zone)
          src-zone (first zone)
          target-zone (if (vector? to) (first to) to)]
-     (if (and (is-ephemeral? state card) (= :deck to))
+     (if (and (is-ephemeral? state card) (#{:deck :discard} to))
        (move state side card :rfg)      ; do not shuffle it into deck, RFG it instead
        (if (fake-identity? card)
          ;; Make Fake-Identity cards "disappear"
@@ -187,7 +187,6 @@
            (trigger-event state side :pre-card-moved card src-zone target-zone)
            (let [dest (if (sequential? to) (vec to) [to])
                  moved-card (get-moved-card state side card to)]
-
              (when (is-ephemeral? state card)
                (mark-ephemeral! state moved-card))
              (remove-old-card state side card)
