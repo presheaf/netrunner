@@ -1782,10 +1782,16 @@
    :interactive (req true)})
 
 (define-card "Chronal Retrofitting"
-  {:events [{:event :corp-turn-begins
-             :req (req false)           ; TODO: check whether a click was spent/lost during a run
+  {:events [{:event :runner-turn-ends
+             :req (req
+                   (or (some #(and ((set (first %)) :during-run)
+                                   (> (second %) 0))
+                             (turn-events state :runner :runner-spent-click))
+                       (some #(and (= :during-run (second %))
+                                   ((set (first %)) :click))
+                             (turn-events state :runner :runner-lose))))
              :msg "gain [click]"
-             :effect (effect (gain :click 1))}]})
+             :effect (req (swap! state update-in [:corp :extra-click-temp] (fnil #(+ % 1) 0)))}]})
 
 (define-card "Power Grid Reroute"
   {:interactive (req true)

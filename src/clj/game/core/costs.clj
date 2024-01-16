@@ -70,7 +70,9 @@
               (swap! state update-in [:stats side :lose cost-type] (fnil + 0) amount))
             (deduct state side [cost-type amount])))
       (when (or (not (number? actual-amount)) (> actual-amount 0))
-        (trigger-event state side (if (= side :corp) :corp-lose :runner-lose) [cost-type amount])))))
+        (apply trigger-event (concat [state side (if (= side :corp) :corp-lose :runner-lose) [cost-type amount]]
+                                     (if (:run @state)
+                                       [:during-run] [])))))))
 
 (defn lose-no-event [state side & args]
   (doseq [[cost-type amount] (partition 2 args)]
@@ -358,7 +360,8 @@
 
 (defn pay-clicks
   [state side eid actions costs cost-type amount]
-  (let [a (keep :action actions)]
+  (let [a (concat (keep :action actions)
+                  (if (:run @state) '(:during-run) '()))]
     (when (not (some #{:steal-cost :bioroid-cost} a))
       ;; do not create an undo state if click is being spent due to a steal cost (eg. Ikawah Project)
       (swap! state assoc :click-state (dissoc @state :log)))
