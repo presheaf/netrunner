@@ -2829,13 +2829,13 @@
                                              {:msg "lose 2 [Credits]"
                                               :effect (effect (lose-credits :runner 2))}
                                              card nil)))}])]
-  (define-card "Maron"
-    (auto-icebreaker {:abilities [(break-sub 1 2 "Sentry") (strength-pump 2 1)]
+  (define-card "Lamis"
+    (auto-icebreaker {:abilities [(break-sub 1 2 "Sentry") (strength-pump 1 1)]
                       :events (luxury-icebreaker-events :bullseye-used)}))
-  (define-card "Gemon"
+  (define-card "Maron"
     (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate") (strength-pump 1 2)]
                       :events (luxury-icebreaker-events :almanac-used)}))
-  (define-card "Lamis"
+  (define-card "Gemon"
     (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")
                                   (strength-pump 2 3)]
                       :events (luxury-icebreaker-events :detour-used)})))
