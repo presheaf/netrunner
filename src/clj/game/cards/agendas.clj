@@ -1885,10 +1885,10 @@
 
           (runner-pick-group-abi [first-group-choices]
             (let [second-group-choices (pmp-other-group first-group-choices)
-                  choice-1-str (str "First group (" (join ", " first-group-choices)")")
-                  choice-2-str (str "Second group (" (join ", " second-group-choices) ")")]
+                  choice-1-str "First group"
+                  choice-2-str "Second group"]
               {:async true
-               :prompt "Which group of effects to resolve?"
+               :prompt (str "Which group of effects to resolve? (First group: [" (join ", " first-group-choices) "], second group: [" (join ", " first-group-choices) "])")
                :choices [choice-1-str choice-2-str]
                :effect (req (clear-wait-prompt state :corp)
                             (let [effects-to-do
