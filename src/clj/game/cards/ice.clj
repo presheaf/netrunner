@@ -3600,3 +3600,24 @@
      :abilities [flip-card-abi]
      ; Necessary if the card is flipped while derezzed
      :effect (req (update-subs-fn state side card))}))
+
+(define-card "Anklebiter"
+  {:effect take-bad-pub
+   :subroutines [add-runner-card-to-grip
+                 end-the-run]})
+
+(define-card "Kyuudoka"
+  {:additional-cost [:forfeit]
+   :subroutines [(gain-credits-sub 2)
+                 {:async true
+                  :label "Corp may draw 1 card"
+                  :effect (effect (continue-ability
+                                   {:optional
+                                    {:prompt "Draw 1 card?"
+                                     :yes-ability {:async true
+                                                   :msg "draw 1 card"
+                                                   :effect (effect (draw eid 1 nil))}}}
+                                   card nil))}
+                 (net-damage-with-sfx 1 "archer-trash")
+                 (net-damage-with-sfx 1 "archer-trash")
+                 end-the-run]})

@@ -1,6 +1,6 @@
 (in-ns 'game.core)
 
-(declare get-zones ice-index parse-command swap-ice swap-installed card-title)
+(declare get-zones ice-index parse-command swap-ice swap-installed card-title mark-ephemeral!)
 
 (defn say
   "Prints a message to the log as coming from the given username. The special user string
@@ -292,12 +292,15 @@
     {:priority 10}))
 
 (defn command-summon
-  [state side args]
-  (let [s-card (server-card (string/join " " args))
-        card (when (and s-card (same-side? (:side s-card) side))
-               (build-card s-card))]
-    (when card
-      (swap! state update-in [side :hand] #(concat % (zone :hand [card]))))))
+  ([state side args] (command-summon state side args false))
+  ([state side args is-ephemeral]
+   (let [s-card (server-card (string/join " " args))
+         card (when (and s-card (same-side? (:side s-card) side))
+                (build-card s-card))]
+     (when card
+       (when is-ephemeral
+         (mark-ephemeral! state card))
+       (swap! state update-in [side :hand] #(concat % (zone :hand [card])))))))
 
 (defn command-host
   [state side]

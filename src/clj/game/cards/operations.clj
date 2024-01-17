@@ -2405,3 +2405,21 @@
                                                :msg (msg "place " num-trashed " advancement tokens on " (card-str state target))
                                                :effect (effect (add-prop target :advance-counter num-trashed {:placed true}))}
                                               card nil))))})
+
+(define-card "Retrospective"
+  {:msg (msg "gain " (+ 7 (count (into (set nil) (map card-title (:scored corp))))) "[Credits]")
+   :effect (effect (gain-credits (+ 7 (count (into (set nil) (map card-title (:scored corp)))))))})
+
+(define-card "Due Diligence"
+  {:async true
+   :prompt  "Choose a Gray Ops from R&D to play"
+   :choices (req (cancellable
+                  (filter #(and (operation? %)
+                                (has-subtype? % "Gray Ops")
+                                (<= (:cost %) (:credit corp)))
+                          (:deck corp))
+                  :sorted))
+   :msg (msg "search R&D for " (:title target) " and play it")
+   :effect (effect (shuffle! :deck)
+                   (system-msg "shuffles their deck")
+                   (play-instant eid target nil))})

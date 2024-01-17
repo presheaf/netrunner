@@ -157,14 +157,22 @@
 (defn allowed?
   "Checks if a card is allowed in deck of a given identity - not accounting for influence"
   [card {:keys [side faction title] :as identity}]
-  (and (not= (:type card) "Identity")
-       (= (:side card) side)
-       (or (not= (:type card) "Agenda")
-           (= (:faction card) "Neutral")
-           (= (:faction card) faction)
-           (draft-id? identity))
-       (or (not= title "Custom Biotics: Engineered for Success")
-           (not= (:faction card) "Jinteki"))))
+
+  (let [dual-faction-agendas
+        {"Adaptive Netbranes" #{"Jinteki" "Weyland Consortium"}
+         "Power Grid Reroute" #{"Haas-Bioroid" "Weyland Consortium"}
+         "Psychomagnetic Pulse" #{"Haas-Bioroid" "Jinteki"}}]
+    (if (dual-faction-agendas (:title card))
+      ;; Currently, dual faction agendas are hardcoded as neutral cards, necessitating this branch
+      ((dual-faction-agendas (:title card)) faction)
+      (and (not= (:type card) "Identity")
+           (= (:side card) side)
+           (or (not= (:type card) "Agenda")
+               (= (:faction card) "Neutral")
+               (= (:faction card) faction)
+               (draft-id? identity))
+           (or (not= title "Custom Biotics: Engineered for Success")
+               (not= (:faction card) "Jinteki"))))))
 
 (defn valid-deck?
   "Checks that a given deck follows deckbuilding rules"

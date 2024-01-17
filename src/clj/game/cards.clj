@@ -23,6 +23,15 @@
                   (play-sfx state side sfx-id (make-sfx-card-info state card)))
                 (trash state side eid target {:cause :subroutine} (not sfx-id)))})
 
+(defn net-damage-with-sfx
+  [dmg sfx-id]
+  {:label (str "Do " dmg " net damage")
+   :async true
+   :msg (str "do " dmg " net damage")
+   :effect (req (when sfx-id
+                  (play-sfx state side sfx-id (make-sfx-card-info state card)))
+                (damage state side eid :net dmg {:card card}))})
+
 (def trash-program (trash-program-with-sfx nil))
 
 

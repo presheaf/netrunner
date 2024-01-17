@@ -1585,9 +1585,9 @@
   (let [ability {:once :per-turn
                  :msg "draw 1 card and add a power counter"
                  :async true
-                 :effect (req (wait-for (draw state :runner 1 nil)
+                 :effect (req (wait-for (draw state :runner 2 nil)
                                         (add-counter state side (get-card state card) :power 1)
-                                        (if (= 5 (get-counters (get-card state card) :power))
+                                        (if (= 3 (get-counters (get-card state card) :power))
                                           (do (system-msg state :runner "trashes Respirocytes as it reached 5 power counters")
                                               (trash state side eid card {:unpreventable true}))
                                           (effect-completed state side eid))))}
@@ -2097,3 +2097,13 @@
                 :async true
                 :effect (effect (gain-credits 1)
                                 (draw eid 2 nil))}]})
+
+(define-card "Elysium"
+  (letfn [(half-runner-points [s] (quot (max (get-in s [:runner :agenda-point] 0) 0) 2))]
+    {:in-play [:memory 2]
+     :recurring (req (when (< (get-counters card :recurring) (half-runner-points @state))
+                       (set-prop state side card :rec-counter (half-runner-points @state))))
+     :effect (req (when (< (get-counters card :recurring) (half-runner-points @state))
+                       (set-prop state side card :rec-counter (half-runner-points @state))))
+     :interactions {:pay-credits {:req (req run)
+                                  :type :recurring}}}))

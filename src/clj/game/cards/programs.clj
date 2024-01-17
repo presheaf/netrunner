@@ -2816,3 +2816,35 @@
   (cloud-icebreaker
    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
                                   (strength-pump 1 1)]})))
+
+(letfn [(luxury-icebreaker-events [flag-kw]
+          [{:event :encounter-ice-ends
+           :req (req (any-subs-broken-by-card? target card))
+           :msg (msg "trash " (:title card))
+           :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
+           {:event :run-ends
+            :effect (req (when (and (:successful target)
+                                    (get-in target [:special flag-kw]))
+                           (continue-ability state :runner
+                                             {:msg "lose 2 [Credits]"
+                                              :effect (effect (lose-credits :runner 2))}
+                                             card nil)))}])]
+  (define-card "Lamis"
+    (auto-icebreaker {:abilities [(break-sub 1 2 "Sentry") (strength-pump 1 1)]
+                      :events (luxury-icebreaker-events :bullseye-used)}))
+  (define-card "Maron"
+    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate") (strength-pump 1 2)]
+                      :events (luxury-icebreaker-events :almanac-used)}))
+  (define-card "Gemon"
+    (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")
+                                  (strength-pump 2 3)]
+                      :events (luxury-icebreaker-events :detour-used)})))
+
+(define-card "Trojan Stable"
+  {:implementation "To remove a counter from Hivemind, manually click Hivemind to move the counter to this card"
+   :events [{:event :runner-turn-begins
+             :req (req (> (get-counters card :virus) 0)) ; Intentionally ignoring Hivemind to avoid being at 0 counters, then going to -1 to gain 3 creds without paying anything
+             :cost [:virus 1]
+             :effect (effect (gain-credits 3))
+             :msg "gain 3 [Credits]"}]
+   :data {:counter {:virus 3}}})

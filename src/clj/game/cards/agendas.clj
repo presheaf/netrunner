@@ -1739,3 +1739,186 @@
                                       (not (has-subtype? target "Virtual"))
                                       (not (:facedown (second targets)))))
                        :value 1}]})
+
+
+(define-card "Gish Gallop"
+  ;; TODO: this displays a waiting-for-corp-to-pick prompt to the runner, letting them know gish gallop is there...
+  ;; possible workaround: have it insist corp-phase-12 happens, and give it an ability that can be used in that phase - however, requires me to figure out how to have agendas do abilities
+  {:events [{:event :corp-turn-begins
+             :interactive (req true)
+             :req (req (installed? (get-card state card)))
+             :location :servers
+             :optional {:prompt "Score Gish Gallop?"
+                        :msg (msg "score itself")
+                        :autoresolve (get-autoresolve :auto-score)
+                        :yes-ability {:async true
+                                      :effect (effect (set-prop card :advance-counter (:advancementcost card))
+                                                      (score eid (get-card state card)))}}}]})
+
+(define-card "Plausible Deniability"
+  {:flags {:rd-reveal (req true)}
+   :access {:req (req (and (not installed) (not (get-in @state [:special :plausible-deniability-used]))))
+            :async true
+            :effect (req (continue-ability
+                          state :corp
+                          {:optional
+                           {:player :corp
+                            :prompt "Pay 2[credit] to prevent Plausible Deniability from being stolen?"
+                            :yes-ability {:msg "pay 2[credit] to prevent it from being stolen this turn"
+                                          :cost [:credit 2]
+                                          :effect (req
+                                                   (swap! state assoc-in [:special :plausible-deniability-used] true)
+                                                   (register-turn-flag! state side
+                                                    card :can-steal
+                                                    (fn [_ _ c] (not (same-card? c card))))
+                                                   (effect-completed state side eid))}}}
+                          card nil))}})
+
+(define-card "Smear Campaign"
+  {:msg (msg "take 1 bad publicity and make the Runner lose " (count (:hand runner)) " [Credits]")
+   :async true
+   :effect (req  (lose-credits state :runner (count (:hand runner)))
+                 (gain-bad-publicity state :corp eid 1))
+   :interactive (req true)})
+
+(define-card "Chronal Retrofitting"
+  {:events [{:event :runner-turn-ends
+             :req (req
+                   (or (some #(and ((set (first %)) :during-run)
+                                   (> (second %) 0))
+                             (turn-events state :runner :runner-spent-click))
+                       (some #(and (= :during-run (second %))
+                                   ((set (first %)) :click))
+                             (turn-events state :runner :runner-lose))))
+             :msg "gain [click]"
+             :effect (req (swap! state update-in [:corp :extra-click-temp] (fnil #(+ % 1) 0)))}]})
+
+(define-card "Power Grid Reroute"
+  {:interactive (req true)
+   :async true
+   :effect (req (let [to-trash (filter #(or (hardware? %)
+                                            (and (resource? %) (has-subtype? % "Virtual")))
+                                       (all-active-installed state :runner))]
+                  (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title to-trash))))
+                  (trash-cards state :corp eid to-trash)))})
+
+(define-card "Adaptive Netbranes"
+  {:implementation "Moving of adv. tokens is not restricted to run start"
+   :derezzed-events
+   [{:event :advance
+     :effect (effect (update-advancement-cost card))}
+    {:event :advancement-placed
+     :effect (effect (update-advancement-cost card))}]
+   :advancement-cost-bonus (req (if (some #(and (> (+ (get-counters % :advancement) (:extra-advance-counter % 0)) 2)
+                                                (not (same-card? card %)))
+                                          (get-all-installed state))
+                                  -1 0))
+   :abilities [{:label "Move an advancement counter between ICE" ; Workaround for convenience
+                :req (req (and run (= (:position run) (count run-ices))))
+                :once :per-run
+                :effect (req (show-wait-prompt state :runner "Corp to use Adaptive Netbranes")
+                             (continue-ability
+                              state side
+                              {:choices {:card #(and (installed? %)
+                                                     (get-counters % :advancement))}
+                               :effect (req (let [from-card target]
+                                              (continue-ability
+                                               state side
+                                               {:prompt "Move to where?"
+                                                :choices {:card #(and (installed? %)
+                                                                      (not (same-card? from-card %)))}
+                                                :msg (msg "move an advancement token from "
+                                                          (card-str state from-card)
+                                                          " to "
+                                                          (card-str state target))
+                                                :effect (effect (add-prop :corp target :advance-counter 1)
+                                                                (add-prop :corp from-card :advance-counter -1)
+                                                                (clear-wait-prompt :runner))}
+                                               card nil)))}
+                              card nil))}]})
+
+(let [pmp-prog "The Runner trashes 1 installed program"
+      pmp-brain "The Runner suffers 1 brain damage"
+      pmp-net "The Runner suffers 2 net damage"
+      pmp-clicks "The Runner has 2 fewer [Click] next turn"
+      pmp-restart "Start over"
+      pmp-done "Done"]
+  (letfn [(pmp-other-group [first-group]
+            (vec (filter #(not ((set first-group) %))
+                         [pmp-prog pmp-brain pmp-net pmp-clicks])))
+
+          (pmp-resolve-effects [effects-to-do]
+            ;; Resolve this ability over and over, removing an effect each time
+            {:async true
+             :effect (req
+                      (cond
+                        (effects-to-do pmp-prog)
+                        (do
+                          (if (some program? (all-active-installed state :runner))
+                            (wait-for (resolve-ability
+                                       state :runner
+                                       {:async true
+                                        :prompt "Select an installed program to trash"
+                                        :label "Trash an installed program "
+                                        :msg (msg "trash " (:title target))
+                                        :choices {:card #(and (installed? %)
+                                                              (program? %)
+                                                              (runner? %))}
+                                        :effect (effect (trash :runner eid target nil))}
+                                       card nil)
+                                      (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil))
+                            (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil)))
+
+                        (effects-to-do pmp-brain)
+                        (wait-for (damage state :runner :brain 1 {:card card})
+                                  (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-brain)) card nil))
+
+                        (effects-to-do pmp-net)
+                        (wait-for (damage state :runner :net 2 {:card card})
+                                  (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-net)) card nil))
+
+                        :else
+                        (do (when (effects-to-do pmp-clicks)
+                              (system-msg state :runner "has 2 fewer [Click] next turn")
+                              (swap! state update-in [:runner :extra-click-temp] (fnil #(- % 2) 0)))
+                            (effect-completed state side eid))))})
+
+          (runner-pick-group-abi [first-group-choices]
+            (let [second-group-choices (pmp-other-group first-group-choices)
+                  choice-1-str "First group"
+                  choice-2-str "Second group"]
+              {:async true
+               :prompt (str "Which group of effects to resolve? (First group: [" (join ", " first-group-choices) "], second group: [" (join ", " first-group-choices) "])")
+               :choices [choice-1-str choice-2-str]
+               :effect (req (clear-wait-prompt state :corp)
+                            (let [effects-to-do
+                                  (if (= target choice-1-str)
+                                    first-group-choices
+                                    second-group-choices)]
+                              (system-msg state :runner (str "chooses to resolve " effects-to-do))
+                              (continue-ability state :corp (pmp-resolve-effects (set effects-to-do)) card nil)))}))
+
+          (rec-choose-abi [curr-chosen]
+            {:prompt "Which effects should be in the first group?"
+             :choices (vec (filter #(not ((set curr-chosen) %)) [pmp-prog pmp-brain pmp-net pmp-clicks pmp-restart pmp-done]))
+             :async true
+             :effect (req
+                      (cond
+                        (#{pmp-prog pmp-brain pmp-net pmp-clicks} target)
+                        (continue-ability state :corp (rec-choose-abi (vec (concat curr-chosen [target]))) card nil)
+
+                        (= target pmp-restart)
+                        (continue-ability state :corp (rec-choose-abi []) card nil)
+
+                        :else           ; target is "Done"
+                        (do (clear-wait-prompt state :runner)
+                            (system-msg state :corp (str "divides Psychomagnetic Pulse effects as [" (join ", " curr-chosen) "] in the first group and [" (join ", " (pmp-other-group curr-chosen)) "] in the other"))
+                            (show-wait-prompt state :corp "Runner to pick their favorite group")
+                            (continue-ability state :runner (runner-pick-group-abi curr-chosen) card nil))))})]
+    
+    (define-card "Psychomagnetic Pulse"
+      {:async true
+       :interactive (req true)
+       :effect (effect (show-wait-prompt :runner "Corp to divide effects into two groups")
+                       (continue-ability (rec-choose-abi []) card nil))})))
+

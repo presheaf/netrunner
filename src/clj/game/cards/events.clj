@@ -959,11 +959,11 @@
 
 (define-card "Exclusive Party"
   {:msg (msg "draw 1 card and gain "
-             (count (filter #(= (:title %) "Exclusive Party") (:discard runner)))
+             (+ 1 (count (filter #(= (:title %) "Exclusive Party") (:discard runner))))
              " [Credits]")
    :async true
    :effect (req (wait-for (draw state side 1 nil)
-                          (gain-credits state side (count (filter #(= (:title %) "Exclusive Party") (:discard runner))))
+                          (gain-credits state side (+ 1 (count (filter #(= (:title %) "Exclusive Party") (:discard runner)))))
                           (effect-completed state side eid)))})
 
 (define-card "Executive Wiretaps"
@@ -2979,7 +2979,6 @@
 
 
 
-;;; On the Trail
 (define-card "On the Trail"
   (let [flip-info  {:front-face-code "50004"
                     :back-face-code "50004_flip"
@@ -3083,3 +3082,33 @@
                                                 (and (= :ability (:source-type eid))
                                                      (has-subtype? target "Icebreaker"))))
                                   :type :credit}}}))
+
+(define-card "Stolen Contacts"
+  {:effect (req (dotimes [_ 3]
+                  (command-summon state :runner ["Easy Mark"] true)))})
+
+(define-card "Reverse Engineering"
+  {:async true
+   :makes-run true
+   :msg "make a run on R&D"
+   :effect (effect (make-run eid :rd nil card))
+   :events [{:event :run-ends
+             :once :per-turn
+             :req (req (and (:successful target)
+                            (= :rd (first (:server target)))))
+             :msg (msg "gain " (total-cards-accessed target :deck) " [Credits]")
+             :effect (req (let [num-accessed-cards (total-cards-accessed target :deck)]
+                            (continue-ability state :runner
+                                              {:prompt "Choose a hardware to install from your stack"
+                                               :choices (req (filter #(and (hardware? %)
+                                                                           (can-pay? state side (assoc eid :source card :source-type :runner-install) % nil
+                                                                                     [:credit (install-cost state side % {:cost-bonus (- num-accessed-cards)})]))
+                                                                     (:deck runner))
+                                                             )
+                                               :msg (msg "install " (:title target) " from their stack (reducing the cost by " num-accessed-cards ")")
+                                               :effect (req (trigger-event state side :searched-stack nil)
+                                                               (shuffle! state side :deck)
+                                                               (if (not= target "No install")
+                                                                 (runner-install state side (assoc eid :source card :source-type :runner-install) target {:cost-bonus (- num-accessed-cards)})
+                                                                 (effect-completed state side eid)))}
+                                              card nil)))}]})
