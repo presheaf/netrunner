@@ -2410,7 +2410,7 @@
   {:msg (msg "gain " (+ 7 (count (into (set nil) (map card-title (:scored corp))))) "[Credits]")
    :effect (effect (gain-credits (+ 7 (count (into (set nil) (map card-title (:scored corp)))))))})
 
-(define-card "Hit Piece"
+(define-card "Due Diligence"
   {:async true
    :prompt  "Choose a Gray Ops from R&D to play"
    :choices (req (cancellable
