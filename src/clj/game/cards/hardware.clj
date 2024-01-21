@@ -1583,12 +1583,12 @@
 
 (define-card "Respirocytes"
   (let [ability {:once :per-turn
-                 :msg "draw 1 card and add a power counter"
+                 :msg "draw 2 cards and add a power counter"
                  :async true
                  :effect (req (wait-for (draw state :runner 2 nil)
                                         (add-counter state side (get-card state card) :power 1)
                                         (if (= 3 (get-counters (get-card state card) :power))
-                                          (do (system-msg state :runner "trashes Respirocytes as it reached 5 power counters")
+                                          (do (system-msg state :runner "trashes Respirocytes because it reached 3 power counters")
                                               (trash state side eid card {:unpreventable true}))
                                           (effect-completed state side eid))))}
         event {:req (req (zero? (count (:hand runner))))
