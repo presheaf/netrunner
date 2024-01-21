@@ -2819,9 +2819,8 @@
 
 (letfn [(luxury-icebreaker-events [flag-kw]
           [{:event :encounter-ice-ends
-           :req (req (any-subs-broken-by-card? target card))
-           :msg (msg "trash " (:title card))
-           :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
+            :req (req (any-subs-broken-by-card? target card))
+            :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
            {:event :run-ends
             :effect (req (when (and (:successful target)
                                     (get-in target [:special flag-kw]))
