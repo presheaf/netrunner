@@ -1604,15 +1604,15 @@
   (let [knight-req (req (and (same-card? current-ice (get-nested-host card))
                              (<= (get-strength current-ice) (get-strength card))))]
     {:abilities [{:label "Host Knight on a piece of ICE"
+                  :cost [:click 1]
                   :async true
                   :effect (req (let [k (get-card state card)
                                      hosted (ice? (:host k))
                                      icepos (ice-index state (get-card state (:host k)))]
                                  (continue-ability
                                    state side
-                                   {:prompt (msg "Host Knight on a piece of ICE"
+                                   {:prompt (msg "Host Knight on a piecce of ICE"
                                                  (when hosted " not before or after the current host ICE"))
-                                    :cost [:click 1]
                                     :choices {:card #(if hosted
                                                        (and (or (when (= (:zone %) (:zone (:host k)))
                                                                   (not= 1 (abs (- (ice-index state %) icepos))))
@@ -2819,9 +2819,8 @@
 
 (letfn [(luxury-icebreaker-events [flag-kw]
           [{:event :encounter-ice-ends
-           :req (req (any-subs-broken-by-card? target card))
-           :msg (msg "trash " (:title card))
-           :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
+            :req (req (any-subs-broken-by-card? target card))
+            :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
            {:event :run-ends
             :effect (req (when (and (:successful target)
                                     (get-in target [:special flag-kw]))
