@@ -605,6 +605,7 @@
   {:silent (req true)
    :effect (effect (add-counter card :agenda 5))
    :abilities [{:cost [:agenda 1]
+                :label "Place 1 advancement token"
                 :choices {:card #(and (ice? %)
                                       (can-be-advanced? %))}
                 :req (req (pos? (get-counters card :agenda)))
@@ -710,14 +711,19 @@
   {:implementation "System message doesn't tell the runner which cards were bottomed"
    :flags {:corp-phase-12 (req (and (not-empty (get-in @state [:corp :discard]))
                                     (is-scored? state :corp card)))}
-   :abilities [{:prompt "Select a card to add to the bottom of R&D"
+   :abilities [{:prompt "Select up to 2 cards to add to the bottom of R&D"
+                :label "Add up to 2 cards to the bottom of R&D"
                 :show-discard true
+                :once :per-turn
                 :choices {:card #(and (corp? %)
                                       (in-discard? %))
                           :max 2}
                 :effect (req (doseq [c targets]
                                (move state side c :deck)))
-                :msg (msg "add up to 2 cards to the bottom of R&D")}]})
+                :msg (msg "add " (join ", "
+                                (map #(if (:seen %)
+                                        (:title %) "an unseen card") targets ))
+                      " to the bottom of R&D")}]})
 
 (define-card "Helium-3 Deposit"
   {:async true
@@ -1803,7 +1809,7 @@
                   (trash-cards state :corp eid to-trash)))})
 
 (define-card "Adaptive Netbranes"
-  {:implementation "Moving of adv. tokens is not restricted to run start"
+  {:implementation "Moving of adv. tokens is manually triggered and not restricted to run start"
    :derezzed-events
    [{:event :advance
      :effect (effect (update-advancement-cost card))}
