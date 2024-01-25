@@ -384,6 +384,14 @@
   [state]
   (get-card state (get-in @state [:run :only-card-to-access])))
 
+(defn set-prevent-remote-access-card
+  [state side card]
+  (swap! state assoc-in [:run :prevent-remote-access-card] card))
+
+(defn get-prevent-remote-access-card
+  [state]
+  (get-card state (get-in @state [:run :prevent-remote-access-card])))
+
 (defn get-all-hosted [hosts]
   (let [hosted-cards (mapcat :hosted hosts)]
     (if (empty? hosted-cards)
@@ -409,12 +417,18 @@
   [state {:keys [base total] :as access-amount} already-accessed {:keys [no-root server] :as args}]
   (let [current-available (->> (get-in @state [:corp :servers (first server) :content])
                                get-all-content
+                               (filter #(or (not (get-prevent-remote-access-card state))
+                                            (not (same-card? % (get-prevent-remote-access-card state)))))
                                (map :cid)
                                set)
         already-accessed (clj-set/intersection already-accessed current-available)
         available (clj-set/difference current-available already-accessed)
         already-accessed-fn (fn [card] (contains? already-accessed (:cid card)))]
-    (when (must-continue? state already-accessed-fn access-amount args)
+    (when (must-continue? state already-accessed-fn
+                          (if (get-prevent-remote-access-card state)
+                            {:base (dec base) :total (dec total)}
+                            access-amount)
+                          args)
       {:prompt "Click a card to access it. You must access all cards in this server."
        :choices {:card #(contains? available (:cid %))}
        :async true
@@ -436,9 +450,13 @@
   [{:keys [base total] :as access-amount} server args]
   {:async true
    :effect (req (let [only-card (get-only-card-to-access state)
+                      prevent-remote-access-card (get-prevent-remote-access-card state)
                       content (get-in @state [:corp :servers (first server) :content])
                       total-cards (or (when only-card [only-card])
                                       (get-all-content content))
+                      total-cards (if prevent-remote-access-card
+                                    (filter #(not (same-card? % prevent-remote-access-card)) total-cards)
+                                    total-cards)
                       total-cards-count (count total-cards)
                       pos-total? (pos? total)
                       pos-total-cards? (pos? total-cards-count)]

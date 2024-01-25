@@ -1547,3 +1547,40 @@
               :yes-ability
               {:msg "add Kampala City Grid to HQ"
                :effect (effect (move card :hand))}}}]})
+
+(define-card "Consolidation"
+  (letfn [(non-ambush-asset? [c]
+            (and (asset? c)
+                 (not (has-subtype? c "Ambush"))) )]
+    ;; TODO: prevent derezzing too
+    {:events [{:event :run
+               :req (req this-server)
+               :silent (req true)
+               :effect (effect (set-prevent-access-card card))}
+              {:event :runner-turn-begins ; TODO: have this trigger also on runner turn
+               :req (req true)
+               :silent (req true)
+               :effect (effect (register-turn-flag! card :can-trash
+                                                   (fn [state side other-card]
+                                                     ((constantly (not (same-card? card other-card)))
+                                                      ;; TODO: the below toast triggers whenever anything is trashed, i.e. even a card other than consolidatoin
+                                                      (toast state :runner "Cannot trash due to Consolidation due." "warning")))))}]
+     :can-host (req (and (non-ambush-asset? target)
+                         (> 2 (count (:hosted card)))))
+
+     :abilities [{:label "Install a non-ambush asset on Consolidation"
+                  :req (req (< (count (:hosted card)) 2))
+                  :cost [:click 1]
+                  :prompt "Select a non-ambush asset to install onto Consolidation"
+                  :choices {:card #(and (non-ambush-asset? %)
+                                        (in-hand? %)
+                                        (corp? %))}
+                  :msg "install and host an asset or agenda"
+                  :async true
+                  :effect (effect (corp-install eid target card nil))}
+                 {:label "Install a previously-installed non-ambush asset on Consolidation (fixes only)"
+                  :req (req (< (count (:hosted card)) 2))
+                  :prompt "Select an installed asset or agenda to host on Consolidation"
+                  :choices {:card non-ambush-asset?}
+                  :msg "install and host a non-ambush asset"
+                  :effect (req (host state side card target))}]}))
