@@ -1788,7 +1788,10 @@
    :interactive (req true)})
 
 (define-card "Chronal Retrofitting"
-  {:events [{:event :runner-turn-ends
+  {:effect (req (let [bios (count (filter #(has-subtype? % "Bioroid") (all-active-installed state :corp)))]
+                  (gain-credits state side bios)
+                  (system-msg state side (str "gains " bios " [Credits] from Chronal Retrofitting"))))
+   :events [{:event :runner-turn-ends
              :req (req
                    (or (some #(and ((set (first %)) :during-run)
                                    (> (second %) 0))
@@ -1802,8 +1805,11 @@
 (define-card "Power Grid Reroute"
   {:interactive (req true)
    :async true
-   :effect (req (let [to-trash (filter #(or (hardware? %)
-                                            (and (resource? %) (has-subtype? % "Virtual")))
+   :choices ["Hardware" "Virtual resources"]
+   :prompt "Choose a card type to trash"
+   :effect (req (let [to-trash (filter #(if (= target "Hardware")
+                                          (hardware? %)
+                                          (and (resource? %) (has-subtype? % "Virtual")))
                                        (all-active-installed state :runner))]
                   (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title to-trash))))
                   (trash-cards state :corp eid to-trash)))})
@@ -1815,7 +1821,7 @@
      :effect (effect (update-advancement-cost card))}
     {:event :advancement-placed
      :effect (effect (update-advancement-cost card))}]
-   :advancement-cost-bonus (req (if (some #(and (> (+ (get-counters % :advancement) (:extra-advance-counter % 0)) 2)
+   :advancement-cost-bonus (req (if (some #(and (> (+ (get-counters % :advancement) (:extra-advance-counter % 0)) 3)
                                                 (not (same-card? card %)))
                                           (get-all-installed state))
                                   -1 0))
