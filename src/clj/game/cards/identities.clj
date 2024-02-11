@@ -1716,9 +1716,9 @@
 (define-card "Sizzler: Igniting the Discourse"
   {:events [{:event :agenda-scored
              :req (req (= (count (filter #(= (card-title %) (card-title target)) (:scored corp))) 1))
-             :msg (msg "gain 2[credit] and remove 1 bad publicity")
+             :msg (msg "gain 1[credit] and remove 1 bad publicity")
              :interactive (req true)
-             :effect (req (gain-credits state :corp 2)
+             :effect (req (gain-credits state :corp 1)
                           (lose-bad-publicity state :corp 1))}]})
 
 (define-card "Dionysus Bagbiter: Luxe Larcenist"
