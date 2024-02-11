@@ -2847,3 +2847,8 @@
              :effect (effect (gain-credits 3))
              :msg "gain 3 [Credits]"}]
    :data {:counter {:virus 3}}})
+
+(define-card "Novelty Seeker"
+  ;; TODO: Track servers
+  (auto-icebreaker {:abilities [(break-sub 1 1 "Sentry")
+                                (strength-pump 1 1)]}))

@@ -2973,3 +2973,13 @@
                 :effect (req (let [credits (min 3 (get-counters card :credit))]
                                (add-counter state side card :credit (- credits))
                                (gain-credits state :runner credits)))}]})
+
+(define-card "Junk Dealer"
+  {:data {:counter {:power 4}}
+   :events [(trash-on-empty :power)]
+   :abilities [{:cost [:click 1]
+                :msg (msg (let [n (get-counters card :power)]
+                            "gain " (- 6 n) " [Credits] and draw " n " cards"))
+                :effect (req (let [n (get-counters card :power)]
+                               (gain-credits state :runner (- 6 n))
+                               (draw state side eid n nil)))}]})
