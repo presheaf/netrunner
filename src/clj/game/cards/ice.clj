@@ -3631,3 +3631,15 @@
                  (net-damage-with-sfx 1 "archer-trash")
                  (net-damage-with-sfx 1 "archer-trash")
                  end-the-run]})
+
+(define-card "Curator"
+  {:on-encounter {:msg "increase the trash cost of assets by 2 for the remainder of this run"
+                  :effect (req (register-floating-effect
+                                state side card
+                                {:type :trash-cost
+                                 :duration :end-of-run
+                                 :req (req (asset? target))
+                                 :value 2}))}
+   :subroutines [{:label "Runner loses 2 [Credits]"
+                  :msg "force the Runner to lose 2 [Credits]"
+                  :effect (effect (lose-credits :runner 2))}]})

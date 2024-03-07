@@ -1556,15 +1556,17 @@
     {:events [{:event :run
                :req (req this-server)
                :silent (req true)
-               :effect (effect (set-prevent-access-card card))}
+               :effect (effect (set-prevent-remote-access-card card))}
               {:event :runner-turn-begins ; TODO: have this trigger also on runner turn
                :req (req true)
                :silent (req true)
                :effect (effect (register-turn-flag! card :can-trash
                                                    (fn [state side other-card]
-                                                     ((constantly (not (same-card? card other-card)))
-                                                      ;; TODO: the below toast triggers whenever anything is trashed, i.e. even a card other than consolidatoin
-                                                      (toast state :runner "Cannot trash due to Consolidation due." "warning")))))}]
+                                                     ((let [retval (not (same-card? card other-card))]
+                                                        ;; TODO: the below toast triggers whenever anything is trashed, i.e. even a card other than consolidatoin
+                                                        (when (not retval)
+                                                          (toast state :runner "Cannot trash due to Consolidation." "warning"))
+                                                        (constantly retval))))))}]
      :can-host (req (and (non-ambush-asset? target)
                          (> 2 (count (:hosted card)))))
 
