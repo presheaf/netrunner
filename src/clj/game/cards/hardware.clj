@@ -2107,3 +2107,20 @@
                        (set-prop state side card :rec-counter (half-runner-points @state))))
      :interactions {:pay-credits {:req (req run)
                                   :type :recurring}}}))
+
+
+
+(define-card "Apex Interface"
+  (letfn [(maybe-trash-for-access [the-server]
+            {:async true
+             :prompt "Choose a card to trash for an extra access"
+             :choices {:card #(and (runner? %)
+                                   (installed? %))}
+             :msg (msg "trash " (:title target) " and gain 3 [Credits]")
+             :effect (effect (access-bonus the-server 1)
+                             (trash eid target {:unpreventable true}))})]
+    {:events [{:event :successful-run
+               :req (req (or (= target :rd)
+                             (= target :hq)))
+               :async true
+               :effect (effect (continue-ability (maybe-trash-for-access target) card nil))}]}))

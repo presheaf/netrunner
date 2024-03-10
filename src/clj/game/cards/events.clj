@@ -3112,3 +3112,86 @@
                                                                  (runner-install state side (assoc eid :source card :source-type :runner-install) target {:cost-bonus (- num-accessed-cards)})
                                                                  (effect-completed state side eid)))}
                                               card nil)))}]})
+
+
+(define-card "Generous Gift"
+  {:async true
+   :msg "draw a card"
+   :effect (req (wait-for (draw state side 1 nil)
+                          (continue-ability state :runner
+
+                                            {:prompt "Choose any number of cards from your grip (Card clicked last goes on bottom)"
+                                             :choices {:max (count (:hand runner))
+                                                       :card #(in-hand? %)}
+                                             :async true
+                                             :effect (req (doseq [t (reverse targets)]
+                                                            (move state side t :deck))
+                                                          (draw state side eid (count targets) nil))}
+                                            card nil)))})
+(define-card "IP Audit"
+  (letfn [(install-cheap-thing [num]
+            {:async true
+             :prompt "Choose a hardware or resource to install"
+             :choices {:card #(and (or (hardware? %)
+                                      (resource? %))
+                                  (in-hand? %))}
+             :effect (req
+                      (wait-for (runner-install state side (make-eid state {:source card :source-type :runner-install}) target {:cost-bonus -2}))
+                      (if (> num 1)
+                        (continue-ability state :runner (install-cheap-thing (dec num)) card nil)
+                        (effect-completed state side eid)))})]
+    {:async true
+     :makes-run true
+     :prompt "Choose a server"
+     :choices ["HQ" "R&D"]
+     :effect (effect (make-run eid target nil card))
+     :events [{:event :run-ends
+               :async true
+               :req (req (:successful target))
+               :once :per-turn
+               :msg  "install up to two resources and/or hardware, reducing the cost of each by 2[Credits]"
+               :effect (effect (continue-ability (install-cheap-thing 2) card nil))}]}))
+
+(define-card "Smashing Spree"
+  {:effect (req (dotimes [_ 3]
+                  (command-summon state :runner ["Demolition Run"] true)))})
+
+(define-card "Deluge"
+  {:req (req rd-runnable)
+   :additional-cost [:click 3]
+   :makes-run true
+   :async true
+   :effect (effect
+            (update! (assoc-in (get-card state card) [:special :cards-to-bottom] '()))
+            (make-run eid :rd nil card))
+
+   :events [{:event :post-access-card
+             :async true
+             :req (req (= (first (:zone target)) :deck))
+             :effect
+             (effect
+               (continue-ability
+                 (let [accessed-card target]
+                   {:optional
+                    {:req (req (or (= [:deck] (:zone accessed-card))
+                                   (= [:deck] (:previous-zone accessed-card))))
+                     :async true
+                     :prompt (str "Move " (:title accessed-card) " to the bottom of R&D?")
+                     :yes-ability
+                     {:msg "mark the card just accessed for being moved to the bottom of R&D"
+                      :effect (req
+                               (update! state side
+                                        (assoc-in (get-card state card) [:special :cards-to-bottom]
+                                                  (concat (get-in (get-card state card) [:special :cards-to-bottom])
+                                                          [accessed-card]))))}}})
+                 card nil))}
+            {:event :successful-run
+             :unregister-once-resolved true
+             :silent (req true)
+             :req (req (= target :rd))
+             :effect (effect (access-bonus :rd 3))}
+            {:event :run-ends
+             :msg "actually move the cards"
+             :effect (req
+                      (doseq [c (get-in (get-card state card) [:special :cards-to-bottom] true)]
+                        (move state :corp (get-card state c) :deck)))}]})

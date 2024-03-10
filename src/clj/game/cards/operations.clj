@@ -1975,6 +1975,7 @@
                 :choices {:card #(and (corp? %)
                                       (installed? %))}
                 :msg (msg "remove itself from the game and place 2 advancement tokens on " (card-str state target))
+                :async true
                 :effect (effect (add-prop target :advance-counter 2 {:placed true})
                                 (remove-old-current state side eid :corp))}]})
 
@@ -2423,3 +2424,13 @@
    :effect (effect (shuffle! :deck)
                    (system-msg "shuffles their deck")
                    (play-instant eid target nil))})
+
+(define-card "Double Down"
+  {:events [{:event :agenda-scored
+             :msg (msg (let [n (get-counters target :advancement)]
+                         "gain " n "[credit], make the Runner lose " n " [credit] and trash Double Down"))
+             :async true
+             :effect (req (let [n (get-counters target :advancement)]
+                            (gain-credits state :corp n)
+                            (lose-credits state :runner n))
+                          (remove-old-current state side eid :corp))}]})
