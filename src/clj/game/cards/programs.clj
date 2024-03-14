@@ -2852,3 +2852,19 @@
   ;; TODO: Track servers
   (auto-icebreaker {:abilities [(break-sub 1 1 "Sentry")
                                 (strength-pump 1 1)]}))
+
+(define-card "Hype"
+  (let [flip-info  {:front-face-code "53003"
+                    :back-face-code "53003_flip"
+                    :front-face-title "Hype"
+                    :back-face-title "Hope"}
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info))}]
+    {:events [{:event :agenda-stolen
+               :req (req (not (:is-flipped card)))
+               :msg (msg "trash " (card-title card) ", gain 5 [credits] and draw 3 cards")
+               :effect (req
+                        (wait-for (trash state side card)
+                                  (gain-credits state :runner 5)
+                                  (draw state side eid 3 nil)))}]}))
