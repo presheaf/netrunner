@@ -2414,13 +2414,13 @@
          :effect (effect (add-counter card :credit 1)
                          (continue-ability
                           {:optional
-                           {:prompt "Use Debt Collector to draw 1 card?"
+                           {:prompt "Use CDO Portfolio to draw 1 card?"
                             :yes-ability {:async true
                                           :msg "draw 1 card"
                                           :effect (effect (draw eid 1 nil))}}}
                           (get-card state card) nil))}
         take-cred-ability
-        {:msg (msg "take 1[Credits] from Debt Collector")
+        {:msg (msg "take 1[Credits] from CDO Portfolio")
          :async true
          :effect (effect (gain-credits 1)
                          (add-counter eid card :credit -1 nil))}
