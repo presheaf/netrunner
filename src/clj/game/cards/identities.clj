@@ -1717,3 +1717,13 @@
                              (lose :runner :run-credit :all))}]})
 
 
+(define-card "Zenith Thoughtworks: Changing Minds"
+  (let [counter-gain-ev {:msg (msg "add 1 power counter to " (:title card))
+                         :effect (effect (add-counter (get-card state card) :power 1))}]
+    {:events [(assoc counter-gain-ev :event :agenda-scored)
+              (assoc counter-gain-ev :event :agenda-stolen)
+              {:event :runner-turn-begins
+               :msg "remove 1 power counter to make the Runner lose [Click]"
+               :req (req (pos? (get-counters (get-card state card) :power)))
+               :effect (effect (add-counter (get-card state card) :power -1)
+                               (lose :runner :click 1))}]}))
