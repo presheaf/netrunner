@@ -2110,12 +2110,13 @@
 
 
 
-(define-card "Apex Interface"
-  (letfn [(maybe-trash-for-access [the-server]
+(define-card "Furnace"
+  (letfn [(maybe-trash-for-access [the-server furnace-card]
             {:async true
              :prompt "Choose a card to trash for an extra access"
              :choices {:card #(and (runner? %)
-                                   (installed? %))}
+                                   (installed? %)
+                                   (not (same-card? % furnace-card)))}
              :msg (msg "trash " (:title target) " and gain 3 [Credits]")
              :effect (effect (access-bonus the-server 1)
                              (trash eid target {:unpreventable true}))})]
@@ -2123,4 +2124,4 @@
                :req (req (or (= target :rd)
                              (= target :hq)))
                :async true
-               :effect (effect (continue-ability (maybe-trash-for-access target) card nil))}]}))
+               :effect (effect (continue-ability (maybe-trash-for-access target (get-card state card)) card nil))}]}))

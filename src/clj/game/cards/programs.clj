@@ -2848,23 +2848,43 @@
              :msg "gain 3 [Credits]"}]
    :data {:counter {:virus 3}}})
 
-(define-card "Novelty Seeker"
-  ;; TODO: Track servers
-  (auto-icebreaker {:abilities [(break-sub 1 1 "Sentry")
-                                (strength-pump 1 1)]}))
+;; (define-card "Hype"
+;;   (let [flip-info  {:front-face-code "53003"
+;;                     :back-face-code "53003_flip"
+;;                     :front-face-title "Hype"
+;;                     :back-face-title "Hope"}
+;;         flip-card-abi {:label "flip this card"
+;;                        :msg "flip itself"
+;;                        :effect (effect (flip-card card flip-info))}]
+;;     {:events [{:event :agenda-stolen
+;;                :req (req (not (:is-flipped card)))
+;;                :msg (msg "trash " (card-title card) ", gain 5 [credits] and draw 3 cards")
+;;                :effect (req
+;;                         (wait-for (trash state side card)
+;;                                   (gain-credits state :runner 5)
+;;                                   (draw state side eid 3 nil)))}]}))
 
-(define-card "Hype"
-  (let [flip-info  {:front-face-code "53003"
-                    :back-face-code "53003_flip"
-                    :front-face-title "Hype"
-                    :back-face-title "Hope"}
-        flip-card-abi {:label "flip this card"
-                       :msg "flip itself"
-                       :effect (effect (flip-card card flip-info))}]
-    {:events [{:event :agenda-stolen
-               :req (req (not (:is-flipped card)))
-               :msg (msg "trash " (card-title card) ", gain 5 [credits] and draw 3 cards")
-               :effect (req
-                        (wait-for (trash state side card)
-                                  (gain-credits state :runner 5)
-                                  (draw state side eid 3 nil)))}]}))
+(define-card "Trailblazer"
+  (letfn [(server-kw-to-use-entry [server-kw]
+            (if (#{:hq :rd :archives} server-kw)
+              server-kw
+              :remote))]
+    (auto-icebreaker {:effect (effect (update! (assoc-in card [:special :used-servers] [])))
+                      :leave-play (effect (update! (dissoc-in card [:special :used-servers]))
+                                          (update! (dissoc card :server-target)))
+                      :events [{:event :encounter-ice-ends
+                                :req (req (any-subs-broken-by-card? target card))
+                                :effect (effect (update! (assoc-in (get-card state card) [:special :was-used] true)))}
+                               {:event :run-ends
+                                :req (req (get-in (get-card state card) [:special :was-used]))
+                                :effect (effect
+                                         (update! (assoc-in (get-card state card) [:special :used-servers]
+                                                            (vec (concat [(server-kw-to-use-entry (first (:server target)))]
+                                                                         (get-in (get-card state card) [:special :used-servers])))))
+                                         (update! (assoc (get-card state card) :server-target
+                                                         (join " " (map {:hq "HQ" :rd "R&D" :archives "Arc" :remote "Rem"} (get-in (get-card state card) [:special :used-servers])))))
+                                         (update! (dissoc-in (get-card state card) [:special :was-used])))}]
+
+                      :abilities [(break-sub 1 1 "Sentry" {:req (req (not (some #(= (server-kw-to-use-entry (first (:server run))) %)
+                                                                                (get-in (get-card state card) [:special :used-servers]))))})
+                                  (strength-pump 1 1)]})))

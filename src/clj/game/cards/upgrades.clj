@@ -1568,21 +1568,21 @@
                                                           (toast state :runner "Cannot trash due to Consolidation." "warning"))
                                                         (constantly retval))))))}]
      :can-host (req (and (non-ambush-asset? target)
-                         (> 2 (count (:hosted card)))))
+                         (> 1 (count (:hosted card)))))
 
      :abilities [{:label "Install a non-ambush asset on Consolidation"
-                  :req (req (< (count (:hosted card)) 2))
+                  :req (req (< (count (:hosted card)) 1))
                   :cost [:click 1]
                   :prompt "Select a non-ambush asset to install onto Consolidation"
                   :choices {:card #(and (non-ambush-asset? %)
                                         (in-hand? %)
                                         (corp? %))}
-                  :msg "install and host an asset or agenda"
+                  :msg "install and host a non-ambush asset"
                   :async true
                   :effect (effect (corp-install eid target card nil))}
                  {:label "Install a previously-installed non-ambush asset on Consolidation (fixes only)"
-                  :req (req (< (count (:hosted card)) 2))
-                  :prompt "Select an installed asset or agenda to host on Consolidation"
+                  :req (req (< (count (:hosted card)) 1))
+                  :prompt "Select an installed non-ambush asset to host on Consolidation"
                   :choices {:card non-ambush-asset?}
-                  :msg "install and host a non-ambush asset"
+                  :msg "host a previously installed non-ambush asset"
                   :effect (req (host state side card target))}]}))

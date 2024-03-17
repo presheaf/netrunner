@@ -2434,3 +2434,39 @@
                             (gain-credits state :corp n)
                             (lose-credits state :runner n))
                           (remove-old-current state side eid :corp))}]})
+
+(define-card "Equity Swap"
+  {:msg "gain 21 [Credits]"
+   :effect (effect (gain-credits 21))})
+
+(define-card "Strongarm"
+  (letfn [(tutor-or-lose-ab [chosen-num]
+            (let [tutor-choice (str "Pay " chosen-num "[credit] to search R&D for a card")
+                  lose-choice (str "The Runner loses " chosen-num "[credit]")]
+              {:async true
+               :prompt (str "Pay " chosen-num "[credit]?")
+               :choices [tutor-choice lose-choice]
+               :effect (req
+                        (if (= target lose-choice)
+                          (do (lose-credits state :runner chosen-num)
+                              (effect-completed state side eid))
+                          (do (wait-for (pay-sync state :corp card :credit chosen-num)
+                                        (continue-ability state side
+                                                          {:prompt "Choose a card from R&D"
+                                                           :msg (str "pay " chosen-num " [credit] to search R&D for a card and add it to HQ")
+                                                           :choices (req (cancellable (:deck corp) :sorted))
+                                                           :effect (effect (move target :hand))}
+                                                          card nil)))))}))]
+    {:async true
+     :effect (req
+              (show-wait-prompt state :corp "Runner to choose a number")
+              (continue-ability state :runner
+                                   {:prompt (str "Choose a number")
+                                    :async true
+                                    :choices {:number (req (:credit corp))}
+                                    :effect (req (let [chosen-num target]
+                                                   (clear-wait-prompt state :corp)
+                                                   (continue-ability state :corp
+                                                                     (tutor-or-lose-ab target)
+                                                                     card nil)))}
+                                   card nil))}))

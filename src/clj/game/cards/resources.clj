@@ -2977,7 +2977,7 @@
 (define-card "Cartographer"
   {:data {:counter {:power 4}}
    :events [(trash-on-empty :power)]
-   :abilities [{:cost [:click 3] ; TODO: does this actually work, or is the card trashed instantly?
+   :abilities [{:cost [:click 3]
                 :msg (msg (let [n (get-counters card :power)]
                             (str "gain " (- 6 n) " [Credits] and draw " n " cards")))
                 :effect (req (let [n (get-counters card :power)]
