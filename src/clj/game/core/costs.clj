@@ -171,6 +171,8 @@
     false
     (case cost-type
       :memory true
+      :click-or-two-creds (or (>= (get-in @state [side :credit]) (* 2 amount))
+                              (>= (get-in @state [side :click]) amount))
       :credit (or (<= 0 (- (get-in @state [side :credit]) amount))
                   (<= 0 (- (total-available-credits state side eid card) amount)))
       :click (<= 0 (- (get-in @state [side :click]) amount))
@@ -371,6 +373,21 @@
                                   a (:click (into {} costs)))
               (swap! state assoc-in [side :register :spent-click] true)
               (complete-with-result state side eid (str "spends " (->> "[Click]" repeat (take amount) (apply str)))))))
+
+(defn pay-click-or-two-creds
+  [state side eid card actions costs amount]
+  (continue-ability state side
+                    (let [click-str (str amount " [click]")
+                          cred-str (str (* 2 amount) " [credit]")]
+                      {:prompt (str "Pay " click-str " or " cred-str "?")
+                       :choices (if (>= (get-in @state [side :click]) amount)
+                                  [click-str cred-str]
+                                  [cred-str])
+                       :async true
+                       :effect (req (if (= target click-str)
+                                      (pay-clicks state side eid actions costs :click amount)
+                                      (pay-credits state side eid card (* 2 amount))))})
+                    card nil))
 
 (defn pay-trash
   "[Trash] cost as part of an ability"
@@ -628,6 +645,7 @@
   ([state side eid card actions costs [cost-type amount]]
    (case cost-type
      ; Symbols
+     :click-or-two-creds (pay-click-or-two-creds state side eid card actions costs amount)
      :credit (pay-credits state side eid card amount)
      :click (pay-clicks state side eid actions costs cost-type amount)
      :trash (pay-trash state side eid card amount)

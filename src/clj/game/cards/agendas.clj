@@ -1934,3 +1934,36 @@
        :effect (effect (show-wait-prompt :runner "Corp to divide effects into two groups")
                        (continue-ability (rec-choose-abi []) card nil))})))
 
+
+(define-card "HB NBN Collab"
+  {:implementation "Will not prevent the Runner from making a run they cannot pay for"
+   :prompt "Choose a server"
+   :msg (msg "target " target)
+   :choices (req servers)
+   :effect (effect (update! (assoc card :server-target target)))
+   :leave-play (effect (update! (dissoc card :server-target)))
+   :constant-effects [{:type :run-additional-cost
+                       :req (req (= (:server (second targets)) (last (server->zone state (:server-target (get-card state card))))))
+                       :value [:click-or-two-creds 1]}]})
+
+
+(define-card "Oddly Specific Horoscope"
+  {:constant-effects (let [cost-increaser {:req (req (= (:title target) (get-in (get-card state card) [:special :marketing-target])))
+                                           :value 2}]
+                       [(assoc cost-increaser :type :install-cost)
+                        (assoc cost-increaser :type :play-cost)])
+
+   :async true
+   :effect (req (reveal-hand state :runner)
+                (continue-ability
+                 state side
+                 {:prompt "Name a Runner card"
+                  :choices {:card-title (req (and (runner? target)
+                                                  (not (identity? target))))}
+                  :effect (effect (update! (assoc-in card [:special :marketing-target] target))
+                                  (system-msg (str "uses Oddly Specific Horoscope to name " target)))}
+                 card nil))
+   :abilities [{:label "Reveal the Runner's hand"
+                :effect (req (reveal-hand state :runner))}]
+   :leave-play (req (conceal-hand state :runner))})
+
