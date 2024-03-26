@@ -2478,3 +2478,29 @@
                :msg "place 2[credits] on Microfinance"
                :effect (effect (add-counter eid card :credit 2 nil))}]
      :abilities [ability]}))
+
+(define-card "Engagement Metrics"
+  (let [ability {:msg (msg "gain 2[Credits]")
+                 :once :per-turn
+                 :req (req (:corp-phase-12 @state))
+                 :label (str "Gain 2 [Credits] (start of turn)")
+                 :async true
+                 :effect (effect (gain-credits 2)
+                                 (add-counter eid card :credit -2 nil))}]
+    {:effect (effect (add-counter card :credit 8))
+     :derezzed-events [corp-rez-toast]
+     :events [(assoc ability :event :corp-turn-begins)
+              {:event :counter-added
+               :req (req (and (same-card? card target)
+                              (not (pos? (get-counters card :credit)))))
+               :async true
+               :effect (effect (system-msg (str "trashes " (:title card)))
+                               (register-events card
+                                                [{:event :corp-turn-ends
+                                                  :duration :end-of-turn
+                                                  :unregister-once-resolved true
+                                                  :async true
+                                                  :msg "give the Runner 1 tag"
+                                                  :effect (effect (gain-tags eid 1))}])
+                               (trash eid card {:unpreventable true}))}]
+     :abilities [ability]}))

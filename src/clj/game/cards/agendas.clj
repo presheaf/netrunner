@@ -1934,17 +1934,38 @@
        :effect (effect (show-wait-prompt :runner "Corp to divide effects into two groups")
                        (continue-ability (rec-choose-abi []) card nil))})))
 
-
 (define-card "HB NBN Collab"
-  {:implementation "Will not prevent the Runner from making a run they cannot pay for"
-   :prompt "Choose a server"
-   :msg (msg "target " target)
-   :choices (req servers)
-   :effect (effect (update! (assoc card :server-target target)))
-   :leave-play (effect (update! (dissoc card :server-target)))
-   :constant-effects [{:type :run-additional-cost
-                       :req (req (= (:server (second targets)) (last (server->zone state (:server-target (get-card state card))))))
-                       :value [:click-or-two-creds 1]}]})
+  (let [prompt-to-pay-click-or-lose-2-creds
+        (let [click-str "Pay [click]"
+              cred-str "Lose 2[credit]"]
+          {:prompt (str "Pay [click] or lose 2[credit]?")
+           :choices [click-str cred-str]
+           :async true
+           :effect (req (if (= target click-str)
+                          (wait-for (pay-sync state :runner card [:click 1])
+                                    (if async-result
+                                      (let [cost-str (str async-result
+                                                          " due to " (:title card))]
+                                        (system-msg state :runner cost-str))
+                                      (do (system-msg state :runner (str "loses 2[credit] due to " (:title card)) )
+                                          (lose state :runner :credit 2)))
+                                    (effect-completed state side eid))
+                          (do (system-msg state :runner (str "loses 2[credit] due to " (:title card)))
+                              (lose state :runner :credit 2)
+                              (effect-completed state :runner eid))))})]
+    {:prompt "Choose a server"
+     :msg (msg "target " target)
+     :choices (req servers)
+     :effect (effect (update! (assoc card :server-target target)))
+     :leave-play (effect (update! (dissoc card :server-target)))
+     :events [{:event :run
+               :req (req (= (first target) (last (server->zone state (:server-target (get-card state card))))))
+               :async true
+               :effect (req (if (>= (get-in @state [:runner :click]) 1)
+                              (continue-ability state :runner prompt-to-pay-click-or-lose-2-creds card nil)
+                              (do (system-msg state :runner (str "loses 2[credit] due to " (:title card)))
+                                  (lose state :runner :credit 2)
+                                  (effect-completed state :corp eid))))}]}))
 
 
 (define-card "Oddly Specific Horoscope"

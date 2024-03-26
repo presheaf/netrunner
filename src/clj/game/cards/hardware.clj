@@ -2125,3 +2125,17 @@
                              (= target :hq)))
                :async true
                :effect (effect (continue-ability (maybe-trash-for-access target (get-card state card)) card nil))}]}))
+
+(define-card "Virus Chip"
+  {:in-play [:memory 1]
+   ;; Printed cost is 2, so to offer the choice of paying a virus counter instead we reduce it to 0, then add an additional cost
+   :install-cost-bonus (req (- 2))
+   :additional-cost [:virus-or-two-creds 1] ; TODO: This makes log message ugly, but we have an hacky fix...
+   :abilities [{:cost [:trash]
+                :effect (req (resolve-ability
+                               state side
+                               {:msg (msg "place 1 virus counter on " (:title target))
+                                :choices {:card #(and (runner? %) (installed? %))}
+                                :async true
+                                :effect (effect (add-counter eid target :virus 1 nil))}
+                               card nil))}]})

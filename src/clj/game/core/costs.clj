@@ -171,8 +171,8 @@
     false
     (case cost-type
       :memory true
-      :click-or-two-creds (or (>= (get-in @state [side :credit]) (* 2 amount))
-                              (>= (get-in @state [side :click]) amount))
+      :virus-or-two-creds (or (>= (get-in @state [side :credit]) (* 2 amount))
+                                      (<= 0 (- (number-of-virus-counters state) amount)))
       :credit (or (<= 0 (- (get-in @state [side :credit]) amount))
                   (<= 0 (- (total-available-credits state side eid card) amount)))
       :click (<= 0 (- (get-in @state [side :click]) amount))
@@ -358,7 +358,7 @@
       (do (lose-no-event state side :credit amount)
           (complete-with-result state side eid (str "pays " amount " [Credits]")))
       :else
-      (complete-with-result state side eid (str "pays 0 [Credits]")))))
+      (complete-with-result state side eid (str (if (= (:title card) "Virus Chip") "" "pays 0 [Credits]"))))))
 
 (defn pay-clicks
   [state side eid actions costs cost-type amount]
@@ -374,18 +374,16 @@
               (swap! state assoc-in [side :register :spent-click] true)
               (complete-with-result state side eid (str "spends " (->> "[Click]" repeat (take amount) (apply str)))))))
 
-(defn pay-click-or-two-creds
-  [state side eid card actions costs amount]
+(defn pay-virus-or-two-creds
+  [state side eid card amount]
   (continue-ability state side
-                    (let [click-str (str amount " [click]")
+                    (let [virus-str (str amount " virus counter")
                           cred-str (str (* 2 amount) " [credit]")]
-                      {:prompt (str "Pay " click-str " or " cred-str "?")
-                       :choices (if (>= (get-in @state [side :click]) amount)
-                                  [click-str cred-str]
-                                  [cred-str])
+                      {:prompt (str "Pay " virus-str " or " cred-str "?")
+                       :choices [virus-str cred-str]
                        :async true
-                       :effect (req (if (= target click-str)
-                                      (pay-clicks state side eid actions costs :click amount)
+                       :effect (req (if (= target virus-str)
+                                      (pay-any-virus-counter state side eid amount)
                                       (pay-credits state side eid card (* 2 amount))))})
                     card nil))
 
@@ -645,7 +643,7 @@
   ([state side eid card actions costs [cost-type amount]]
    (case cost-type
      ; Symbols
-     :click-or-two-creds (pay-click-or-two-creds state side eid card actions costs amount)
+     :virus-or-two-creds (pay-virus-or-two-creds state side eid card amount)
      :credit (pay-credits state side eid card amount)
      :click (pay-clicks state side eid actions costs cost-type amount)
      :trash (pay-trash state side eid card amount)
