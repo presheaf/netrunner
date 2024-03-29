@@ -2162,3 +2162,11 @@
             ;;                    :duration :end-of-run
             ;;                    :value -2}))}
             ]})
+
+(define-card "Tidldibab"
+  {:in-play [:memory 1]
+   :constant-effects [{:type :install-cost
+                       :req (req (and (= side :runner)
+                                      (= [:discard] (:zone target))
+                                      (or (program? target) (hardware? target))))
+                       :value -1}]})

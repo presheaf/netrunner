@@ -1733,7 +1733,9 @@
   (letfn [(prog-or-hw? [card] (or (hardware? card)
                                   (program? card)))
           (sonia-prompt-preprocessor
-            ;; transformer applied to cards in req-fns when checking if a target is eligible for an ability - normal evaluation is just (cardreqfn potential-target), we get to conditionally mess with it
+            ;; Transformer applied to cards in req-fns when checking if a target is eligible
+            ;; as a target for an ability - normal evaluation is just (cardreqfn potential-target),
+            ;; we get to conditionally mess with it
             [potential-target ability cardreqfn]
             (if (and (:makes-proghw-grip-install ability) (prog-or-hw? potential-target))
               (or (cardreqfn potential-target) (cardreqfn (assoc potential-target :zone [:hand])))
