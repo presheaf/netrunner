@@ -1120,6 +1120,7 @@
   (let [mhelper
         (fn mh [n]
           {:prompt "Select a program to install"
+           :makes-proghw-grip-install true
            :choices {:req (req (and (program? target)
                                     (in-hand? target)
                                     (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
@@ -2139,3 +2140,25 @@
                                 :async true
                                 :effect (effect (add-counter eid target :virus 1 nil))}
                                card nil))}]})
+
+(define-card "Scrubomatic"
+  {:effect (effect (damage eid :meat 1 {:unboostable true :card card}))
+   :events [{:event :begin-run
+             :once :per-turn
+             :req (req (first-event? state side :runner-spent-click))
+             :msg "to reduce the trash cost of all cards by 2 this run"
+             ;; TODO: rework this so it stops being active if the card is trashed
+             :effect (effect (register-floating-effect
+                              card
+                              {:type :trash-cost
+                               :duration :end-of-run
+                               :value -2}))}
+            ;; {:event :begin-run
+            ;;  :msg "to reduce the trash cost of all cards by 2 this run"
+            ;;  :req (req (<= 3 (get-in @state [:runner :click])))
+            ;;  :effect (effect (register-floating-effect
+            ;;                   card
+            ;;                   {:type :trash-cost
+            ;;                    :duration :end-of-run
+            ;;                    :value -2}))}
+            ]})

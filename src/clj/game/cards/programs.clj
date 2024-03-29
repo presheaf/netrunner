@@ -1008,6 +1008,7 @@
              :silent (req true)
              :effect (effect (add-counter card :power 1))}]
    :abilities [{:prompt "Choose a card to install from your Grip"
+                :makes-proghw-grip-install true
                 :req (req (and (not (install-locked? state side))
                                (some #(and (or (hardware? %)
                                                (program? %)
@@ -2406,6 +2407,7 @@
                 :once :per-turn
                 :req (req (not (install-locked? state side)))
                 :msg (msg "install " (:title target))
+                :makes-proghw-grip-install true
                 :prompt "Choose a program to install from your grip"
                 :choices {:card #(and (program? %)
                                       (in-hand? %))}
@@ -2848,21 +2850,24 @@
              :msg "gain 3 [Credits]"}]
    :data {:counter {:virus 3}}})
 
-;; (define-card "Hype"
-;;   (let [flip-info  {:front-face-code "53003"
-;;                     :back-face-code "53003_flip"
-;;                     :front-face-title "Hype"
-;;                     :back-face-title "Hope"}
-;;         flip-card-abi {:label "flip this card"
-;;                        :msg "flip itself"
-;;                        :effect (effect (flip-card card flip-info))}]
-;;     {:events [{:event :agenda-stolen
-;;                :req (req (not (:is-flipped card)))
-;;                :msg (msg "trash " (card-title card) ", gain 5 [credits] and draw 3 cards")
-;;                :effect (req
-;;                         (wait-for (trash state side card)
-;;                                   (gain-credits state :runner 5)
-;;                                   (draw state side eid 3 nil)))}]}))
+(define-card "Hype"
+  (let [flip-info  {:front-face-code "53003"
+                    :back-face-code "53003_flip"
+                    :front-face-title "Hype"
+                    :back-face-title "Hope"}
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info))}]
+    {:effect (req (when (= [:discard] (:previous-zone card))
+                    (system-msg state :runner (str "uses " (:title card) " to flip itself"))
+                    (flip-card state side card flip-info)))
+     :events [{:event :agenda-stolen
+               :req (req (not (:is-flipped card)))
+               :msg (msg "trash " (card-title card) ", gain 5 [credits] and draw 3 cards")
+               :effect (req
+                        (wait-for (trash state side card {})
+                                  (gain-credits state :runner 5)
+                                  (draw state side eid 3 nil)))}]}))
 
 (define-card "Trailblazer"
   (letfn [(server-kw-to-use-entry [server-kw]

@@ -1729,4 +1729,45 @@
              :effect (effect (lose-credits :runner :all)
                              (lose :runner :run-credit :all))}]})
 
+(define-card "Sonia Nahar: Steadfast Salvager"
+  (letfn [(prog-or-hw? [card] (or (hardware? card)
+                                  (program? card)))
+          (sonia-prompt-preprocessor
+            ;; transformer applied to cards in req-fns when checking if a target is eligible for an ability - normal evaluation is just (cardreqfn potential-target), we get to conditionally mess with it
+            [potential-target ability cardreqfn]
+            (if (and (:makes-proghw-grip-install ability) (prog-or-hw? potential-target))
+              (or (cardreqfn potential-target) (cardreqfn (assoc potential-target :zone [:hand])))
+              (cardreqfn potential-target)))]
+    {:implementation "Only increases install cost. Use ID ability to adjust power counters."
+     :abilities [{:label "Install a program or hardware from your heap"
+                  :prompt "Choose a program or hardware to install from your heap"
+                  :show-discard true
+                  :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
+                                 (not (install-locked? state side))
+                                 (some #(and (prog-or-hw? %)
+                                             (can-pay? state side (assoc eid :source card :source-type :runner-install) % nil
+                                                       [:credit (install-cost state side %)]))
+                                       (:discard runner))))
+                  :choices {:req (req (and (prog-or-hw? target)
+                                           (in-discard? target)
+                                           (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
+                                                     [:credit (install-cost state side target)])))}
+                  :cost [:click]
+                  :msg (msg "install " (:title target))
+                  :effect (effect (runner-install (assoc eid :source card :source-type :runner-install) target nil))}
+                 {:label "Manually add a hosted power counter"
+                  :msg "manually add a hosted power counter"
+                  :effect (effect (add-counter card :power 1))}]
 
+     :constant-effects [{:type :install-additional-cost
+                         :req (req (and (= side :runner) (= [:discard] (:zone target))))
+                         :value (req [:credit (get-counters (get-card state card) :power)])}]
+     :events [{:event :pre-start-game
+               :req (req (and (= side :runner)
+                              (zero? (count-bad-pub state))))
+               :effect (req (swap! state assoc-in [:special :prompt-target-preprocessor] sonia-prompt-preprocessor))}
+              {:event :runner-install
+               :req (req (and (prog-or-hw? target)
+                              (= [:discard] (:previous-zone target))))
+               :msg "add a hosted power counter"
+               :effect (effect (add-counter card :power 1))}]}))

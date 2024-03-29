@@ -697,6 +697,7 @@
                :choices {:card #(and (in-hand? %)
                                      (program? %))}
                :msg (msg "install " (:title target) ", ignoring all costs")
+               :makes-proghw-grip-install true
                :effect (effect (runner-install eid (assoc-in target [:special :diana-installed] true) {:ignore-all-cost true}))}}}
             {:event :run-ends
              :async true
@@ -1853,6 +1854,7 @@
                                                [:credit (install-cost state side %)]))
                                (:hand runner)))
                :prompt "Select a program to install"
+               :makes-proghw-grip-install true
                :choices {:req (req (and (program? target)
                                         (in-hand? target)
                                         (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
@@ -1913,6 +1915,7 @@
 
 (define-card "Modded"
   {:prompt "Select a program or piece of hardware to install from your Grip"
+   :makes-proghw-grip-install true
    :choices {:req (req (and (or (hardware? target)
                                 (program? target))
                             (in-hand? target)
@@ -2513,7 +2516,8 @@
                        :prompt "Select a program to install from your Grip or Heap"
                        :show-discard true
                        :choices
-                       {:req (req (and (program? target)
+                       {:makes-proghw-grip-install true
+                        :req (req (and (program? target)
                                        (or (in-hand? target)
                                            (in-discard? target))
                                        (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
@@ -3132,6 +3136,7 @@
   (letfn [(install-cheap-thing [num]
             {:async true
              :prompt "Choose a hardware or resource to install"
+             :makes-proghw-grip-install true
              :choices {:card #(and (or (hardware? %)
                                       (resource? %))
                                   (in-hand? %))}

@@ -3408,9 +3408,9 @@
                  (do-net-damage 1)]})
 
 (letfn [(brain-damage-if-bioroid-break [dmg]
-            {:label (str "Do " dmg " brain damage if the Runner has unspent clicks")
+            {:label (str "Do " dmg " brain damage if the Runner has spent [click] to break a sub")
              :async true
-             :msg (str "do " dmg " brain damage if the Runner has unspent clicks")
+             :msg (str "do " dmg " brain damage if the Runner has spent [click] to break a subroutine")
              :effect (req (if (some #(and (= :runner-spent-click (first %))
                                           (> (second (second %)) 0) ; number of clicks spent
                                           ((set (first (second %))) :bioroid-cost))
@@ -3418,14 +3418,12 @@
                             (damage state side eid :brain dmg {:card card})
                             (effect-completed state side eid)))})]
   (define-card "Zed 1.0"
-    {:implementation "Restriction on having spent [click] is not implemented"
-     :subroutines [(brain-damage-if-bioroid-break 1)
+    {:subroutines [(brain-damage-if-bioroid-break 1)
                    (brain-damage-if-bioroid-break 1)]
      :runner-abilities [(bioroid-break 1 1)]})
 
   (define-card "Zed 2.0"
-    {:implementation "Restriction on having spent [click] is not implemented"
-     :subroutines [trash-hardware
+    {:subroutines [trash-hardware
                    trash-hardware
                    (brain-damage-if-bioroid-break 2)]
      :runner-abilities [(bioroid-break 2 2)]}))

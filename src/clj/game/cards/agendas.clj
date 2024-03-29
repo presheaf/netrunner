@@ -1988,3 +1988,43 @@
                 :effect (req (reveal-hand state :runner))}]
    :leave-play (req (conceal-hand state :runner))})
 
+(define-card "Patent Acquisition"
+  (let [end-the-run {:label "End the run"
+                     :msg "end the run"
+                     :async true
+                     :effect (effect (end-run :corp eid card))}
+        flip-info  {:front-face-code "53008"
+                    :back-face-code "53008_flip"
+                    :front-face-title "Patent Acquisition"
+                    :back-face-title "Injunction"}]
+
+    {:advancement-cost-bonus (req -3)
+     :leave-play (req (ensure-unflipped state side card flip-info))
+     :abilities [{:label "Flip and add to your score area"
+                  :cost [:click 1]
+                  :msg "add itself to the score area flipped"
+                  :effect (effect (as-agenda (dissoc (assoc (get-card state card) :type "Agenda" :subtype "")
+                                                     :cost :strength :subroutines) 1))}]
+     :async true
+     :msg "flip and install itself"
+     :effect (req
+              (if (:is-flipped (get-card state card))
+                ; Rez effect - this is actually triggered when the card is install-state-rezzed-no-cost
+                (do
+                  (add-prop state side (get-card state card) :advance-counter
+                            (- (get-counters card :advancement)))
+                  (remove-subs! state side (get-card state card))
+                  (add-sub! state side (get-card state card) end-the-run)
+                  (add-sub! state side (get-card state card) end-the-run)
+                  (effect-completed state side eid))
+
+                (let [card (get-card state card)]
+                  ;; Score effect
+                  (update! state side (assoc card
+                                             :type "ICE"
+                                             :cost 4
+                                             :strength 4
+                                             :subtype "Barrier"))
+                  (flip-card state side (get-card state card) flip-info)
+                  (corp-install state side eid (get-card state card) nil
+                                {:ignore-all-cost true :install-state :rezzed-no-cost}))))}))

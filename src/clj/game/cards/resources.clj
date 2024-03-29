@@ -1505,6 +1505,7 @@
 (define-card "London Library"
   {:abilities [{:async true
                 :label "Install a non-virus program on London Library"
+                :makes-proghw-grip-install true
                 :cost [:click 1]
                 :prompt "Select a non-virus program to install on London Library from your grip"
                 :choices {:card #(and (program? %)

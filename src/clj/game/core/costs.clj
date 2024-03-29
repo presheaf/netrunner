@@ -374,18 +374,7 @@
               (swap! state assoc-in [side :register :spent-click] true)
               (complete-with-result state side eid (str "spends " (->> "[Click]" repeat (take amount) (apply str)))))))
 
-(defn pay-virus-or-two-creds
-  [state side eid card amount]
-  (continue-ability state side
-                    (let [virus-str (str amount " virus counter")
-                          cred-str (str (* 2 amount) " [credit]")]
-                      {:prompt (str "Pay " virus-str " or " cred-str "?")
-                       :choices [virus-str cred-str]
-                       :async true
-                       :effect (req (if (= target virus-str)
-                                      (pay-any-virus-counter state side eid amount)
-                                      (pay-credits state side eid card (* 2 amount))))})
-                    card nil))
+
 
 (defn pay-trash
   "[Trash] cost as part of an ability"
@@ -617,6 +606,19 @@
   [state side eid amount]
   (wait-for (resolve-ability state side (pick-virus-counters-to-spend amount) nil nil)
             (complete-with-result state side eid (str "spends " (:msg async-result)))))
+
+(defn pay-virus-or-two-creds
+  [state side eid card amount]
+  (continue-ability state side
+                    (let [virus-str (str amount " virus counter")
+                          cred-str (str (* 2 amount) " [credit]")]
+                      {:prompt (str "Pay " virus-str " or " cred-str "?")
+                       :choices [virus-str cred-str]
+                       :async true
+                       :effect (req (if (= target virus-str)
+                                      (pay-any-virus-counter state side eid amount)
+                                      (pay-credits state side eid card (* 2 amount))))})
+                    card nil))
 
 (defn pay-counter
   [state side eid card counter amount]
