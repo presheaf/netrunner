@@ -1740,7 +1740,7 @@
             (if (and (:makes-proghw-grip-install ability) (prog-or-hw? potential-target))
               (or (cardreqfn potential-target) (cardreqfn (assoc potential-target :zone [:hand])))
               (cardreqfn potential-target)))]
-    {:implementation "Only increases install cost. Use ID ability to adjust power counters."
+    {:implementation "Use ID ability to adjust power counters manually. Open heap display -before- resolving abilities to avoid accidents."
      :abilities [{:label "Install a program or hardware from your heap"
                   :prompt "Choose a program or hardware to install from your heap"
                   :show-discard true

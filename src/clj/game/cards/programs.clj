@@ -2867,7 +2867,16 @@
                :effect (req
                         (wait-for (trash state side card {})
                                   (gain-credits state :runner 5)
-                                  (draw state side eid 3 nil)))}]}))
+                                  (draw state side eid 3 nil)))}
+              {:event :successful-run
+               :msg "move the bottom card of R&D to the top and access an additional card"
+               :req (req (and (= target :rd) (:is-flipped (get-card state card))))
+               :effect (effect (move :corp (last (:deck corp)) :deck {:front true})
+                               (access-bonus :rd 1))}
+              {:event :run-ends
+               :req (req (and (:successful target) (= [:rd] (:server target))))
+               :msg "move the top card of R&D to the bottom"
+               :effect (effect (move :corp (first (:deck corp)) :deck))}]}))
 
 (define-card "Trailblazer"
   (letfn [(server-kw-to-use-entry [server-kw]
