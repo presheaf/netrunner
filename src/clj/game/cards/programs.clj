@@ -2862,21 +2862,34 @@
                     (system-msg state :runner (str "uses " (:title card) " to flip itself"))
                     (flip-card state side card flip-info)))
      :events [{:event :agenda-stolen
-               :req (req (not (:is-flipped card)))
-               :msg (msg "trash " (card-title card) ", gain 5 [credits] and draw 3 cards")
-               :effect (req
-                        (wait-for (trash state side card {})
-                                  (gain-credits state :runner 5)
-                                  (draw state side eid 3 nil)))}
+               :async true
+               :msg (msg "trash " (card-title (get-card state card))
+                         (when (:is-flipped (get-card state card))
+                           ", gain 4 [credits] and draw 3 cards"))
+               :effect (req (let [is-flipped (:is-flipped (get-card state card))]
+                              (wait-for (trash state side card {})
+                                        (if is-flipped
+                                          (effect-completed state side eid)
+                                          (do (gain-credits state :runner 4)
+                                              (draw state side eid 3 nil))))))}
               {:event :successful-run
-               :msg "move the bottom card of R&D to the top and access an additional card"
+               :msg "access an additional card"
                :req (req (and (= target :rd) (:is-flipped (get-card state card))))
-               :effect (effect (move :corp (last (:deck corp)) :deck {:front true})
-                               (access-bonus :rd 1))}
+               :effect (effect (access-bonus :rd 1))}
               {:event :run-ends
                :req (req (and (:successful target) (= [:rd] (:server target))))
                :msg "move the top card of R&D to the bottom"
-               :effect (effect (move :corp (first (:deck corp)) :deck))}]}))
+               :effect (effect (move :corp (first (:deck corp)) :deck))}
+              ;; {:event :successful-run
+              ;;  :msg "move the bottom card of R&D to the top and access an additional card"
+              ;;  :req (req (and (= target :rd) (:is-flipped (get-card state card))))
+              ;;  :effect (effect (move :corp (last (:deck corp)) :deck {:front true})
+              ;;                  (access-bonus :rd 1))}
+              ;; {:event :run-ends
+              ;;  :req (req (and (:successful target) (= [:rd] (:server target))))
+              ;;  :msg "move the top card of R&D to the bottom"
+              ;;  :effect (effect (move :corp (first (:deck corp)) :deck))}
+              ]}))
 
 (define-card "Trailblazer"
   (letfn [(server-kw-to-use-entry [server-kw]

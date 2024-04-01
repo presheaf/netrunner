@@ -3131,7 +3131,14 @@
                                              :effect (req (doseq [t (reverse targets)]
                                                             (move state side t :deck))
                                                           (draw state side eid (count targets) nil))}
-                                            card nil)))})
+                                            card nil)))
+   :events [{:event :agenda-scored
+             :location :discard
+             :condition :in-discard
+
+             :msg "add Generous Gift to their hand from their discard pile"
+             :effect (req (move state side card :hand))}]})
+
 (define-card "IP Audit"
   (letfn [(install-cheap-thing [num]
             {:async true
@@ -3163,7 +3170,7 @@
 
 (define-card "Deluge"
   {:req (req rd-runnable)
-   :additional-cost [:click 3]
+   :additional-cost [:click 2]
    :makes-run true
    :async true
    :effect (effect
