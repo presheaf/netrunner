@@ -2876,10 +2876,10 @@
                :msg "access an additional card"
                :req (req (and (= target :rd) (:is-flipped (get-card state card))))
                :effect (effect (access-bonus :rd 1))}
-              {:event :run-ends
-               :req (req (and (:successful target) (= [:rd] (:server target))))
-               :msg "move the top card of R&D to the bottom"
-               :effect (effect (move :corp (first (:deck corp)) :deck))}
+              ;; {:event :run-ends
+              ;;  :req (req (and (:successful target) (= [:rd] (:server target))))
+              ;;  :msg "move the top card of R&D to the bottom"
+              ;;  :effect (effect (move :corp (first (:deck corp)) :deck))}
               ;; {:event :successful-run
               ;;  :msg "move the bottom card of R&D to the top and access an additional card"
               ;;  :req (req (and (= target :rd) (:is-flipped (get-card state card))))

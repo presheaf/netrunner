@@ -3168,7 +3168,7 @@
   {:effect (req (dotimes [_ 3]
                   (command-summon state :runner ["Demolition Run"] true)))})
 
-(define-card "Deluge"
+(define-card "Cascade"
   {:req (req rd-runnable)
    :additional-cost [:click 2]
    :makes-run true
