@@ -13,6 +13,7 @@
             [clojure.stacktrace :refer [print-stack-trace]]
             [jinteki.utils :refer :all]))
 
+(declare end-the-run-unless-runner-pays)
 ;; Card definitions
 
 (define-card "Akitaro Watanabe"
@@ -1586,3 +1587,31 @@
                   :choices {:card non-ambush-asset?}
                   :msg "host a previously installed non-ambush asset"
                   :effect (req (host state side card target))}]}))
+
+(define-card "Rasmin Bridger"
+  {:events [{:event :pass-ice
+             :req (req (and this-server ;; (rezzed? target)
+                            ))
+             :async true
+             :msg "make the Runner pay 1[credit] or end the run"
+             :effect (req (do
+                            (show-wait-prompt state :corp "Runner to resolve Rasmin Bridger")
+                            (continue-ability
+                             state :runner
+                             {:prompt "Pay 1[credit] or end the run?"
+                              :player :runner
+                              :choices ["Pay 1[credit]" "End the run"]
+                              :async true
+                              :effect
+                              (req (clear-wait-prompt state :corp)
+                                   (if (= "Pay 1[credit]" target)
+                                     (wait-for (pay-sync state :runner card [:credit 1])
+                                               (if async-result
+                                                 (do (system-msg state :runner (str async-result " due to " (:title card)))
+                                                     (effect-completed state side eid))
+                                                 (do
+                                                   (system-msg state :corp " uses " (:title card) " to end the run because the Runner did not pay 1[credit]")
+                                                   (end-run state :corp eid card))))
+                                     (do (system-msg state :corp (str " uses " (:title card) " to end the run"))
+                                         (end-run state :corp eid card))))}
+                             card nil)))}]})
