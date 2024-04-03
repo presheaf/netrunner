@@ -3641,3 +3641,21 @@
    :subroutines [{:label "Runner loses 2 [Credits]"
                   :msg "force the Runner to lose 2 [Credits]"
                   :effect (effect (lose-credits :runner 2))}]})
+
+(define-card "Dark Pool"
+  {:subroutines [{:label "Search R&D for a transaction to play"
+                  :prompt "Choose a transaction"
+                  :msg (msg "play " (:title target) " from R&D, paying all costs")
+                  :choices (req (cancellable (filter #(and (operation? %)
+                                                           (has-subtype? % "Transaction"))
+                                                     (:deck corp)) :sorted))
+                  :async true
+                  :cancel-effect (effect (system-msg "declines to play a transaction with Dark Pool")
+                                         (effect-completed eid))
+                  :effect (effect (play-instant eid target nil))}
+                 {:label "End the run if the Corp has 25[Credits]"
+                  :msg (msg (when (< (:credit corp) 25) "not ") "end the run")
+                  :async true
+                  :effect (req (if (< (:credit corp) 25)
+                                 (effect-completed state side eid)
+                                 (end-run state :corp eid card)))}]})
