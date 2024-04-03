@@ -2028,3 +2028,14 @@
                   (flip-card state side (get-card state card) flip-info)
                   (corp-install state side eid (get-card state card) nil
                                 {:ignore-all-cost true :install-state :rezzed-no-cost}))))}))
+
+
+(define-card "Project CAMB"
+  {:advanceable :false
+   :install-state :face-up
+   :events [{:event :corp-turn-begins
+             :msg (msg "place 1 advancement counter on itself"
+                       (when (>= (get-counters (get-card state card) :advancement) 2) " and remove 1 bad publicity"))
+             :effect (req (add-prop state side (get-card state card) :advance-counter 1 {:placed true})
+                          (when (>= (get-counters (get-card state card) :advancement) 3)
+                            (lose-bad-publicity state side 1)))}]})

@@ -285,7 +285,8 @@
 (defn can-advance?
   "Checks if the corp can advance cards"
   [state side card]
-  (check-flag-types? state side card :can-advance [:current-turn :persistent]))
+  (and (check-flag-types? state side card :can-advance [:current-turn :persistent])
+       (can-be-advanced? (get-card state card))))
 
 (defn can-score?
   "Checks if the corp can score cards"

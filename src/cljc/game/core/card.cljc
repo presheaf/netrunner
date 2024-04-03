@@ -242,7 +242,9 @@
       (and (card-is? card :advanceable :while-unrezzed)
            (not (rezzed? card)))
       (and (is-type? card "Agenda")
-           (installed? card))))
+           (installed? card)
+           ;; Ensures that agendas with :advanceable set to false won't be advanceable
+           (nil? (:advanceable card)))))
 
 (defn get-counters
   "Get number of counters of specified type."
