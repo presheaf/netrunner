@@ -3659,3 +3659,9 @@
                   :effect (req (if (< (:credit corp) 25)
                                  (effect-completed state side eid)
                                  (end-run state :corp eid card)))}]})
+
+(define-card "Tattletale"
+  (let [sub (resolve-another-subroutine
+              #(has-subtype? % "AP")
+              "Resolve a subroutine on a rezzed AP ice")]
+    {:subroutines [sub]}))

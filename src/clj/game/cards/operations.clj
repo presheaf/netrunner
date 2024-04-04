@@ -2470,3 +2470,8 @@
                                                                      (tutor-or-lose-ab target)
                                                                      card nil)))}
                                    card nil))}))
+(define-card "Bigger Neural"
+  {:req (req (last-turn? state :runner :made-run))
+   :msg "do 2 net damage"
+   :rfg-instead-of-trashing true
+   :effect (effect (damage eid :net 2 {:card card}))})
