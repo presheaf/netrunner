@@ -2034,6 +2034,7 @@
   {:advanceable :false
    :install-state :face-up
    :events [{:event :corp-turn-begins
+             :req (req (installed? (get-card state card)))
              :msg (msg "place 1 advancement counter on itself"
                        (when (>= (get-counters (get-card state card) :advancement) 2) " and remove 1 bad publicity"))
              :effect (req (add-prop state side (get-card state card) :advance-counter 1 {:placed true})

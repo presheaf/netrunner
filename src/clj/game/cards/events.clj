@@ -3170,7 +3170,6 @@
 
 (define-card "Cascade"
   {:req (req rd-runnable)
-   :additional-cost [:click 2]
    :makes-run true
    :async true
    :effect (effect
