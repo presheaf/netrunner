@@ -3616,8 +3616,7 @@
 
 (define-card "Kyuudoka"
   {:additional-cost [:forfeit]
-   :subroutines [(gain-credits-sub 2)
-                 {:async true
+   :subroutines [{:async true
                   :label "Corp may draw 1 card"
                   :effect (effect (continue-ability
                                    {:optional
@@ -3638,9 +3637,12 @@
                                  :duration :end-of-run
                                  :req (req (asset? target))
                                  :value 2}))}
-   :subroutines [{:label "Runner loses 2 [Credits]"
-                  :msg "force the Runner to lose 2 [Credits]"
-                  :effect (effect (lose-credits :runner 2))}]})
+   :subroutines [{:label "Runner loses [click], if able, otherwise end the run"
+                  :msg "force the Runner to lose [click] if able, otherwise end the run"
+                  :effect (req (if (pos? (:click runner))
+                                 (do (lose state :runner :click 1)
+                                     (effect-completed state side eid))
+                                 (end-run state :corp eid card)))}]})
 
 (define-card "Dark Pool"
   {:subroutines [{:label "Search R&D for a transaction to play"

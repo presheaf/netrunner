@@ -1935,10 +1935,10 @@
                        (continue-ability (rec-choose-abi []) card nil))})))
 
 (define-card "HB NBN Collab"
-  (let [prompt-to-pay-click-or-lose-2-creds
+  (let [prompt-to-pay-click-or-lose-3-creds
         (let [click-str "Pay [click]"
-              cred-str "Lose 2[credit]"]
-          {:prompt (str "Pay [click] or lose 2[credit]?")
+              cred-str "Lose 3[credit]"]
+          {:prompt (str "Pay [click] or lose 3[credit]?")
            :choices [click-str cred-str]
            :async true
            :effect (req (if (= target click-str)
@@ -1947,11 +1947,11 @@
                                       (let [cost-str (str async-result
                                                           " due to " (:title card))]
                                         (system-msg state :runner cost-str))
-                                      (do (system-msg state :runner (str "loses 2[credit] due to " (:title card)) )
-                                          (lose state :runner :credit 2)))
+                                      (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)) )
+                                          (lose state :runner :credit 3)))
                                     (effect-completed state side eid))
-                          (do (system-msg state :runner (str "loses 2[credit] due to " (:title card)))
-                              (lose state :runner :credit 2)
+                          (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)))
+                              (lose state :runner :credit 3)
                               (effect-completed state :runner eid))))})]
     {:prompt "Choose a server"
      :msg (msg "target " target)
@@ -1962,7 +1962,7 @@
                :req (req (= (first target) (last (server->zone state (:server-target (get-card state card))))))
                :async true
                :effect (req (if (>= (get-in @state [:runner :click]) 1)
-                              (continue-ability state :runner prompt-to-pay-click-or-lose-2-creds card nil)
+                              (continue-ability state :runner prompt-to-pay-click-or-lose-3-creds card nil)
                               (do (system-msg state :runner (str "loses 2[credit] due to " (:title card)))
                                   (lose state :runner :credit 2)
                                   (effect-completed state :corp eid))))}]}))
@@ -1970,7 +1970,7 @@
 
 (define-card "Oddly Specific Horoscope"
   {:constant-effects (let [cost-increaser {:req (req (= (:title target) (get-in (get-card state card) [:special :marketing-target])))
-                                           :value 2}]
+                                           :value 3}]
                        [(assoc cost-increaser :type :install-cost)
                         (assoc cost-increaser :type :play-cost)])
 
@@ -2033,10 +2033,11 @@
 (define-card "Project CAMB"
   {:advanceable :false
    :install-state :face-up
-   :events [{:event :corp-turn-begins
+   :events [{:event :corp-turn-ends
              :req (req (installed? (get-card state card)))
-             :msg (msg "place 1 advancement counter on itself"
+             :msg (msg "place 1 advancement counter on itself and gain 1 [credit]"
                        (when (>= (get-counters (get-card state card) :advancement) 2) " and remove 1 bad publicity"))
              :effect (req (add-prop state side (get-card state card) :advance-counter 1 {:placed true})
+                          (gain-credits state :corp 1)
                           (when (>= (get-counters (get-card state card) :advancement) 3)
                             (lose-bad-publicity state side 1)))}]})

@@ -1572,7 +1572,7 @@
                          (> 1 (count (:hosted card)))))
 
      :abilities [{:label "Install a non-ambush asset on Consolidation"
-                  :req (req (< (count (:hosted card)) 1))
+                  :req (req (< (count (:hosted card)) 2))
                   :cost [:click 1]
                   :prompt "Select a non-ambush asset to install onto Consolidation"
                   :choices {:card #(and (non-ambush-asset? %)
@@ -1582,7 +1582,7 @@
                   :async true
                   :effect (effect (corp-install eid target card nil))}
                  {:label "Install a previously-installed non-ambush asset on Consolidation (fixes only)"
-                  :req (req (< (count (:hosted card)) 1))
+                  :req (req (< (count (:hosted card)) 2))
                   :prompt "Select an installed non-ambush asset to host on Consolidation"
                   :choices {:card non-ambush-asset?}
                   :msg "host a previously installed non-ambush asset"

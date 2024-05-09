@@ -1151,7 +1151,8 @@
                             :effect (effect (jack-out eid))}}}]})
 
 (define-card "New Angeles Sol: Your News"
-  (let [nasol {:optional
+  (let [nasol {:interactive (req true)
+               :optional
                {:prompt "Play a Current?"
                 :player :corp
                 :req (req (some #(has-subtype? % "Current") (concat (:hand corp) (:discard corp) (:current corp))))
