@@ -1552,9 +1552,13 @@
 (define-card "Consolidation"
   (letfn [(non-ambush-asset? [c]
             (and (asset? c)
-                 (not (has-subtype? c "Ambush"))) )]
+                 (not (has-subtype? c "Ambush"))
+                 (not (has-subtype? c "Executive"))) )]
     ;; TODO: prevent derezzing too
-    {:events [{:event :run
+    {:constant-effects [{:type :rez-cost
+                         :req (req (same-card? card (:host target)))
+                         :value -1}]
+     :events [{:event :run
                :req (req this-server)
                :silent (req true)
                :effect (effect (set-prevent-remote-access-card card))}
@@ -1562,12 +1566,12 @@
                :req (req true)
                :silent (req true)
                :effect (effect (register-turn-flag! card :can-trash
-                                                   (fn [state side other-card]
-                                                     ((let [retval (not (same-card? card other-card))]
-                                                        ;; TODO: the below toast triggers whenever anything is trashed, i.e. even a card other than consolidatoin
-                                                        (when (not retval)
-                                                          (toast state :runner "Cannot trash due to Consolidation." "warning"))
-                                                        (constantly retval))))))}]
+                                                    (fn [state side other-card]
+                                                      ((let [retval (not (same-card? card other-card))]
+                                                         ;; TODO: the below toast triggers whenever anything is trashed, i.e. even a card other than consolidation
+                                                         (when (not retval)
+                                                           (toast state :runner "Cannot trash due to Consolidation." "warning"))
+                                                         (constantly retval))))))}]
      :can-host (req (and (non-ambush-asset? target)
                          (> 1 (count (:hosted card)))))
 
@@ -1581,7 +1585,7 @@
                   :msg "install and host a non-ambush asset"
                   :async true
                   :effect (effect (corp-install eid target card nil))}
-                 {:label "Install a previously-installed non-ambush asset on Consolidation (fixes only)"
+                 {:label "Host a previously-installed non-ambush asset on Consolidation (fixes only)"
                   :req (req (< (count (:hosted card)) 2))
                   :prompt "Select an installed non-ambush asset to host on Consolidation"
                   :choices {:card non-ambush-asset?}

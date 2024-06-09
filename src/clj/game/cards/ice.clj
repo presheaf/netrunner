@@ -3645,7 +3645,8 @@
                                  (end-run state :corp eid card)))}]})
 
 (define-card "Dark Pool"
-  {:subroutines [{:label "Search R&D for a transaction to play"
+  {:strength-bonus (req (quot (:credit corp) 10))
+   :subroutines [{:label "Search R&D for a transaction to play"
                   :prompt "Choose a transaction"
                   :msg (msg "play " (:title target) " from R&D, paying all costs")
                   :choices (req (cancellable (filter #(and (operation? %)

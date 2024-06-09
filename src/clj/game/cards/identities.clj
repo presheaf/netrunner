@@ -743,15 +743,16 @@
   {:events [{:event :pre-start-game
              :req (req (= side :corp))
              :async true
-             :msg "starts the game with Consolidation in play"
+             :msg "start the game with Consolidation in play"
+             :prompt "Choose a central server for Consolidation"
+             :choices ["HQ" "Archives" "R&D"]
              :effect (req (let [consolidation-list (->> (server-cards)
                                                         (filter #(= (:title %) "Consolidation"))
                                                         (map make-card)
                                                         (zone :play-area))]
                             (swap! state assoc-in [:corp :play-area] consolidation-list)
-                            (doseq [c consolidation-list]
-                              (corp-install state side eid c "New remote"
-                                            {:ignore-all-cost true :install-state :rezzed-no-rez-cost}))))}]})
+                            (corp-install state side eid (first consolidation-list) target
+                                          {:ignore-all-cost true :install-state :rezzed-no-rez-cost})))}]})
 (define-card "Jamie \"Bzzz\" Micken: Techno Savant"
   {:events [{:event :pre-start-game
              :effect draft-points-target}
