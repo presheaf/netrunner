@@ -2436,8 +2436,8 @@
                           (remove-old-current state side eid :corp))}]})
 
 (define-card "Equity Swap"
-  {:msg "gain 21 [Credits]"
-   :effect (effect (gain-credits 21))})
+  {:msg "gain 20 [Credits]"
+   :effect (effect (gain-credits 20))})
 
 (define-card "Strongarm"
   (letfn [(tutor-or-lose-ab [chosen-num]
