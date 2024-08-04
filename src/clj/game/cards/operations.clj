@@ -2396,7 +2396,7 @@
    :msg (msg "trash " (join ", " (map #(card-str state %) targets)))
    :choices (let [is-rezzed-next #(and (installed? %) (rezzed? %) (ice? %) (has-subtype? % "NEXT"))]
                 {:card is-rezzed-next
-                 :max (req (min 4 (count (filter is-rezzed-next (all-installed state :corp)))))})
+                 :max (req (min 3 (count (filter is-rezzed-next (all-installed state :corp)))))})
    :effect (req (wait-for (trash-cards state side targets {:unpreventable true})
                           (let [num-trashed (count async-result)]
                             (continue-ability state side

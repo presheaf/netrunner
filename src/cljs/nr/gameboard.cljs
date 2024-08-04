@@ -27,6 +27,7 @@
 
 (defn reverse-face-code [card-code]
   ({"09001" "sync"
+    "51015" "51015_flip"                ; The Horde - not actually a flip card, just nice to see
     "sync" "09001"
     "50001" "50001_flip"
     "50001_flip" "50001"
