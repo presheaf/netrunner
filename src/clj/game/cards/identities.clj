@@ -745,7 +745,7 @@
              :async true
              :msg "start the game with Consolidation in play"
              :prompt "Choose a central server for Consolidation"
-             :choices ["HQ" "Archives" "R&D"]
+             :choices ["HQ" "Archives" "R&D" "New remote"]
              :effect (req (let [consolidation-list (->> (server-cards)
                                                         (filter #(= (:title %) "Consolidation"))
                                                         (map make-card)

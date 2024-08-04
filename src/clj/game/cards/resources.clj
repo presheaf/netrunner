@@ -2986,7 +2986,7 @@
                                (wait-for (draw state side n nil)
                                          (add-counter state side card :power -1)
                                          (effect-completed state side eid))))}]})
-(define-card "Junk Dealer"
+(define-card "Karim Hamdan"
   (let [trash-for-draw-ab
         {:label "Trash a program/hardware from grip to draw 1 card and gain 1[Credit]"
          :once :per-turn

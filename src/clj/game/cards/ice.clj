@@ -3663,7 +3663,7 @@
                                  (effect-completed state side eid)
                                  (end-run state :corp eid card)))}]})
 
-(define-card "Tattletale"
+(define-card "Tenuki"
   (let [sub (resolve-another-subroutine
               #(has-subtype? % "AP")
               "Resolve a subroutine on a rezzed AP ice")]

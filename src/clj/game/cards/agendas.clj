@@ -1934,7 +1934,7 @@
        :effect (effect (show-wait-prompt :runner "Corp to divide effects into two groups")
                        (continue-ability (rec-choose-abi []) card nil))})))
 
-(define-card "HB NBN Collab"
+(define-card "Project Oskoreia"
   (let [prompt-to-pay-click-or-lose-3-creds
         (let [click-str "Pay [click]"
               cred-str "Lose 3[credit]"]

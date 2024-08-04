@@ -2435,11 +2435,11 @@
                             (lose-credits state :runner n))
                           (remove-old-current state side eid :corp))}]})
 
-(define-card "Equity Swap"
+(define-card "Natural Monopoly"
   {:msg "gain 20 [Credits]"
    :effect (effect (gain-credits 20))})
 
-(define-card "Strongarm"
+(define-card "Rate Hike"
   (letfn [(tutor-or-lose-ab [chosen-num]
             (let [tutor-choice (str "Pay " chosen-num "[credit] to search R&D for a card")
                   lose-choice (str "The Runner loses " chosen-num "[credit]")]
@@ -2470,7 +2470,7 @@
                                                                      (tutor-or-lose-ab target)
                                                                      card nil)))}
                                    card nil))}))
-(define-card "Bigger Neural"
+(define-card "Carrington Flare"
   {:req (req (last-turn? state :runner :made-run))
    :msg "do 2 net damage"
    :rfg-instead-of-trashing true

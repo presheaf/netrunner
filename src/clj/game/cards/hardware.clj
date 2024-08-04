@@ -2127,7 +2127,7 @@
                :async true
                :effect (effect (continue-ability (maybe-trash-for-access target (get-card state card)) card nil))}]}))
 
-(define-card "Virus Chip"
+(define-card "P3tri"
   {:in-play [:memory 1]
    ;; Printed cost is 2, so to offer the choice of paying a virus counter instead we reduce it to 0, then add an additional cost
    :install-cost-bonus (req (- 2))
@@ -2141,7 +2141,7 @@
                                 :effect (effect (add-counter eid target :virus 1 nil))}
                                card nil))}]})
 
-(define-card "Scrubomatic"
+(define-card "GyroDrive Soles"
   {:effect (effect (damage eid :meat 1 {:unboostable true :card card}))
    :events [{:event :begin-run
              :once :per-turn
@@ -2163,7 +2163,7 @@
             ;;                    :value -2}))}
             ]})
 
-(define-card "Tidldibab"
+(define-card "Chronicle"
   {:in-play [:memory 1]
    :constant-effects [{:type :install-cost
                        :req (req (and (= side :runner)
