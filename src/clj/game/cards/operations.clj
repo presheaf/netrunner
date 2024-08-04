@@ -1975,6 +1975,7 @@
                 :choices {:card #(and (corp? %)
                                       (installed? %))}
                 :msg (msg "remove itself from the game and place 2 advancement tokens on " (card-str state target))
+                :async true
                 :effect (effect (add-prop target :advance-counter 2 {:placed true})
                                 (remove-old-current state side eid :corp))}]})
 
@@ -2423,3 +2424,54 @@
    :effect (effect (shuffle! :deck)
                    (system-msg "shuffles their deck")
                    (play-instant eid target nil))})
+
+(define-card "Double Down"
+  {:events [{:event :agenda-scored
+             :msg (msg (let [n (get-counters target :advancement)]
+                         "gain " n "[credit], make the Runner lose " n " [credit] and trash Double Down"))
+             :async true
+             :effect (req (let [n (get-counters target :advancement)]
+                            (gain-credits state :corp n)
+                            (lose-credits state :runner n))
+                          (remove-old-current state side eid :corp))}]})
+
+(define-card "Natural Monopoly"
+  {:msg "gain 20 [Credits]"
+   :effect (effect (gain-credits 20))})
+
+(define-card "Rate Hike"
+  (letfn [(tutor-or-lose-ab [chosen-num]
+            (let [tutor-choice (str "Pay " chosen-num "[credit] to search R&D for a card")
+                  lose-choice (str "The Runner loses " chosen-num "[credit]")]
+              {:async true
+               :prompt (str "Pay " chosen-num "[credit]?")
+               :choices [tutor-choice lose-choice]
+               :effect (req
+                        (if (= target lose-choice)
+                          (do (lose-credits state :runner chosen-num)
+                              (effect-completed state side eid))
+                          (do (wait-for (pay-sync state :corp card :credit chosen-num)
+                                        (continue-ability state side
+                                                          {:prompt "Choose a card from R&D"
+                                                           :msg (str "pay " chosen-num " [credit] to search R&D for a card and add it to HQ")
+                                                           :choices (req (cancellable (:deck corp) :sorted))
+                                                           :effect (effect (move target :hand))}
+                                                          card nil)))))}))]
+    {:async true
+     :effect (req
+              (show-wait-prompt state :corp "Runner to choose a number")
+              (continue-ability state :runner
+                                   {:prompt (str "Choose a number")
+                                    :async true
+                                    :choices {:number (req (:credit corp))}
+                                    :effect (req (let [chosen-num target]
+                                                   (clear-wait-prompt state :corp)
+                                                   (continue-ability state :corp
+                                                                     (tutor-or-lose-ab target)
+                                                                     card nil)))}
+                                   card nil))}))
+(define-card "Carrington Flare"
+  {:req (req (last-turn? state :runner :made-run))
+   :msg "do 2 net damage"
+   :rfg-instead-of-trashing true
+   :effect (effect (damage eid :net 2 {:card card}))})

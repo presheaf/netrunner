@@ -1505,6 +1505,7 @@
 (define-card "London Library"
   {:abilities [{:async true
                 :label "Install a non-virus program on London Library"
+                :makes-proghw-grip-install true
                 :cost [:click 1]
                 :prompt "Select a non-virus program to install on London Library from your grip"
                 :choices {:card #(and (program? %)
@@ -2973,3 +2974,33 @@
                 :effect (req (let [credits (min 3 (get-counters card :credit))]
                                (add-counter state side card :credit (- credits))
                                (gain-credits state :runner credits)))}]})
+
+(define-card "Cartographer"
+  {:data {:counter {:power 4}}
+   :events [(trash-on-empty :power)]
+   :abilities [{:cost [:click 3]
+                :msg (msg (let [n (get-counters card :power)]
+                            (str "gain " (- 6 n) " [Credits] and draw " n " cards")))
+                :effect (req (let [n (get-counters card :power)]
+                               (gain-credits state :runner (- 6 n))
+                               (wait-for (draw state side n nil)
+                                         (add-counter state side card :power -1)
+                                         (effect-completed state side eid))))}]})
+(define-card "Karim Hamdan"
+  (let [trash-for-draw-ab
+        {:label "Trash a program/hardware from grip to draw 1 card and gain 1[Credit]"
+         :once :per-turn
+         :req (req (and (pos? (count (:hand runner)))))
+         :async true
+         :choices {:card #(and (in-hand? %)
+                               (runner? %)
+                               (or (hardware? %)
+                                   (program? %)))}
+         :cancel-effect (effect (effect-completed eid))
+         :effect (req (wait-for (trash state side target nil)
+                                (system-msg state :runner (str "uses Junk Dealer to trash " (:title target) " to draw 1 card and gain 1 [credit]"))
+                                (gain-credits state side 1)
+                                (draw state side eid 1 nil)))}]
+    {:flags {:runner-phase-12 (req true)}
+     :events [(assoc trash-for-draw-ab :event :runner-turn-begins)]
+     :abilities [trash-for-draw-ab]}))

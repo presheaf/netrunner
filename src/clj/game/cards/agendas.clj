@@ -1934,3 +1934,122 @@
        :effect (effect (show-wait-prompt :runner "Corp to divide effects into two groups")
                        (continue-ability (rec-choose-abi []) card nil))})))
 
+(define-card "Project Oskoreia"
+  (let [prompt-to-pay-click-or-lose-3-creds
+        (let [click-str "Pay [click]"
+              cred-str "Lose 3[credit]"]
+          {:prompt (str "Pay [click] or lose 3[credit]?")
+           :choices [click-str cred-str]
+           :async true
+           :effect (req (if (= target click-str)
+                          (wait-for (pay-sync state :runner card [:click 1])
+                                    (if async-result
+                                      (let [cost-str (str async-result
+                                                          " due to " (:title card))]
+                                        (system-msg state :runner cost-str))
+                                      (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)) )
+                                          (lose state :runner :credit 3)))
+                                    (effect-completed state side eid))
+                          (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)))
+                              (lose state :runner :credit 3)
+                              (effect-completed state :runner eid))))})]
+    {:prompt "Choose a server"
+     :msg (msg "target " target)
+     :choices (req servers)
+     :async true
+     :effect (effect (update! (assoc card :server-target target))
+                     (effect-completed eid))
+     :leave-play (effect (update! (dissoc card :server-target)))
+     :events [{:event :run
+               :req (req (= (first target) (last (server->zone state (:server-target (get-card state card))))))
+               :async true
+               :effect (req (if (>= (get-in @state [:runner :click]) 1)
+                              (continue-ability state :runner prompt-to-pay-click-or-lose-3-creds card nil)
+                              (do (system-msg state :runner (str "loses 2[credit] due to " (:title card)))
+                                  (lose state :runner :credit 2)
+                                  (effect-completed state :corp eid))))}
+              {:event :agenda-scored
+               :req (req true)
+               :async true
+               :effect (effect (continue-ability {:prompt "Choose a server"
+                                                  :msg (msg "retarget " target)
+                                                  :choices (req servers)
+                                                  :effect (effect (update! (assoc card :server-target target))
+                                                                  (effect-completed eid))}
+                                                 card nil))}
+              ]}))
+
+
+(define-card "Oddly Specific Horoscope"
+  {:constant-effects (let [cost-increaser {:req (req (= (:title target) (get-in (get-card state card) [:special :marketing-target])))
+                                           :value 3}]
+                       [(assoc cost-increaser :type :install-cost)
+                        (assoc cost-increaser :type :play-cost)])
+
+   :async true
+   :effect (req (reveal-hand state :runner)
+                (continue-ability
+                 state side
+                 {:prompt "Name a Runner card"
+                  :choices {:card-title (req (and (runner? target)
+                                                  (not (identity? target))))}
+                  :effect (effect (update! (assoc-in card [:special :marketing-target] target))
+                                  (system-msg (str "uses Oddly Specific Horoscope to name " target)))}
+                 card nil))
+   :abilities [{:label "Reveal the Runner's hand"
+                :effect (req (reveal-hand state :runner))}]
+   :leave-play (req (conceal-hand state :runner))})
+
+(define-card "Patent Acquisition"
+  (let [end-the-run {:label "End the run"
+                     :msg "end the run"
+                     :async true
+                     :effect (effect (end-run :corp eid card))}
+        flip-info  {:front-face-code "53008"
+                    :back-face-code "53008_flip"
+                    :front-face-title "Patent Acquisition"
+                    :back-face-title "Injunction"}]
+
+    {:advancement-cost-bonus (req -3)
+     :leave-play (req (ensure-unflipped state side card flip-info))
+     :abilities [{:label "Flip and add to your score area"
+                  :cost [:click 1]
+                  :msg "add itself to the score area flipped"
+                  :effect (effect (as-agenda (dissoc (assoc (get-card state card) :type "Agenda" :subtype "")
+                                                     :cost :strength :subroutines) 1))}]
+     :async true
+     :msg "flip and install itself"
+     :effect (req
+              (if (:is-flipped (get-card state card))
+                ; Rez effect - this is actually triggered when the card is install-state-rezzed-no-cost
+                (do
+                  (add-prop state side (get-card state card) :advance-counter
+                            (- (get-counters card :advancement)))
+                  (remove-subs! state side (get-card state card))
+                  (add-sub! state side (get-card state card) end-the-run)
+                  (add-sub! state side (get-card state card) end-the-run)
+                  (effect-completed state side eid))
+
+                (let [card (get-card state card)]
+                  ;; Score effect
+                  (update! state side (assoc card
+                                             :type "ICE"
+                                             :cost 4
+                                             :strength 4
+                                             :subtype "Barrier"))
+                  (flip-card state side (get-card state card) flip-info)
+                  (corp-install state side eid (get-card state card) nil
+                                {:ignore-all-cost true :install-state :rezzed-no-cost}))))}))
+
+
+(define-card "Project CAMB"
+  {:advanceable :false
+   :install-state :face-up
+   :events [{:event :corp-turn-ends
+             :req (req (installed? (get-card state card)))
+             :msg (msg "place 1 advancement counter on itself and gain 1 [credit]"
+                       (when (>= (get-counters (get-card state card) :advancement) 2) " and remove 1 bad publicity"))
+             :effect (req (add-prop state side (get-card state card) :advance-counter 1 {:placed true})
+                          (gain-credits state :corp 1)
+                          (when (>= (get-counters (get-card state card) :advancement) 3)
+                            (lose-bad-publicity state side 1)))}]})

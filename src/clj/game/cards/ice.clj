@@ -3408,9 +3408,9 @@
                  (do-net-damage 1)]})
 
 (letfn [(brain-damage-if-bioroid-break [dmg]
-            {:label (str "Do " dmg " brain damage if the Runner has unspent clicks")
+            {:label (str "Do " dmg " brain damage if the Runner has spent [click] to break a sub")
              :async true
-             :msg (str "do " dmg " brain damage if the Runner has unspent clicks")
+             :msg (str "do " dmg " brain damage if the Runner has spent [click] to break a subroutine")
              :effect (req (if (some #(and (= :runner-spent-click (first %))
                                           (> (second (second %)) 0) ; number of clicks spent
                                           ((set (first (second %))) :bioroid-cost))
@@ -3418,14 +3418,12 @@
                             (damage state side eid :brain dmg {:card card})
                             (effect-completed state side eid)))})]
   (define-card "Zed 1.0"
-    {:implementation "Restriction on having spent [click] is not implemented"
-     :subroutines [(brain-damage-if-bioroid-break 1)
+    {:subroutines [(brain-damage-if-bioroid-break 1)
                    (brain-damage-if-bioroid-break 1)]
      :runner-abilities [(bioroid-break 1 1)]})
 
   (define-card "Zed 2.0"
-    {:implementation "Restriction on having spent [click] is not implemented"
-     :subroutines [trash-hardware
+    {:subroutines [trash-hardware
                    trash-hardware
                    (brain-damage-if-bioroid-break 2)]
      :runner-abilities [(bioroid-break 2 2)]}))
@@ -3618,8 +3616,7 @@
 
 (define-card "Kyuudoka"
   {:additional-cost [:forfeit]
-   :subroutines [(gain-credits-sub 2)
-                 {:async true
+   :subroutines [{:async true
                   :label "Corp may draw 1 card"
                   :effect (effect (continue-ability
                                    {:optional
@@ -3631,3 +3628,43 @@
                  (net-damage-with-sfx 1 "archer-trash")
                  (net-damage-with-sfx 1 "archer-trash")
                  end-the-run]})
+
+(define-card "Curator"
+  {:on-encounter {:msg "increase the trash cost of assets by 2 for the remainder of this run"
+                  :effect (req (register-floating-effect
+                                state side card
+                                {:type :trash-cost
+                                 :duration :end-of-run
+                                 :req (req (asset? target))
+                                 :value 2}))}
+   :subroutines [{:label "Runner loses [click], if able, otherwise end the run"
+                  :msg "force the Runner to lose [click] if able, otherwise end the run"
+                  :effect (req (if (pos? (:click runner))
+                                 (do (lose state :runner :click 1)
+                                     (effect-completed state side eid))
+                                 (end-run state :corp eid card)))}]})
+
+(define-card "Dark Pool"
+  {:strength-bonus (req (quot (:credit corp) 10))
+   :subroutines [{:label "Search R&D for a transaction to play"
+                  :prompt "Choose a transaction"
+                  :msg (msg "play " (:title target) " from R&D, paying all costs")
+                  :choices (req (cancellable (filter #(and (operation? %)
+                                                           (has-subtype? % "Transaction"))
+                                                     (:deck corp)) :sorted))
+                  :async true
+                  :cancel-effect (effect (system-msg "declines to play a transaction with Dark Pool")
+                                         (effect-completed eid))
+                  :effect (effect (play-instant eid target nil))}
+                 {:label "End the run if the Corp has 25[Credits]"
+                  :msg (msg (when (< (:credit corp) 25) "not ") "end the run")
+                  :async true
+                  :effect (req (if (< (:credit corp) 25)
+                                 (effect-completed state side eid)
+                                 (end-run state :corp eid card)))}]})
+
+(define-card "Tenuki"
+  (let [sub (resolve-another-subroutine
+              #(has-subtype? % "AP")
+              "Resolve a subroutine on a rezzed AP ice")]
+    {:subroutines [sub]}))

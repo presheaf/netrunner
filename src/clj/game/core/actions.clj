@@ -268,17 +268,27 @@
   "Attempt to select the given card to satisfy the current select prompt. Calls resolve-select
   if the max number of cards has been selected."
   [state side {:keys [card] :as args}]
-  (let [target (get-card state card)
-        prompt (first (get-in @state [side :selected]))
+  (let [prompt (first (get-in @state [side :selected]))
         ability (:ability prompt)
         card-req (:req prompt)
         card-condition (:card prompt)
-        cid (:not-self prompt)]
+        cid (:not-self prompt)
+        target (get-card state card)]
     (when (and (not= (:cid target) cid)
-               (cond
-                 card-condition (card-condition target)
-                 card-req (card-req state side (:eid ability) (get-card state (:card ability)) [target])
-                 :else true))
+               (let [preproc (get-in @state [:special :prompt-target-preprocessor])]
+                 ;; This whole let-block checks if the card is a valid target. In principle this just
+                 ;; requires calling the card-req or card-condition functions on the target, but if
+                 ;; the Sonia Nahar identity is active we must permit her to meddle with this checking
+                 (cond
+                   (or card-condition card-req)
+                   (letfn [(cardreqfn [potential-target]
+                             (if card-condition
+                               (card-condition potential-target)
+                               (card-req state side (:eid ability) (get-card state (:card ability)) [potential-target])))]
+                     (if preproc
+                       (preproc target ability cardreqfn)
+                       (cardreqfn target)))
+                   :else true)))
       (let [c (update-in target [:selected] not)]
         (update! state side c)
         (if (:selected c)

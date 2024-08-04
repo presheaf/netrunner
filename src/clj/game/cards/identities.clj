@@ -739,6 +739,20 @@
               (assoc inf :event :agenda-scored)
               (assoc inf :event :agenda-stolen)])})
 
+(define-card "Iris Capital: Trading Tomorrow"
+  {:events [{:event :pre-start-game
+             :req (req (= side :corp))
+             :async true
+             :msg "start the game with Consolidation in play"
+             :prompt "Choose a central server for Consolidation"
+             :choices ["HQ" "Archives" "R&D" "New remote"]
+             :effect (req (let [consolidation-list (->> (server-cards)
+                                                        (filter #(= (:title %) "Consolidation"))
+                                                        (map make-card)
+                                                        (zone :play-area))]
+                            (swap! state assoc-in [:corp :play-area] consolidation-list)
+                            (corp-install state side eid (first consolidation-list) target
+                                          {:ignore-all-cost true :install-state :rezzed-no-rez-cost})))}]})
 (define-card "Jamie \"Bzzz\" Micken: Techno Savant"
   {:events [{:event :pre-start-game
              :effect draft-points-target}
@@ -1138,7 +1152,8 @@
                             :effect (effect (jack-out eid))}}}]})
 
 (define-card "New Angeles Sol: Your News"
-  (let [nasol {:optional
+  (let [nasol {:interactive (req true)
+               :optional
                {:prompt "Play a Current?"
                 :player :corp
                 :req (req (some #(has-subtype? % "Current") (concat (:hand corp) (:discard corp) (:current corp))))
@@ -1716,6 +1731,50 @@
              :effect (effect (lose-credits :runner :all)
                              (lose :runner :run-credit :all))}]})
 
+(define-card "Sonia Nahar: Steadfast Salvager"
+  (letfn [(prog-or-hw? [card] (or (hardware? card)
+                                  (program? card)))
+          (sonia-prompt-preprocessor
+            ;; Transformer applied to cards in req-fns when checking if a target is eligible
+            ;; as a target for an ability - normal evaluation is just (cardreqfn potential-target),
+            ;; we get to conditionally mess with it
+            [potential-target ability cardreqfn]
+            (if (and (:makes-proghw-grip-install ability) (prog-or-hw? potential-target))
+              (or (cardreqfn potential-target) (cardreqfn (assoc potential-target :zone [:hand])))
+              (cardreqfn potential-target)))]
+    {:implementation "Use ID ability to adjust power counters manually. Open heap display -before- resolving abilities to avoid accidents."
+     :abilities [{:label "Install a program or hardware from your heap"
+                  :prompt "Choose a program or hardware to install from your heap"
+                  :show-discard true
+                  :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
+                                 (not (install-locked? state side))
+                                 (some #(and (prog-or-hw? %)
+                                             (can-pay? state side (assoc eid :source card :source-type :runner-install) % nil
+                                                       [:credit (install-cost state side %)]))
+                                       (:discard runner))))
+                  :choices {:req (req (and (prog-or-hw? target)
+                                           (in-discard? target)
+                                           (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
+                                                     [:credit (install-cost state side target)])))}
+                  :cost [:click]
+                  :msg (msg "install " (:title target))
+                  :effect (effect (runner-install (assoc eid :source card :source-type :runner-install) target nil))}
+                 {:label "Manually add a hosted power counter"
+                  :msg "manually add a hosted power counter"
+                  :effect (effect (add-counter card :power 1))}]
+
+     :constant-effects [{:type :install-additional-cost
+                         :req (req (and (= side :runner) (= [:discard] (:zone target))))
+                         :value (req [:credit (get-counters (get-card state card) :power)])}]
+     :events [{:event :pre-start-game
+               :req (req (and (= side :runner)
+                              (zero? (count-bad-pub state))))
+               :effect (req (swap! state assoc-in [:special :prompt-target-preprocessor] sonia-prompt-preprocessor))}
+              {:event :runner-install
+               :req (req (and (prog-or-hw? target)
+                              (= [:discard] (:previous-zone target))))
+               :msg "add a hosted power counter"
+               :effect (effect (add-counter card :power 1))}]}))
 
 (define-card "Zenith Thoughtworks: Changing Minds"
   (let [counter-gain-ev {:msg (msg "add 1 power counter to " (:title card))

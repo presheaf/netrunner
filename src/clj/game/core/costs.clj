@@ -171,6 +171,8 @@
     false
     (case cost-type
       :memory true
+      :virus-or-two-creds (or (>= (get-in @state [side :credit]) (* 2 amount))
+                                      (<= 0 (- (number-of-virus-counters state) amount)))
       :credit (or (<= 0 (- (get-in @state [side :credit]) amount))
                   (<= 0 (- (total-available-credits state side eid card) amount)))
       :click (<= 0 (- (get-in @state [side :click]) amount))
@@ -356,7 +358,7 @@
       (do (lose-no-event state side :credit amount)
           (complete-with-result state side eid (str "pays " amount " [Credits]")))
       :else
-      (complete-with-result state side eid (str "pays 0 [Credits]")))))
+      (complete-with-result state side eid (str (if (= (:title card) "Virus Chip") "" "pays 0 [Credits]"))))))
 
 (defn pay-clicks
   [state side eid actions costs cost-type amount]
@@ -371,6 +373,8 @@
                                   a (:click (into {} costs)))
               (swap! state assoc-in [side :register :spent-click] true)
               (complete-with-result state side eid (str "spends " (->> "[Click]" repeat (take amount) (apply str)))))))
+
+
 
 (defn pay-trash
   "[Trash] cost as part of an ability"
@@ -603,6 +607,19 @@
   (wait-for (resolve-ability state side (pick-virus-counters-to-spend amount) nil nil)
             (complete-with-result state side eid (str "spends " (:msg async-result)))))
 
+(defn pay-virus-or-two-creds
+  [state side eid card amount]
+  (continue-ability state side
+                    (let [virus-str (str amount " virus counter")
+                          cred-str (str (* 2 amount) " [credit]")]
+                      {:prompt (str "Pay " virus-str " or " cred-str "?")
+                       :choices [virus-str cred-str]
+                       :async true
+                       :effect (req (if (= target virus-str)
+                                      (pay-any-virus-counter state side eid amount)
+                                      (pay-credits state side eid card (* 2 amount))))})
+                    card nil))
+
 (defn pay-counter
   [state side eid card counter amount]
   (update! state side
@@ -628,6 +645,7 @@
   ([state side eid card actions costs [cost-type amount]]
    (case cost-type
      ; Symbols
+     :virus-or-two-creds (pay-virus-or-two-creds state side eid card amount)
      :credit (pay-credits state side eid card amount)
      :click (pay-clicks state side eid actions costs cost-type amount)
      :trash (pay-trash state side eid card amount)

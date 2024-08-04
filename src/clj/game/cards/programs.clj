@@ -1008,6 +1008,7 @@
              :silent (req true)
              :effect (effect (add-counter card :power 1))}]
    :abilities [{:prompt "Choose a card to install from your Grip"
+                :makes-proghw-grip-install true
                 :req (req (and (not (install-locked? state side))
                                (some #(and (or (hardware? %)
                                                (program? %)
@@ -2406,6 +2407,7 @@
                 :once :per-turn
                 :req (req (not (install-locked? state side)))
                 :msg (msg "install " (:title target))
+                :makes-proghw-grip-install true
                 :prompt "Choose a program to install from your grip"
                 :choices {:card #(and (program? %)
                                       (in-hand? %))}
@@ -2846,3 +2848,69 @@
              :effect (effect (gain-credits 3))
              :msg "gain 3 [Credits]"}]
    :data {:counter {:virus 3}}})
+
+(define-card "Hype"
+  (let [flip-info  {:front-face-code "53003"
+                    :back-face-code "53003_flip"
+                    :front-face-title "Hype"
+                    :back-face-title "Hope"}
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info))}]
+    {:effect (req (when (= [:discard] (:previous-zone card))
+                    (system-msg state :runner (str "uses " (:title card) " to flip itself"))
+                    (flip-card state side card flip-info)))
+     :events [{:event :agenda-stolen
+               :async true
+               :msg (msg "trash " (card-title (get-card state card))
+                         (when (:is-flipped (get-card state card))
+                           ", gain 4 [credits] and draw 3 cards"))
+               :effect (req (let [is-flipped (:is-flipped (get-card state card))]
+                              (wait-for (trash state side card {})
+                                        (if is-flipped
+                                          (effect-completed state side eid)
+                                          (do (gain-credits state :runner 4)
+                                              (draw state side eid 3 nil))))))}
+              {:event :successful-run
+               :msg "access an additional card"
+               :req (req (and (= target :rd) (:is-flipped (get-card state card))))
+               :effect (effect (access-bonus :rd 1))}
+              ;; {:event :run-ends
+              ;;  :req (req (and (:successful target) (= [:rd] (:server target))))
+              ;;  :msg "move the top card of R&D to the bottom"
+              ;;  :effect (effect (move :corp (first (:deck corp)) :deck))}
+              ;; {:event :successful-run
+              ;;  :msg "move the bottom card of R&D to the top and access an additional card"
+              ;;  :req (req (and (= target :rd) (:is-flipped (get-card state card))))
+              ;;  :effect (effect (move :corp (last (:deck corp)) :deck {:front true})
+              ;;                  (access-bonus :rd 1))}
+              ;; {:event :run-ends
+              ;;  :req (req (and (:successful target) (= [:rd] (:server target))))
+              ;;  :msg "move the top card of R&D to the bottom"
+              ;;  :effect (effect (move :corp (first (:deck corp)) :deck))}
+              ]}))
+
+(define-card "Trailblazer"
+  (letfn [(server-kw-to-use-entry [server-kw]
+            (if (#{:hq :rd :archives} server-kw)
+              server-kw
+              :remote))]
+    (auto-icebreaker {:effect (effect (update! (assoc-in card [:special :used-servers] [])))
+                      :leave-play (effect (update! (dissoc-in card [:special :used-servers]))
+                                          (update! (dissoc card :server-target)))
+                      :events [{:event :encounter-ice-ends
+                                :req (req (any-subs-broken-by-card? target card))
+                                :effect (effect (update! (assoc-in (get-card state card) [:special :was-used] true)))}
+                               {:event :run-ends
+                                :req (req (get-in (get-card state card) [:special :was-used]))
+                                :effect (effect
+                                         (update! (assoc-in (get-card state card) [:special :used-servers]
+                                                            (vec (concat [(server-kw-to-use-entry (first (:server target)))]
+                                                                         (get-in (get-card state card) [:special :used-servers])))))
+                                         (update! (assoc (get-card state card) :server-target
+                                                         (join " " (map {:hq "HQ" :rd "R&D" :archives "Arc" :remote "Rem"} (get-in (get-card state card) [:special :used-servers])))))
+                                         (update! (dissoc-in (get-card state card) [:special :was-used])))}]
+
+                      :abilities [(break-sub 1 1 "Sentry" {:req (req (not (some #(= (server-kw-to-use-entry (first (:server run))) %)
+                                                                                (get-in (get-card state card) [:special :used-servers]))))})
+                                  (strength-pump 1 1)]})))

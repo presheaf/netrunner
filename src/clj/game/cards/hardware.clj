@@ -1120,6 +1120,7 @@
   (let [mhelper
         (fn mh [n]
           {:prompt "Select a program to install"
+           :makes-proghw-grip-install true
            :choices {:req (req (and (program? target)
                                     (in-hand? target)
                                     (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
@@ -2107,3 +2108,113 @@
                        (set-prop state side card :rec-counter (half-runner-points @state))))
      :interactions {:pay-credits {:req (req run)
                                   :type :recurring}}}))
+
+
+
+(define-card "Furnace"
+  (letfn [(maybe-trash-for-access [the-server furnace-card]
+            {:async true
+             :prompt "Choose a card to trash for an extra access"
+             :choices {:card #(and (runner? %)
+                                   (installed? %)
+                                   (not (same-card? % furnace-card)))}
+             :msg (msg "trash " (:title target) " and gain 3 [Credits]")
+             :effect (effect (access-bonus the-server 1)
+                             (trash eid target {:unpreventable true}))})]
+    {:events [{:event :successful-run
+               :req (req (or (= target :rd)
+                             (= target :hq)))
+               :async true
+               :effect (effect (continue-ability (maybe-trash-for-access target (get-card state card)) card nil))}]}))
+
+(define-card "P3tri"
+  {:in-play [:memory 1]
+   ;; Printed cost is 2, so to offer the choice of paying a virus counter instead we reduce it to 0, then add an additional cost
+   :install-cost-bonus (req (- 2))
+   :additional-cost [:virus-or-two-creds 1] ; TODO: This makes log message ugly, but we have an hacky fix...
+   :abilities [{:cost [:trash]
+                :effect (req (resolve-ability
+                               state side
+                               {:msg (msg "place 1 virus counter on " (:title target))
+                                :choices {:card #(and (runner? %) (installed? %))}
+                                :async true
+                                :effect (effect (add-counter eid target :virus 1 nil))}
+                               card nil))}]})
+
+(define-card "GyroDrive Soles"
+  {:effect (effect (damage eid :meat 1 {:unboostable true :card card}))
+   :events [{:event :begin-run
+             :once :per-turn
+             :req (req (first-event? state side :runner-spent-click))
+             :msg "to reduce the trash cost of all cards by 2 this run"
+             ;; TODO: rework this so it stops being active if the card is trashed
+             :effect (effect (register-floating-effect
+                              card
+                              {:type :trash-cost
+                               :duration :end-of-run
+                               :value -2}))}
+            ;; {:event :begin-run
+            ;;  :msg "to reduce the trash cost of all cards by 2 this run"
+            ;;  :req (req (<= 3 (get-in @state [:runner :click])))
+            ;;  :effect (effect (register-floating-effect
+            ;;                   card
+            ;;                   {:type :trash-cost
+            ;;                    :duration :end-of-run
+            ;;                    :value -2}))}
+            ]})
+
+(define-card "Chronicle"
+  {:in-play [:memory 1]
+   :constant-effects [{:type :install-cost
+                       :req (req (and (= side :runner)
+                                      (= [:discard] (:zone target))
+                                      (or (program? target) (hardware? target))))
+                       :value -1}]})
+
+(define-card "Refragmenter"
+  {:data {:counter {:power 3}}
+   :effect (effect
+            (update! (assoc-in (get-card state card) [:special :cards-to-bottom] '())))
+   :events [{:event :counter-added
+             :req (req (and (same-card? card target)
+                            (not (pos? (get-counters card :power)))))
+             :async true
+             :effect (req (wait-for (draw state :runner 1 nil)
+                                    (system-msg state side (str "draws a card and should trash " (:title card) " manually when the run is done"))
+                                    (effect-completed state side eid)
+                                    ;; (trash state side eid card {:unpreventable true})
+                                    ))}
+            {:event :post-access-card
+             :async true
+             :req (req (= (first (:zone target)) :deck))
+             :effect
+             (effect
+               (continue-ability
+                 (let [accessed-card target]
+                   {:optional
+                    {:req (req (or (= [:deck] (:zone accessed-card))
+                                   (= [:deck] (:previous-zone accessed-card))))
+                     :async true
+                     :prompt (str "Move " (:title accessed-card) " to the bottom of R&D?")
+                     :yes-ability
+                     {:msg "mark the card just accessed for being moved to the bottom of R&D"
+                      :asyn true
+                      :effect (req
+                               (update! state side
+                                        (assoc-in (get-card state card) [:special :cards-to-bottom]
+                                                  (concat (get-in (get-card state card) [:special :cards-to-bottom])
+                                                          [accessed-card]))
+                                        )
+                               (add-counter state side eid (get-card state card) :power -1 nil))}}})
+                 card nil))}
+            ;; {:event :successful-run
+            ;;  :unregister-once-resolved true
+            ;;  :silent (req true)
+            ;;  :req (req (= target :rd))
+            ;;  :effect (effect (access-bonus :rd 3))}
+            {:event :run-ends
+             :msg "actually move the cards"
+             :effect (req
+                      (doseq [c (get-in (get-card state card) [:special :cards-to-bottom] true)]
+                        (move state :corp (get-card state c) :deck))
+                      (update! state side (assoc-in (get-card state card) [:special :cards-to-bottom] '())))}]})

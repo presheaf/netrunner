@@ -460,16 +460,18 @@
   "Apply agenda-point modifications to calculate the number of points this card is worth
   to the given player."
   [state side card]
-  (let [base-points (:agendapoints card 0)
-        as-agenda-points (:as-agenda-points card 0)
-        points-fn (if (= side :corp)
-                    (:agendapoints-corp (card-def card))
-                    (:agendapoints-runner (card-def card)))]
-    (if (fn? points-fn)
-      (points-fn state side nil card nil)
-      (+ base-points
-         as-agenda-points
-         (sum-effects state side card :agenda-value nil)))))
+  (if (not card)
+    0
+    (let [base-points (:agendapoints card 0)
+          as-agenda-points (:as-agenda-points card 0)
+          points-fn (if (= side :corp)
+                      (:agendapoints-corp (card-def card))
+                      (:agendapoints-runner (card-def card)))]
+      (if (fn? points-fn)
+        (points-fn state side nil card nil)
+        (+ base-points
+           as-agenda-points
+           (sum-effects state side card :agenda-value nil))))))
 
 (defn advancement-cost-bonus
   "Applies an advancement requirement increase of n the next agenda whose advancement requirement
