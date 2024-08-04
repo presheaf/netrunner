@@ -160,6 +160,8 @@
 
   (let [dual-faction-agendas
         {"Adaptive Netbranes" #{"Jinteki" "Weyland Consortium"}
+         "Oddly Specific Horoscope" #{"Jinteki" "NBN"}
+         "Project Oskoreia" #{"Haas-Bioroid" "NBN"}
          "Power Grid Reroute" #{"Haas-Bioroid" "Weyland Consortium"}
          "Psychomagnetic Pulse" #{"Haas-Bioroid" "Jinteki"}}]
     (if (dual-faction-agendas (:title card))
