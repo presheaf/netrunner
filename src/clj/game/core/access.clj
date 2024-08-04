@@ -629,7 +629,8 @@
                   (cond
                     ;; Only 1 card to access
                     (and pos-total?
-                         (= 1 total-cards-count))
+                         (= 1 total-cards-count)
+                         only-card)
                     (access-card state side eid (first total-cards))
 
                     ;; Normal access
