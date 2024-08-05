@@ -2998,7 +2998,7 @@
                                    (program? %)))}
          :cancel-effect (effect (effect-completed eid))
          :effect (req (wait-for (trash state side target nil)
-                                (system-msg state :runner (str "uses Junk Dealer to trash " (:title target) " to draw 1 card and gain 1 [credit]"))
+                                (system-msg state :runner (str "uses Karim Hamdan to trash " (:title target) " to draw 1 card and gain 1 [credit]"))
                                 (gain-credits state side 1)
                                 (draw state side eid 1 nil)))}]
     {:flags {:runner-phase-12 (req true)}
