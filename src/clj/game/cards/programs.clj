@@ -2874,21 +2874,7 @@
               {:event :successful-run
                :msg "access an additional card"
                :req (req (and (= target :rd) (:is-flipped (get-card state card))))
-               :effect (effect (access-bonus :rd 1))}
-              ;; {:event :run-ends
-              ;;  :req (req (and (:successful target) (= [:rd] (:server target))))
-              ;;  :msg "move the top card of R&D to the bottom"
-              ;;  :effect (effect (move :corp (first (:deck corp)) :deck))}
-              ;; {:event :successful-run
-              ;;  :msg "move the bottom card of R&D to the top and access an additional card"
-              ;;  :req (req (and (= target :rd) (:is-flipped (get-card state card))))
-              ;;  :effect (effect (move :corp (last (:deck corp)) :deck {:front true})
-              ;;                  (access-bonus :rd 1))}
-              ;; {:event :run-ends
-              ;;  :req (req (and (:successful target) (= [:rd] (:server target))))
-              ;;  :msg "move the top card of R&D to the bottom"
-              ;;  :effect (effect (move :corp (first (:deck corp)) :deck))}
-              ]}))
+               :effect (effect (access-bonus :rd 1))}]}))
 
 (define-card "Trailblazer"
   (letfn [(server-kw-to-use-entry [server-kw]

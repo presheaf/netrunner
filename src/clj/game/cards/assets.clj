@@ -2457,28 +2457,6 @@
      :events [(assoc trash-for-draw-ab :event :corp-turn-begins)]
      :abilities [trash-for-draw-ab]}))
 
-(define-card "Microfinance"
-  (let [ability {:msg (msg "gain 2 [Credits]")
-                 :once :per-turn
-                 :req (req (:corp-phase-12 @state)
-                           (>= (get-counters (get-card state card) :credit) 2))
-                 :label (str "Gain 2 [Credits] (start of turn)")
-                 :async true
-                 :effect (effect (gain-credits 2)
-                                 (add-counter eid card :credit -2 nil))}]
-    {:derezzed-events [corp-rez-toast]
-     :effect (effect (add-counter card :credit
-                                  (* 2 (count
-                                        (filter #(in-same-server? card %)
-                                                (all-installed state :corp))))))
-     :events [(assoc ability :event :corp-turn-begins)
-              {:event :corp-install
-               :req (req (in-same-server? card target))
-               :async true
-               :msg "place 2[credits] on Microfinance"
-               :effect (effect (add-counter eid card :credit 2 nil))}]
-     :abilities [ability]}))
-
 (define-card "Engagement Metrics"
   (let [ability {:msg (msg "gain 2[Credits]")
                  :once :per-turn

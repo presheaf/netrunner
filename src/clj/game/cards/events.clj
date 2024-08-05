@@ -3118,7 +3118,7 @@
                                               card nil)))}]})
 
 
-(define-card "Generous Gift"
+(define-card "Company Mixer"
   {:async true
    :msg "draw a card"
    :effect (req (wait-for (draw state side 1 nil)
@@ -3136,10 +3136,10 @@
              :location :discard
              :condition :in-discard
 
-             :msg "add Generous Gift to their hand from their discard pile"
+             :msg "add Company Mixer to their hand from their discard pile"
              :effect (req (move state side card :hand))}]})
 
-(define-card "IP Audit"
+(define-card "Multitasking"
   (letfn [(install-cheap-thing [num]
             {:async true
              :prompt "Choose a hardware or resource to install"
