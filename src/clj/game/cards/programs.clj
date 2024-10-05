@@ -1512,6 +1512,33 @@
   {:abilities [(break-sub 1 1 "Code Gate")
                (strength-pump 2 4 :end-of-run {:label "add 4 strength (using at least 1 stealth [Credits])"})]})
 
+(define-card "Hype"
+  (let [flip-info  {:front-face-code "53003"
+                    :back-face-code "53003_flip"
+                    :front-face-title "Hype"
+                    :back-face-title "Hope"}
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info))}]
+    {:effect (req (when (= [:discard] (:previous-zone card))
+                    (system-msg state :runner (str "uses " (:title card) " to flip itself"))
+                    (flip-card state side card flip-info)))
+     :events [{:event :agenda-stolen
+               :async true
+               :msg (msg "trash " (card-title (get-card state card))
+                         (when (not (:is-flipped (get-card state card)))
+                           ", gain 4 [credits] and draw 3 cards"))
+               :effect (req (let [is-flipped (:is-flipped (get-card state card))]
+                              (wait-for (trash state side card {})
+                                        (if is-flipped
+                                          (effect-completed state side eid)
+                                          (do (gain-credits state :runner 4)
+                                              (draw state side eid 3 nil))))))}
+              {:event :successful-run
+               :msg "access an additional card"
+               :req (req (and (= target :rd) (:is-flipped (get-card state card))))
+               :effect (effect (access-bonus :rd 1))}]}))
+
 (define-card "Hyperdriver"
   {:flags {:runner-phase-12 (req true)}
    :abilities [{:label "Remove Hyperdriver from the game to gain [Click] [Click] [Click]"
@@ -1643,6 +1670,28 @@
   (give-ice-subtype 2 "Barrier"
                     [(break-sub 2 0 "Barrier")
                      (strength-pump 3 6)]))
+
+(letfn [(luxury-icebreaker-events [flag-kw]
+          [{:event :encounter-ice-ends
+            :req (req (any-subs-broken-by-card? target card))
+            :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
+           {:event :run-ends
+            :effect (req (when (and (:successful target)
+                                    (get-in target [:special flag-kw]))
+                           (continue-ability state :runner
+                                             {:msg "lose 2 [Credits]"
+                                              :effect (effect (lose-credits :runner 2))}
+                                             card nil)))}])]
+  (define-card "Lamis"
+    (auto-icebreaker {:abilities [(break-sub 1 2 "Sentry") (strength-pump 1 1)]
+                      :events (luxury-icebreaker-events :bullseye-used)}))
+  (define-card "Maron"
+    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate") (strength-pump 1 2)]
+                      :events (luxury-icebreaker-events :almanac-used)}))
+  (define-card "Gemon"
+    (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")
+                                  (strength-pump 2 3)]
+                      :events (luxury-icebreaker-events :detour-used)})))
 
 (define-card "Lamprey"
   {:events [{:event :successful-run
@@ -2668,6 +2717,40 @@
               {:event :runner-turn-ends
                :effect (effect (update! (dissoc card :server-target)))}]}))
 
+(define-card "Trailblazer"
+  (letfn [(server-kw-to-use-entry [server-kw]
+            (if (#{:hq :rd :archives} server-kw)
+              server-kw
+              :remote))]
+    (auto-icebreaker {:effect (effect (update! (assoc-in card [:special :used-servers] [])))
+                      :leave-play (effect (update! (dissoc-in card [:special :used-servers]))
+                                          (update! (dissoc card :server-target)))
+                      :events [{:event :encounter-ice-ends
+                                :req (req (any-subs-broken-by-card? target card))
+                                :effect (effect (update! (assoc-in (get-card state card) [:special :was-used] true)))}
+                               {:event :run-ends
+                                :req (req (get-in (get-card state card) [:special :was-used]))
+                                :effect (effect
+                                         (update! (assoc-in (get-card state card) [:special :used-servers]
+                                                            (vec (concat [(server-kw-to-use-entry (first (:server target)))]
+                                                                         (get-in (get-card state card) [:special :used-servers])))))
+                                         (update! (assoc (get-card state card) :server-target
+                                                         (join " " (map {:hq "HQ" :rd "R&D" :archives "Arc" :remote "Rem"} (get-in (get-card state card) [:special :used-servers])))))
+                                         (update! (dissoc-in (get-card state card) [:special :was-used])))}]
+
+                      :abilities [(break-sub 1 1 "Sentry" {:req (req (not (some #(= (server-kw-to-use-entry (first (:server run))) %)
+                                                                                (get-in (get-card state card) [:special :used-servers]))))})
+                                  (strength-pump 1 1)]})))
+
+(define-card "Trojan Stable"
+  {:implementation "To remove a counter from Hivemind, manually click Hivemind to move the counter to this card"
+   :events [{:event :runner-turn-begins
+             :req (req (> (get-counters card :virus) 0)) ; Intentionally ignoring Hivemind to avoid being at 0 counters, then going to -1 to gain 3 creds without paying anything
+             :cost [:virus 1]
+             :effect (effect (gain-credits 3))
+             :msg "gain 3 [Credits]"}]
+   :data {:counter {:virus 3}}})
+
 (define-card "Trope"
   {:events [{:event :runner-turn-begins
              :effect (effect (add-counter card :power 1))}]
@@ -2816,87 +2899,4 @@
 (define-card "ZU.13 Key Master"
   (cloud-icebreaker
    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
-                                  (strength-pump 1 1)]})))
-
-(letfn [(luxury-icebreaker-events [flag-kw]
-          [{:event :encounter-ice-ends
-            :req (req (any-subs-broken-by-card? target card))
-            :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
-           {:event :run-ends
-            :effect (req (when (and (:successful target)
-                                    (get-in target [:special flag-kw]))
-                           (continue-ability state :runner
-                                             {:msg "lose 2 [Credits]"
-                                              :effect (effect (lose-credits :runner 2))}
-                                             card nil)))}])]
-  (define-card "Lamis"
-    (auto-icebreaker {:abilities [(break-sub 1 2 "Sentry") (strength-pump 1 1)]
-                      :events (luxury-icebreaker-events :bullseye-used)}))
-  (define-card "Maron"
-    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate") (strength-pump 1 2)]
-                      :events (luxury-icebreaker-events :almanac-used)}))
-  (define-card "Gemon"
-    (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")
-                                  (strength-pump 2 3)]
-                      :events (luxury-icebreaker-events :detour-used)})))
-
-(define-card "Trojan Stable"
-  {:implementation "To remove a counter from Hivemind, manually click Hivemind to move the counter to this card"
-   :events [{:event :runner-turn-begins
-             :req (req (> (get-counters card :virus) 0)) ; Intentionally ignoring Hivemind to avoid being at 0 counters, then going to -1 to gain 3 creds without paying anything
-             :cost [:virus 1]
-             :effect (effect (gain-credits 3))
-             :msg "gain 3 [Credits]"}]
-   :data {:counter {:virus 3}}})
-
-(define-card "Hype"
-  (let [flip-info  {:front-face-code "53003"
-                    :back-face-code "53003_flip"
-                    :front-face-title "Hype"
-                    :back-face-title "Hope"}
-        flip-card-abi {:label "flip this card"
-                       :msg "flip itself"
-                       :effect (effect (flip-card card flip-info))}]
-    {:effect (req (when (= [:discard] (:previous-zone card))
-                    (system-msg state :runner (str "uses " (:title card) " to flip itself"))
-                    (flip-card state side card flip-info)))
-     :events [{:event :agenda-stolen
-               :async true
-               :msg (msg "trash " (card-title (get-card state card))
-                         (when (not (:is-flipped (get-card state card)))
-                           ", gain 4 [credits] and draw 3 cards"))
-               :effect (req (let [is-flipped (:is-flipped (get-card state card))]
-                              (wait-for (trash state side card {})
-                                        (if is-flipped
-                                          (effect-completed state side eid)
-                                          (do (gain-credits state :runner 4)
-                                              (draw state side eid 3 nil))))))}
-              {:event :successful-run
-               :msg "access an additional card"
-               :req (req (and (= target :rd) (:is-flipped (get-card state card))))
-               :effect (effect (access-bonus :rd 1))}]}))
-
-(define-card "Trailblazer"
-  (letfn [(server-kw-to-use-entry [server-kw]
-            (if (#{:hq :rd :archives} server-kw)
-              server-kw
-              :remote))]
-    (auto-icebreaker {:effect (effect (update! (assoc-in card [:special :used-servers] [])))
-                      :leave-play (effect (update! (dissoc-in card [:special :used-servers]))
-                                          (update! (dissoc card :server-target)))
-                      :events [{:event :encounter-ice-ends
-                                :req (req (any-subs-broken-by-card? target card))
-                                :effect (effect (update! (assoc-in (get-card state card) [:special :was-used] true)))}
-                               {:event :run-ends
-                                :req (req (get-in (get-card state card) [:special :was-used]))
-                                :effect (effect
-                                         (update! (assoc-in (get-card state card) [:special :used-servers]
-                                                            (vec (concat [(server-kw-to-use-entry (first (:server target)))]
-                                                                         (get-in (get-card state card) [:special :used-servers])))))
-                                         (update! (assoc (get-card state card) :server-target
-                                                         (join " " (map {:hq "HQ" :rd "R&D" :archives "Arc" :remote "Rem"} (get-in (get-card state card) [:special :used-servers])))))
-                                         (update! (dissoc-in (get-card state card) [:special :was-used])))}]
-
-                      :abilities [(break-sub 1 1 "Sentry" {:req (req (not (some #(= (server-kw-to-use-entry (first (:server run))) %)
-                                                                                (get-in (get-card state card) [:special :used-servers]))))})
                                   (strength-pump 1 1)]})))

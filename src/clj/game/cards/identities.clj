@@ -386,6 +386,14 @@
    :leave-play (effect (gain :hand-size 1)
                        (gain :runner :hand-size 1))})
 
+(define-card "Dionysus Bagbiter: Luxe Larcenist"
+  {:in-play [:hq-access 1 :rd-access 1]
+   :events [{:event :agenda-stolen
+             :msg (msg "lose all " (:credit runner) " [Credits] in their credit pool")
+             :interactive (req true)
+             :effect (effect (lose-credits :runner :all)
+                             (lose :runner :run-credit :all))}]})
+
 (define-card "Earth Station: SEA Headquarters"
   (let [flip-effect (effect (update! (if (:flipped card)
                                        (do (system-msg state :corp "flip their identity to Earth Station: SEA Headquarters")
@@ -1349,6 +1357,14 @@
                                                 :async true}
                                                card nil))}]})
 
+(define-card "Sizzler: Igniting the Discourse"
+  {:events [{:event :agenda-scored
+             :req (req (= (count (filter #(= (card-title %) (card-title target)) (:scored corp))) 1))
+             :msg (msg "gain 1[credit] and remove 1 bad publicity")
+             :interactive (req true)
+             :effect (req (gain-credits state :corp 1)
+                          (lose-bad-publicity state :corp 1))}]})
+
 (define-card "Skorpios Defense Systems: Persuasive Power"
   {:implementation "Manually triggered, no restriction on which cards in Heap can be targeted. Cannot use on in progress run event"
    :abilities [{:label "Remove a card in the Heap that was just trashed from the game"
@@ -1369,6 +1385,51 @@
                                                   :cancel-effect (req (clear-wait-prompt state :runner)
                                                                       (effect-completed state side eid))}
                                                  card nil)))}]})
+
+(define-card "Sonia Nahar: Steadfast Salvager"
+  (letfn [(shaper-program? [card] (and (= (:faction card) "Shaper")
+                                       (program? card)))
+          (sonia-prompt-preprocessor
+            ;; Transformer applied to cards in req-fns when checking if a target is eligible
+            ;; as a target for an ability - normal evaluation is just (cardreqfn potential-target),
+            ;; we get to conditionally mess with it
+            [potential-target ability cardreqfn]
+            (if (and (:makes-proghw-grip-install ability) (shaper-program? potential-target))
+              (or (cardreqfn potential-target) (cardreqfn (assoc potential-target :zone [:hand])))
+              (cardreqfn potential-target)))]
+    {:implementation "Use ID ability to adjust power counters manually. Open heap display -before- resolving abilities to avoid accidents."
+     :abilities [{:label "Install a Shaper program from your heap"
+                  :prompt "Choose a Shaper program to install from your heap"
+                  :show-discard true
+                  :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
+                                 (not (install-locked? state side))
+                                 (some #(and (shaper-program? %)
+                                             (can-pay? state side (assoc eid :source card :source-type :runner-install) % nil
+                                                       [:credit (install-cost state side %)]))
+                                       (:discard runner))))
+                  :choices {:req (req (and (shaper-program? target)
+                                           (in-discard? target)
+                                           (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
+                                                     [:credit (install-cost state side target)])))}
+                  :cost [:click]
+                  :msg (msg "install " (:title target))
+                  :effect (effect (runner-install (assoc eid :source card :source-type :runner-install) target nil))}
+                 {:label "Manually add a hosted power counter"
+                  :msg "manually add a hosted power counter"
+                  :effect (effect (add-counter card :power 1))}]
+
+     :constant-effects [{:type :install-additional-cost
+                         :req (req (and (= side :runner) (= [:discard] (:zone target))))
+                         :value (req [:credit (get-counters (get-card state card) :power)])}]
+     :events [{:event :pre-start-game
+               :req (req (and (= side :runner)
+                              (zero? (count-bad-pub state))))
+               :effect (req (swap! state assoc-in [:special :prompt-target-preprocessor] sonia-prompt-preprocessor))}
+              {:event :runner-install
+               :req (req (and (shaper-program? target)
+                              (= [:discard] (:previous-zone target))))
+               :msg "add a hosted power counter"
+               :effect (effect (add-counter card :power 1))}]}))
 
 (define-card "Spark Agency: Worldswide Reach"
   {:events [{:event :rez
@@ -1714,67 +1775,6 @@
              :effect (effect (move :runner (last (:discard runner)) :deck)
                              (shuffle! :runner :deck)
                              (trigger-event :searched-stack nil))}]})
-
-(define-card "Sizzler: Igniting the Discourse"
-  {:events [{:event :agenda-scored
-             :req (req (= (count (filter #(= (card-title %) (card-title target)) (:scored corp))) 1))
-             :msg (msg "gain 1[credit] and remove 1 bad publicity")
-             :interactive (req true)
-             :effect (req (gain-credits state :corp 1)
-                          (lose-bad-publicity state :corp 1))}]})
-
-(define-card "Dionysus Bagbiter: Luxe Larcenist"
-  {:in-play [:hq-access 1 :rd-access 1]
-   :events [{:event :agenda-stolen
-             :msg (msg "lose all " (:credit runner) " [Credits] in their credit pool")
-             :interactive (req true)
-             :effect (effect (lose-credits :runner :all)
-                             (lose :runner :run-credit :all))}]})
-
-(define-card "Sonia Nahar: Steadfast Salvager"
-  (letfn [(shaper-program? [card] (and (= (:faction card) "Shaper")
-                                       (program? card)))
-          (sonia-prompt-preprocessor
-            ;; Transformer applied to cards in req-fns when checking if a target is eligible
-            ;; as a target for an ability - normal evaluation is just (cardreqfn potential-target),
-            ;; we get to conditionally mess with it
-            [potential-target ability cardreqfn]
-            (if (and (:makes-proghw-grip-install ability) (shaper-program? potential-target))
-              (or (cardreqfn potential-target) (cardreqfn (assoc potential-target :zone [:hand])))
-              (cardreqfn potential-target)))]
-    {:implementation "Use ID ability to adjust power counters manually. Open heap display -before- resolving abilities to avoid accidents."
-     :abilities [{:label "Install a Shaper program from your heap"
-                  :prompt "Choose a Shaper program to install from your heap"
-                  :show-discard true
-                  :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
-                                 (not (install-locked? state side))
-                                 (some #(and (shaper-program? %)
-                                             (can-pay? state side (assoc eid :source card :source-type :runner-install) % nil
-                                                       [:credit (install-cost state side %)]))
-                                       (:discard runner))))
-                  :choices {:req (req (and (shaper-program? target)
-                                           (in-discard? target)
-                                           (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
-                                                     [:credit (install-cost state side target)])))}
-                  :cost [:click]
-                  :msg (msg "install " (:title target))
-                  :effect (effect (runner-install (assoc eid :source card :source-type :runner-install) target nil))}
-                 {:label "Manually add a hosted power counter"
-                  :msg "manually add a hosted power counter"
-                  :effect (effect (add-counter card :power 1))}]
-
-     :constant-effects [{:type :install-additional-cost
-                         :req (req (and (= side :runner) (= [:discard] (:zone target))))
-                         :value (req [:credit (get-counters (get-card state card) :power)])}]
-     :events [{:event :pre-start-game
-               :req (req (and (= side :runner)
-                              (zero? (count-bad-pub state))))
-               :effect (req (swap! state assoc-in [:special :prompt-target-preprocessor] sonia-prompt-preprocessor))}
-              {:event :runner-install
-               :req (req (and (shaper-program? target)
-                              (= [:discard] (:previous-zone target))))
-               :msg "add a hosted power counter"
-               :effect (effect (add-counter card :power 1))}]}))
 
 (define-card "Zenith Thoughtworks: Changing Minds"
   (let [counter-gain-ev {:msg (msg "add 1 power counter to " (:title card))

@@ -318,6 +318,49 @@
                 :msg "place 1 power counter on Cold Site Server"
                 :effect (effect (add-counter card :power 1))}]})
 
+(define-card "Consolidation"
+  (letfn [(non-ambush-asset? [c]
+            (and (asset? c)
+                 (not (has-subtype? c "Ambush"))
+                 (not (has-subtype? c "Executive"))) )]
+    ;; TODO: prevent derezzing too
+    {:constant-effects [{:type :rez-cost
+                         :req (req (same-card? card (:host target)))
+                         :value -1}]
+     :events [{:event :run
+               :req (req this-server)
+               :silent (req true)
+               :effect (effect (set-prevent-remote-access-card card))}
+              {:event :runner-turn-begins ; TODO: have this trigger also on runner turn
+               :req (req true)
+               :silent (req true)
+               :effect (effect (register-turn-flag! card :can-trash
+                                                    (fn [state side other-card]
+                                                      ((let [retval (not (same-card? card other-card))]
+                                                         ;; TODO: the below toast triggers whenever anything is trashed, i.e. even a card other than consolidation
+                                                         (when (not retval)
+                                                           (toast state :runner "Cannot trash due to Consolidation." "warning"))
+                                                         (constantly retval))))))}]
+     :can-host (req (and (non-ambush-asset? target)
+                         (> 1 (count (:hosted card)))))
+
+     :abilities [{:label "Install a non-ambush asset on Consolidation"
+                  :req (req (< (count (:hosted card)) 2))
+                  :cost [:click 1]
+                  :prompt "Select a non-ambush asset to install onto Consolidation"
+                  :choices {:card #(and (non-ambush-asset? %)
+                                        (in-hand? %)
+                                        (corp? %))}
+                  :msg "install and host a non-ambush asset"
+                  :async true
+                  :effect (effect (corp-install eid target card nil))}
+                 {:label "Host a previously-installed non-ambush asset on Consolidation (fixes only)"
+                  :req (req (< (count (:hosted card)) 2))
+                  :prompt "Select an installed non-ambush asset to host on Consolidation"
+                  :choices {:card non-ambush-asset?}
+                  :msg "host a previously installed non-ambush asset"
+                  :effect (req (host state side card target))}]}))
+
 (define-card "Corporate Troubleshooter"
   {:abilities [{:async true
                 :trash-icon true
@@ -792,6 +835,24 @@
                         card nil))}}}]
    :abilities [(set-autoresolve :auto-fire "Fire Letheia Nisei?")]})
 
+(define-card "Kampala City Grid"
+  {:constant-effects [{:type :run-additional-cost
+                       :req (req (= (:server (second targets)) (unknown->kw (:zone card))))
+                       :value (req [:credit 4])}]
+   :events [{:event :run
+             :req (req this-server)
+             :msg "trash itself"
+             :async true
+             :effect (effect (trash eid card nil))}
+            {:event :corp-phase-12
+             :location :discard
+             :optional
+             {:req (req tagged)
+              :prompt "Add Kampala City Grid to HQ?"
+              :yes-ability
+              {:msg "add Kampala City Grid to HQ"
+               :effect (effect (move card :hand))}}}]})
+
 (define-card "Keegan Lane"
   {:abilities [{:req (req (and this-server
                                (some? (first (filter program? (all-active-installed state :runner))))))
@@ -1137,6 +1198,34 @@
    :access {:req (req (not (in-discard? card)))
             :msg "gain 2 [Credits]"
             :effect (effect (gain-credits :corp 2))}})
+
+(define-card "Rasmin Bridger"
+  {:events [{:event :pass-ice
+             :req (req (and this-server ;; (rezzed? target)
+                            ))
+             :async true
+             :msg "make the Runner pay 1[credit] or end the run"
+             :effect (req (do
+                            (show-wait-prompt state :corp "Runner to resolve Rasmin Bridger")
+                            (continue-ability
+                             state :runner
+                             {:prompt "Pay 1[credit] or end the run?"
+                              :player :runner
+                              :choices ["Pay 1[credit]" "End the run"]
+                              :async true
+                              :effect
+                              (req (clear-wait-prompt state :corp)
+                                   (if (= "Pay 1[credit]" target)
+                                     (wait-for (pay-sync state :runner card [:credit 1])
+                                               (if async-result
+                                                 (do (system-msg state :runner (str async-result " due to " (:title card)))
+                                                     (effect-completed state side eid))
+                                                 (do
+                                                   (system-msg state :corp " uses " (:title card) " to end the run because the Runner did not pay 1[credit]")
+                                                   (end-run state :corp eid card))))
+                                     (do (system-msg state :corp (str " uses " (:title card) " to end the run"))
+                                         (end-run state :corp eid card))))}
+                             card nil)))}]})
 
 (define-card "Red Herrings"
   {:trash-effect
@@ -1531,92 +1620,3 @@
                                  :no-ability {:effect (effect (clear-wait-prompt :runner)
                                                               (effect-completed eid))}}}
                                card nil))}]})
-
-(define-card "Kampala City Grid"
-  {:constant-effects [{:type :run-additional-cost
-                       :req (req (= (:server (second targets)) (unknown->kw (:zone card))))
-                       :value (req [:credit 4])}]
-   :events [{:event :run
-             :req (req this-server)
-             :msg "trash itself"
-             :async true
-             :effect (effect (trash eid card nil))}
-            {:event :corp-phase-12
-             :location :discard
-             :optional
-             {:req (req tagged)
-              :prompt "Add Kampala City Grid to HQ?"
-              :yes-ability
-              {:msg "add Kampala City Grid to HQ"
-               :effect (effect (move card :hand))}}}]})
-
-(define-card "Consolidation"
-  (letfn [(non-ambush-asset? [c]
-            (and (asset? c)
-                 (not (has-subtype? c "Ambush"))
-                 (not (has-subtype? c "Executive"))) )]
-    ;; TODO: prevent derezzing too
-    {:constant-effects [{:type :rez-cost
-                         :req (req (same-card? card (:host target)))
-                         :value -1}]
-     :events [{:event :run
-               :req (req this-server)
-               :silent (req true)
-               :effect (effect (set-prevent-remote-access-card card))}
-              {:event :runner-turn-begins ; TODO: have this trigger also on runner turn
-               :req (req true)
-               :silent (req true)
-               :effect (effect (register-turn-flag! card :can-trash
-                                                    (fn [state side other-card]
-                                                      ((let [retval (not (same-card? card other-card))]
-                                                         ;; TODO: the below toast triggers whenever anything is trashed, i.e. even a card other than consolidation
-                                                         (when (not retval)
-                                                           (toast state :runner "Cannot trash due to Consolidation." "warning"))
-                                                         (constantly retval))))))}]
-     :can-host (req (and (non-ambush-asset? target)
-                         (> 1 (count (:hosted card)))))
-
-     :abilities [{:label "Install a non-ambush asset on Consolidation"
-                  :req (req (< (count (:hosted card)) 2))
-                  :cost [:click 1]
-                  :prompt "Select a non-ambush asset to install onto Consolidation"
-                  :choices {:card #(and (non-ambush-asset? %)
-                                        (in-hand? %)
-                                        (corp? %))}
-                  :msg "install and host a non-ambush asset"
-                  :async true
-                  :effect (effect (corp-install eid target card nil))}
-                 {:label "Host a previously-installed non-ambush asset on Consolidation (fixes only)"
-                  :req (req (< (count (:hosted card)) 2))
-                  :prompt "Select an installed non-ambush asset to host on Consolidation"
-                  :choices {:card non-ambush-asset?}
-                  :msg "host a previously installed non-ambush asset"
-                  :effect (req (host state side card target))}]}))
-
-(define-card "Rasmin Bridger"
-  {:events [{:event :pass-ice
-             :req (req (and this-server ;; (rezzed? target)
-                            ))
-             :async true
-             :msg "make the Runner pay 1[credit] or end the run"
-             :effect (req (do
-                            (show-wait-prompt state :corp "Runner to resolve Rasmin Bridger")
-                            (continue-ability
-                             state :runner
-                             {:prompt "Pay 1[credit] or end the run?"
-                              :player :runner
-                              :choices ["Pay 1[credit]" "End the run"]
-                              :async true
-                              :effect
-                              (req (clear-wait-prompt state :corp)
-                                   (if (= "Pay 1[credit]" target)
-                                     (wait-for (pay-sync state :runner card [:credit 1])
-                                               (if async-result
-                                                 (do (system-msg state :runner (str async-result " due to " (:title card)))
-                                                     (effect-completed state side eid))
-                                                 (do
-                                                   (system-msg state :corp " uses " (:title card) " to end the run because the Runner did not pay 1[credit]")
-                                                   (end-run state :corp eid card))))
-                                     (do (system-msg state :corp (str " uses " (:title card) " to end the run"))
-                                         (end-run state :corp eid card))))}
-                             card nil)))}]})

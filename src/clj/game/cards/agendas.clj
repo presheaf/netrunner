@@ -93,6 +93,41 @@
                        (suffer titles choices))
                      card nil)))}}}))
 
+(define-card "Adaptive Netbranes"
+  {:implementation "Moving of adv. tokens is manually triggered and not restricted to run start"
+   :derezzed-events
+   [{:event :advance
+     :effect (effect (update-advancement-cost card))}
+    {:event :advancement-placed
+     :effect (effect (update-advancement-cost card))}]
+   :advancement-cost-bonus (req (if (some #(and (> (+ (get-counters % :advancement) (:extra-advance-counter % 0)) 3)
+                                                (not (same-card? card %)))
+                                          (get-all-installed state))
+                                  -1 0))
+   :abilities [{:label "Move an advancement counter between ICE" ; Workaround for convenience
+                :req (req (and run (= (:position run) (count run-ices))))
+                :once :per-run
+                :effect (req (show-wait-prompt state :runner "Corp to use Adaptive Netbranes")
+                             (continue-ability
+                              state side
+                              {:choices {:card #(and (installed? %)
+                                                     (get-counters % :advancement))}
+                               :effect (req (let [from-card target]
+                                              (continue-ability
+                                               state side
+                                               {:prompt "Move to where?"
+                                                :choices {:card #(and (installed? %)
+                                                                      (not (same-card? from-card %)))}
+                                                :msg (msg "move an advancement token from "
+                                                          (card-str state from-card)
+                                                          " to "
+                                                          (card-str state target))
+                                                :effect (effect (add-prop :corp target :advance-counter 1)
+                                                                (add-prop :corp from-card :advance-counter -1)
+                                                                (clear-wait-prompt :runner))}
+                                               card nil)))}
+                              card nil))}]})
+
 (define-card "Advanced Concept Hopper"
   {:events
    [{:event :run
@@ -394,6 +429,21 @@
    :async true
    :effect (effect (trash-cards eid targets {:unpreventable true}))})
 
+(define-card "Chronal Retrofitting"
+  {:effect (req (let [bios (count (filter #(has-subtype? % "Bioroid") (all-active-installed state :corp)))]
+                  (gain-credits state side bios)
+                  (system-msg state side (str "gains " bios " [Credits] from Chronal Retrofitting"))))
+   :events [{:event :runner-turn-ends
+             :req (req
+                   (or (some #(and ((set (first %)) :during-run)
+                                   (> (second %) 0))
+                             (turn-events state :runner :runner-spent-click))
+                       (some #(and (= :during-run (second %))
+                                   ((set (first %)) :click))
+                             (turn-events state :runner :runner-lose))))
+             :msg "gain [click]"
+             :effect (req (swap! state update-in [:corp :extra-click-temp] (fnil #(+ % 1) 0)))}]})
+
 (define-card "Chronos Project"
   {:msg "remove all cards in the Runner's Heap from the game"
    :interactive (req true)
@@ -660,6 +710,20 @@
   {:abilities [{:cost [:click 2]
                 :msg "gain 3 [Credits]"
                 :effect (effect (gain-credits 3))}]})
+
+(define-card "Gish Gallop"
+  ;; TODO: this displays a waiting-for-corp-to-pick prompt to the runner, letting them know gish gallop is there...
+  ;; possible workaround: have it insist corp-phase-12 happens, and give it an ability that can be used in that phase - however, requires me to figure out how to have agendas do abilities
+  {:events [{:event :corp-turn-begins
+             :interactive (req true)
+             :req (req (installed? (get-card state card)))
+             :location :servers
+             :optional {:prompt "Score Gish Gallop?"
+                        :msg (msg "score itself")
+                        :autoresolve (get-autoresolve :auto-score)
+                        :yes-ability {:async true
+                                      :effect (effect (set-prop card :advance-counter (:advancementcost card))
+                                                      (score eid (get-card state card)))}}}]})
 
 (define-card "Glenn Station"
   {:implementation "Doesn't prohibit hosting multiple cards"
@@ -1023,6 +1087,26 @@
 (define-card "Obokata Protocol"
   {:steal-cost-bonus (req [:net 3])})
 
+(define-card "Oddly Specific Horoscope"
+  {:constant-effects (let [cost-increaser {:req (req (= (:title target) (get-in (get-card state card) [:special :horoscope-target])))
+                                           :value 3}]
+                       [(assoc cost-increaser :type :install-cost)
+                        (assoc cost-increaser :type :play-cost)])
+
+   :async true
+   :effect (req (reveal-hand state :runner)
+                (continue-ability
+                 state side
+                 {:prompt "Name a Runner card"
+                  :choices {:card-title (req (and (runner? target)
+                                                  (not (identity? target))))}
+                  :effect (effect (update! (assoc-in card [:special :horoscope-target] target))
+                                  (system-msg (str "uses Oddly Specific Horoscope to name " target)))}
+                 card nil))
+   :abilities [{:label "Reveal the Runner's hand"
+                :effect (req (reveal-hand state :runner))}]
+   :leave-play (req (conceal-hand state :runner))}) 
+
 (define-card "Paper Trail"
   {:trace {:base 6
            :successful {:msg "trash all connection and job resources"
@@ -1031,6 +1115,47 @@
                                                                   (has-subtype? % "Connection"))
                                                              (all-active-installed state :runner))]
                                        (trash-cards state side eid resources)))}}})
+
+(define-card "Patent Acquisition"
+  (let [end-the-run {:label "End the run"
+                     :msg "end the run"
+                     :async true
+                     :effect (effect (end-run :corp eid card))}
+        flip-info  {:front-face-code "53008"
+                    :back-face-code "53008_flip"
+                    :front-face-title "Patent Acquisition"
+                    :back-face-title "Injunction"}]
+
+    {:advancement-cost-bonus (req -3)
+     :leave-play (req (ensure-unflipped state side card flip-info))
+     :abilities [{:label "Flip and add to your score area"
+                  :cost [:click 1]
+                  :msg "add itself to the score area flipped"
+                  :effect (effect (as-agenda (dissoc (assoc (get-card state card) :type "Agenda" :subtype "")
+                                                     :cost :strength :subroutines) 1))}]
+     :async true
+     :msg "flip and install itself"
+     :effect (req
+              (if (:is-flipped (get-card state card))
+                ; Rez effect - this is actually triggered when the card is install-state-rezzed-no-cost
+                (do
+                  (add-prop state side (get-card state card) :advance-counter
+                            (- (get-counters card :advancement)))
+                  (remove-subs! state side (get-card state card))
+                  (add-sub! state side (get-card state card) end-the-run)
+                  (add-sub! state side (get-card state card) end-the-run)
+                  (effect-completed state side eid))
+
+                (let [card (get-card state card)]
+                  ;; Score effect
+                  (update! state side (assoc card
+                                             :type "ICE"
+                                             :cost 4
+                                             :strength 4
+                                             :subtype "Barrier"))
+                  (flip-card state side (get-card state card) flip-info)
+                  (corp-install state side eid (get-card state card) nil
+                                {:ignore-all-cost true :install-state :rezzed-no-cost}))))}))
 
 (define-card "Personality Profiles"
   (let [pp {:req (req (pos? (count (:hand runner))))
@@ -1051,6 +1176,25 @@
    :msg (msg "do " (count (:scored runner)) " net damage")
    :effect (effect (damage eid :net (count (:scored runner)) {:card card}))})
 
+(define-card "Plausible Deniability"
+  {:flags {:rd-reveal (req true)}
+   :access {:req (req (and (not installed) (not (get-in @state [:special :plausible-deniability-used]))))
+            :async true
+            :effect (req (continue-ability
+                          state :corp
+                          {:optional
+                           {:player :corp
+                            :prompt "Pay 2[credit] to prevent Plausible Deniability from being stolen?"
+                            :yes-ability {:msg "pay 2[credit] to prevent it from being stolen this turn"
+                                          :cost [:credit 2]
+                                          :effect (req
+                                                   (swap! state assoc-in [:special :plausible-deniability-used] true)
+                                                   (register-turn-flag! state side
+                                                    card :can-steal
+                                                    (fn [_ _ c] (not (same-card? c card))))
+                                                   (effect-completed state side eid))}}}
+                          card nil))}})
+
 (define-card "Posted Bounty"
   {:optional {:prompt "Forfeit Posted Bounty to give the Runner 1 tag and take 1 bad publicity?"
               :yes-ability {:msg "give the Runner 1 tag and take 1 bad publicity"
@@ -1058,6 +1202,18 @@
                             :effect (effect (gain-bad-publicity :corp eid 1)
                                             (gain-tags :corp eid 1)
                                             (forfeit card))}}})
+
+(define-card "Power Grid Reroute"
+  {:interactive (req true)
+   :async true
+   :choices ["Hardware" "Virtual resources"]
+   :prompt "Choose a card type to trash"
+   :effect (req (let [to-trash (filter #(if (= target "Hardware")
+                                          (hardware? %)
+                                          (and (resource? %) (has-subtype? % "Virtual")))
+                                       (all-active-installed state :runner))]
+                  (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title to-trash))))
+                  (trash-cards state :corp eid to-trash)))})
 
 (define-card "Priority Requisition"
   {:interactive (req true)
@@ -1131,6 +1287,18 @@
                   (update-all-agenda-points state side)
                   (check-winner state side)))})
 
+(define-card "Project CAMB"
+  {:advanceable :false
+   :install-state :face-up
+   :events [{:event :corp-turn-ends
+             :req (req (installed? (get-card state card)))
+             :msg (msg "place 1 advancement counter on itself and gain 1 [credit]"
+                       (when (>= (get-counters (get-card state card) :advancement) 2) " and remove 1 bad publicity"))
+             :effect (req (add-prop state side (get-card state card) :advance-counter 1 {:placed true})
+                          (gain-credits state :corp 1)
+                          (when (>= (get-counters (get-card state card) :advancement) 3)
+                            (lose-bad-publicity state side 1)))}]})
+
 (define-card "Project Kusanagi"
   {:silent (req true)
    :effect (effect (add-counter card :agenda (- (get-counters card :advancement) 2)))
@@ -1152,6 +1320,44 @@
                                                  (do-net-damage 1)
                                                  (:cid card) {:back true})
                                  (update! (update-in card [:special :kusanagi] #(conj % target))))}]})
+
+(define-card "Project Oskoreia"
+  (let [prompt-to-pay-click-or-lose-3-creds
+        (let [click-str "Pay [click]"
+              cred-str "Lose 3[credit]"]
+          {:prompt (str "Pay [click] or lose 3[credit]?")
+           :choices [click-str cred-str]
+           :async true
+           :effect (req (if (= target click-str)
+                          (wait-for (pay-sync state :runner card [:click 1])
+                                    (if async-result
+                                      (let [cost-str (str async-result
+                                                          " due to " (:title card))]
+                                        (system-msg state :runner cost-str))
+                                      (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)) )
+                                          (lose state :runner :credit 3)))
+                                    (effect-completed state side eid))
+                          (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)))
+                              (lose state :runner :credit 3)
+                              (effect-completed state :runner eid))))})]
+    {:leave-play (effect (update! (dissoc card :server-target)))
+     :events [{:event :run
+               :req (req (= (first target) (last (server->zone state (:server-target (get-card state card))))))
+               :async true
+               :effect (req (if (>= (get-in @state [:runner :click]) 1)
+                              (continue-ability state :runner prompt-to-pay-click-or-lose-3-creds card nil)
+                              (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)))
+                                  (lose state :runner :credit 3)
+                                  (effect-completed state :corp eid))))}
+              {:event :agenda-scored
+               :req (req true)
+               :async true
+               :effect (effect (continue-ability {:prompt "Choose a server"
+                                                  :msg (msg "retarget " target)
+                                                  :choices (req servers)
+                                                  :effect (effect (update! (assoc card :server-target target))
+                                                                  (effect-completed eid))}
+                                                 card nil))}]}))
 
 (define-card "Project Vacheron"
   (let [vacheron-ability
@@ -1258,6 +1464,91 @@
                   :effect (effect (show-wait-prompt :runner "Corp to use Project Yagi-Uda")
                             (continue-ability (choose-card (:server run))
                                               card nil))}]}))
+
+(let [pmp-prog "The Runner trashes 1 installed program"
+      pmp-brain "The Runner suffers 1 brain damage"
+      pmp-net "The Runner suffers 2 net damage"
+      pmp-clicks "The Runner has 2 fewer [Click] next turn"
+      pmp-restart "Start over"
+      pmp-done "Done"]
+  (letfn [(pmp-other-group [first-group]
+            (vec (filter #(not ((set first-group) %))
+                         [pmp-prog pmp-brain pmp-net pmp-clicks])))
+
+          (pmp-resolve-effects [effects-to-do]
+            ;; Resolve this ability over and over, removing an effect each time
+            {:async true
+             :effect (req
+                      (cond
+                        (effects-to-do pmp-prog)
+                        (do
+                          (if (some program? (all-active-installed state :runner))
+                            (wait-for (resolve-ability
+                                       state :runner
+                                       {:async true
+                                        :prompt "Select an installed program to trash"
+                                        :label "Trash an installed program "
+                                        :msg (msg "trash " (:title target))
+                                        :choices {:card #(and (installed? %)
+                                                              (program? %)
+                                                              (runner? %))}
+                                        :effect (effect (trash :runner eid target nil))}
+                                       card nil)
+                                      (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil))
+                            (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil)))
+
+                        (effects-to-do pmp-brain)
+                        (wait-for (damage state :runner :brain 1 {:card card})
+                                  (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-brain)) card nil))
+
+                        (effects-to-do pmp-net)
+                        (wait-for (damage state :runner :net 2 {:card card})
+                                  (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-net)) card nil))
+
+                        :else
+                        (do (when (effects-to-do pmp-clicks)
+                              (system-msg state :runner "has 2 fewer [Click] next turn")
+                              (swap! state update-in [:runner :extra-click-temp] (fnil #(- % 2) 0)))
+                            (effect-completed state side eid))))})
+
+          (runner-pick-group-abi [first-group-choices]
+            (let [second-group-choices (pmp-other-group first-group-choices)
+                  choice-1-str "First group"
+                  choice-2-str "Second group"]
+              {:async true
+               :prompt (str "Which group of effects to resolve? (First group: [" (join ", " first-group-choices) "], second group: [" (join ", " second-group-choices) "])")
+               :choices [choice-1-str choice-2-str]
+               :effect (req (clear-wait-prompt state :corp)
+                            (let [effects-to-do
+                                  (if (= target choice-1-str)
+                                    first-group-choices
+                                    second-group-choices)]
+                              (system-msg state :runner (str "chooses to resolve " effects-to-do))
+                              (continue-ability state :corp (pmp-resolve-effects (set effects-to-do)) card nil)))}))
+
+          (rec-choose-abi [curr-chosen]
+            {:prompt "Which effects should be in the first group?"
+             :choices (vec (filter #(not ((set curr-chosen) %)) [pmp-prog pmp-brain pmp-net pmp-clicks pmp-restart pmp-done]))
+             :async true
+             :effect (req
+                      (cond
+                        (#{pmp-prog pmp-brain pmp-net pmp-clicks} target)
+                        (continue-ability state :corp (rec-choose-abi (vec (concat curr-chosen [target]))) card nil)
+
+                        (= target pmp-restart)
+                        (continue-ability state :corp (rec-choose-abi []) card nil)
+
+                        :else           ; target is "Done"
+                        (do (clear-wait-prompt state :runner)
+                            (system-msg state :corp (str "divides Psychomagnetic Pulse effects as [" (join ", " curr-chosen) "] in the first group and [" (join ", " (pmp-other-group curr-chosen)) "] in the other"))
+                            (show-wait-prompt state :corp "Runner to pick their favorite group")
+                            (continue-ability state :runner (runner-pick-group-abi curr-chosen) card nil))))})]
+    
+    (define-card "Psychomagnetic Pulse"
+      {:async true
+       :interactive (req true)
+       :effect (effect (show-wait-prompt :runner "Corp to divide effects into two groups")
+                       (continue-ability (rec-choose-abi []) card nil))})))
 
 (define-card "Puppet Master"
   {:events [{:event :successful-run
@@ -1478,6 +1769,13 @@
   {:async true
    :msg "do 2 meat damage"
    :effect (effect (damage eid :meat 2 {:card card}))})
+
+(define-card "Smear Campaign"
+  {:msg (msg "take 1 bad publicity and make the Runner lose " (count (:hand runner)) " [Credits]")
+   :async true
+   :effect (req  (lose-credits state :runner (count (:hand runner)))
+                 (gain-bad-publicity state :corp eid 1))
+   :interactive (req true)})
 
 (define-card "SSL Endorsement"
   (let [add-credits (effect (add-counter card :credit 9))
@@ -1745,304 +2043,3 @@
                                       (not (has-subtype? target "Virtual"))
                                       (not (:facedown (second targets)))))
                        :value 1}]})
-
-
-(define-card "Gish Gallop"
-  ;; TODO: this displays a waiting-for-corp-to-pick prompt to the runner, letting them know gish gallop is there...
-  ;; possible workaround: have it insist corp-phase-12 happens, and give it an ability that can be used in that phase - however, requires me to figure out how to have agendas do abilities
-  {:events [{:event :corp-turn-begins
-             :interactive (req true)
-             :req (req (installed? (get-card state card)))
-             :location :servers
-             :optional {:prompt "Score Gish Gallop?"
-                        :msg (msg "score itself")
-                        :autoresolve (get-autoresolve :auto-score)
-                        :yes-ability {:async true
-                                      :effect (effect (set-prop card :advance-counter (:advancementcost card))
-                                                      (score eid (get-card state card)))}}}]})
-
-(define-card "Plausible Deniability"
-  {:flags {:rd-reveal (req true)}
-   :access {:req (req (and (not installed) (not (get-in @state [:special :plausible-deniability-used]))))
-            :async true
-            :effect (req (continue-ability
-                          state :corp
-                          {:optional
-                           {:player :corp
-                            :prompt "Pay 2[credit] to prevent Plausible Deniability from being stolen?"
-                            :yes-ability {:msg "pay 2[credit] to prevent it from being stolen this turn"
-                                          :cost [:credit 2]
-                                          :effect (req
-                                                   (swap! state assoc-in [:special :plausible-deniability-used] true)
-                                                   (register-turn-flag! state side
-                                                    card :can-steal
-                                                    (fn [_ _ c] (not (same-card? c card))))
-                                                   (effect-completed state side eid))}}}
-                          card nil))}})
-
-(define-card "Smear Campaign"
-  {:msg (msg "take 1 bad publicity and make the Runner lose " (count (:hand runner)) " [Credits]")
-   :async true
-   :effect (req  (lose-credits state :runner (count (:hand runner)))
-                 (gain-bad-publicity state :corp eid 1))
-   :interactive (req true)})
-
-(define-card "Chronal Retrofitting"
-  {:effect (req (let [bios (count (filter #(has-subtype? % "Bioroid") (all-active-installed state :corp)))]
-                  (gain-credits state side bios)
-                  (system-msg state side (str "gains " bios " [Credits] from Chronal Retrofitting"))))
-   :events [{:event :runner-turn-ends
-             :req (req
-                   (or (some #(and ((set (first %)) :during-run)
-                                   (> (second %) 0))
-                             (turn-events state :runner :runner-spent-click))
-                       (some #(and (= :during-run (second %))
-                                   ((set (first %)) :click))
-                             (turn-events state :runner :runner-lose))))
-             :msg "gain [click]"
-             :effect (req (swap! state update-in [:corp :extra-click-temp] (fnil #(+ % 1) 0)))}]})
-
-(define-card "Power Grid Reroute"
-  {:interactive (req true)
-   :async true
-   :choices ["Hardware" "Virtual resources"]
-   :prompt "Choose a card type to trash"
-   :effect (req (let [to-trash (filter #(if (= target "Hardware")
-                                          (hardware? %)
-                                          (and (resource? %) (has-subtype? % "Virtual")))
-                                       (all-active-installed state :runner))]
-                  (system-msg state :corp (str "uses Power Grid Reroute to trash " (join ", " (map card-title to-trash))))
-                  (trash-cards state :corp eid to-trash)))})
-
-(define-card "Adaptive Netbranes"
-  {:implementation "Moving of adv. tokens is manually triggered and not restricted to run start"
-   :derezzed-events
-   [{:event :advance
-     :effect (effect (update-advancement-cost card))}
-    {:event :advancement-placed
-     :effect (effect (update-advancement-cost card))}]
-   :advancement-cost-bonus (req (if (some #(and (> (+ (get-counters % :advancement) (:extra-advance-counter % 0)) 3)
-                                                (not (same-card? card %)))
-                                          (get-all-installed state))
-                                  -1 0))
-   :abilities [{:label "Move an advancement counter between ICE" ; Workaround for convenience
-                :req (req (and run (= (:position run) (count run-ices))))
-                :once :per-run
-                :effect (req (show-wait-prompt state :runner "Corp to use Adaptive Netbranes")
-                             (continue-ability
-                              state side
-                              {:choices {:card #(and (installed? %)
-                                                     (get-counters % :advancement))}
-                               :effect (req (let [from-card target]
-                                              (continue-ability
-                                               state side
-                                               {:prompt "Move to where?"
-                                                :choices {:card #(and (installed? %)
-                                                                      (not (same-card? from-card %)))}
-                                                :msg (msg "move an advancement token from "
-                                                          (card-str state from-card)
-                                                          " to "
-                                                          (card-str state target))
-                                                :effect (effect (add-prop :corp target :advance-counter 1)
-                                                                (add-prop :corp from-card :advance-counter -1)
-                                                                (clear-wait-prompt :runner))}
-                                               card nil)))}
-                              card nil))}]})
-
-(let [pmp-prog "The Runner trashes 1 installed program"
-      pmp-brain "The Runner suffers 1 brain damage"
-      pmp-net "The Runner suffers 2 net damage"
-      pmp-clicks "The Runner has 2 fewer [Click] next turn"
-      pmp-restart "Start over"
-      pmp-done "Done"]
-  (letfn [(pmp-other-group [first-group]
-            (vec (filter #(not ((set first-group) %))
-                         [pmp-prog pmp-brain pmp-net pmp-clicks])))
-
-          (pmp-resolve-effects [effects-to-do]
-            ;; Resolve this ability over and over, removing an effect each time
-            {:async true
-             :effect (req
-                      (cond
-                        (effects-to-do pmp-prog)
-                        (do
-                          (if (some program? (all-active-installed state :runner))
-                            (wait-for (resolve-ability
-                                       state :runner
-                                       {:async true
-                                        :prompt "Select an installed program to trash"
-                                        :label "Trash an installed program "
-                                        :msg (msg "trash " (:title target))
-                                        :choices {:card #(and (installed? %)
-                                                              (program? %)
-                                                              (runner? %))}
-                                        :effect (effect (trash :runner eid target nil))}
-                                       card nil)
-                                      (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil))
-                            (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-prog)) card nil)))
-
-                        (effects-to-do pmp-brain)
-                        (wait-for (damage state :runner :brain 1 {:card card})
-                                  (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-brain)) card nil))
-
-                        (effects-to-do pmp-net)
-                        (wait-for (damage state :runner :net 2 {:card card})
-                                  (continue-ability state :corp (pmp-resolve-effects (disj effects-to-do pmp-net)) card nil))
-
-                        :else
-                        (do (when (effects-to-do pmp-clicks)
-                              (system-msg state :runner "has 2 fewer [Click] next turn")
-                              (swap! state update-in [:runner :extra-click-temp] (fnil #(- % 2) 0)))
-                            (effect-completed state side eid))))})
-
-          (runner-pick-group-abi [first-group-choices]
-            (let [second-group-choices (pmp-other-group first-group-choices)
-                  choice-1-str "First group"
-                  choice-2-str "Second group"]
-              {:async true
-               :prompt (str "Which group of effects to resolve? (First group: [" (join ", " first-group-choices) "], second group: [" (join ", " second-group-choices) "])")
-               :choices [choice-1-str choice-2-str]
-               :effect (req (clear-wait-prompt state :corp)
-                            (let [effects-to-do
-                                  (if (= target choice-1-str)
-                                    first-group-choices
-                                    second-group-choices)]
-                              (system-msg state :runner (str "chooses to resolve " effects-to-do))
-                              (continue-ability state :corp (pmp-resolve-effects (set effects-to-do)) card nil)))}))
-
-          (rec-choose-abi [curr-chosen]
-            {:prompt "Which effects should be in the first group?"
-             :choices (vec (filter #(not ((set curr-chosen) %)) [pmp-prog pmp-brain pmp-net pmp-clicks pmp-restart pmp-done]))
-             :async true
-             :effect (req
-                      (cond
-                        (#{pmp-prog pmp-brain pmp-net pmp-clicks} target)
-                        (continue-ability state :corp (rec-choose-abi (vec (concat curr-chosen [target]))) card nil)
-
-                        (= target pmp-restart)
-                        (continue-ability state :corp (rec-choose-abi []) card nil)
-
-                        :else           ; target is "Done"
-                        (do (clear-wait-prompt state :runner)
-                            (system-msg state :corp (str "divides Psychomagnetic Pulse effects as [" (join ", " curr-chosen) "] in the first group and [" (join ", " (pmp-other-group curr-chosen)) "] in the other"))
-                            (show-wait-prompt state :corp "Runner to pick their favorite group")
-                            (continue-ability state :runner (runner-pick-group-abi curr-chosen) card nil))))})]
-    
-    (define-card "Psychomagnetic Pulse"
-      {:async true
-       :interactive (req true)
-       :effect (effect (show-wait-prompt :runner "Corp to divide effects into two groups")
-                       (continue-ability (rec-choose-abi []) card nil))})))
-
-(define-card "Project Oskoreia"
-  (let [prompt-to-pay-click-or-lose-3-creds
-        (let [click-str "Pay [click]"
-              cred-str "Lose 3[credit]"]
-          {:prompt (str "Pay [click] or lose 3[credit]?")
-           :choices [click-str cred-str]
-           :async true
-           :effect (req (if (= target click-str)
-                          (wait-for (pay-sync state :runner card [:click 1])
-                                    (if async-result
-                                      (let [cost-str (str async-result
-                                                          " due to " (:title card))]
-                                        (system-msg state :runner cost-str))
-                                      (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)) )
-                                          (lose state :runner :credit 3)))
-                                    (effect-completed state side eid))
-                          (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)))
-                              (lose state :runner :credit 3)
-                              (effect-completed state :runner eid))))})]
-    {:leave-play (effect (update! (dissoc card :server-target)))
-     :events [{:event :run
-               :req (req (= (first target) (last (server->zone state (:server-target (get-card state card))))))
-               :async true
-               :effect (req (if (>= (get-in @state [:runner :click]) 1)
-                              (continue-ability state :runner prompt-to-pay-click-or-lose-3-creds card nil)
-                              (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)))
-                                  (lose state :runner :credit 3)
-                                  (effect-completed state :corp eid))))}
-              {:event :agenda-scored
-               :req (req true)
-               :async true
-               :effect (effect (continue-ability {:prompt "Choose a server"
-                                                  :msg (msg "retarget " target)
-                                                  :choices (req servers)
-                                                  :effect (effect (update! (assoc card :server-target target))
-                                                                  (effect-completed eid))}
-                                                 card nil))}]}))
-
-
-(define-card "Oddly Specific Horoscope"
-  {:constant-effects (let [cost-increaser {:req (req (= (:title target) (get-in (get-card state card) [:special :marketing-target])))
-                                           :value 3}]
-                       [(assoc cost-increaser :type :install-cost)
-                        (assoc cost-increaser :type :play-cost)])
-
-   :async true
-   :effect (req (reveal-hand state :runner)
-                (continue-ability
-                 state side
-                 {:prompt "Name a Runner card"
-                  :choices {:card-title (req (and (runner? target)
-                                                  (not (identity? target))))}
-                  :effect (effect (update! (assoc-in card [:special :marketing-target] target))
-                                  (system-msg (str "uses Oddly Specific Horoscope to name " target)))}
-                 card nil))
-   :abilities [{:label "Reveal the Runner's hand"
-                :effect (req (reveal-hand state :runner))}]
-   :leave-play (req (conceal-hand state :runner))})
-
-(define-card "Patent Acquisition"
-  (let [end-the-run {:label "End the run"
-                     :msg "end the run"
-                     :async true
-                     :effect (effect (end-run :corp eid card))}
-        flip-info  {:front-face-code "53008"
-                    :back-face-code "53008_flip"
-                    :front-face-title "Patent Acquisition"
-                    :back-face-title "Injunction"}]
-
-    {:advancement-cost-bonus (req -3)
-     :leave-play (req (ensure-unflipped state side card flip-info))
-     :abilities [{:label "Flip and add to your score area"
-                  :cost [:click 1]
-                  :msg "add itself to the score area flipped"
-                  :effect (effect (as-agenda (dissoc (assoc (get-card state card) :type "Agenda" :subtype "")
-                                                     :cost :strength :subroutines) 1))}]
-     :async true
-     :msg "flip and install itself"
-     :effect (req
-              (if (:is-flipped (get-card state card))
-                ; Rez effect - this is actually triggered when the card is install-state-rezzed-no-cost
-                (do
-                  (add-prop state side (get-card state card) :advance-counter
-                            (- (get-counters card :advancement)))
-                  (remove-subs! state side (get-card state card))
-                  (add-sub! state side (get-card state card) end-the-run)
-                  (add-sub! state side (get-card state card) end-the-run)
-                  (effect-completed state side eid))
-
-                (let [card (get-card state card)]
-                  ;; Score effect
-                  (update! state side (assoc card
-                                             :type "ICE"
-                                             :cost 4
-                                             :strength 4
-                                             :subtype "Barrier"))
-                  (flip-card state side (get-card state card) flip-info)
-                  (corp-install state side eid (get-card state card) nil
-                                {:ignore-all-cost true :install-state :rezzed-no-cost}))))}))
-
-
-(define-card "Project CAMB"
-  {:advanceable :false
-   :install-state :face-up
-   :events [{:event :corp-turn-ends
-             :req (req (installed? (get-card state card)))
-             :msg (msg "place 1 advancement counter on itself and gain 1 [credit]"
-                       (when (>= (get-counters (get-card state card) :advancement) 2) " and remove 1 bad publicity"))
-             :effect (req (add-prop state side (get-card state card) :advance-counter 1 {:placed true})
-                          (gain-credits state :corp 1)
-                          (when (>= (get-counters (get-card state card) :advancement) 3)
-                            (lose-bad-publicity state side 1)))}]})
