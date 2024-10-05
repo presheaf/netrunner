@@ -1953,20 +1953,14 @@
                           (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)))
                               (lose state :runner :credit 3)
                               (effect-completed state :runner eid))))})]
-    {:prompt "Choose a server"
-     :msg (msg "target " target)
-     :choices (req servers)
-     :async true
-     :effect (effect (update! (assoc card :server-target target))
-                     (effect-completed eid))
-     :leave-play (effect (update! (dissoc card :server-target)))
+    {:leave-play (effect (update! (dissoc card :server-target)))
      :events [{:event :run
                :req (req (= (first target) (last (server->zone state (:server-target (get-card state card))))))
                :async true
                :effect (req (if (>= (get-in @state [:runner :click]) 1)
                               (continue-ability state :runner prompt-to-pay-click-or-lose-3-creds card nil)
-                              (do (system-msg state :runner (str "loses 2[credit] due to " (:title card)))
-                                  (lose state :runner :credit 2)
+                              (do (system-msg state :runner (str "loses 3[credit] due to " (:title card)))
+                                  (lose state :runner :credit 3)
                                   (effect-completed state :corp eid))))}
               {:event :agenda-scored
                :req (req true)
@@ -1976,8 +1970,7 @@
                                                   :choices (req servers)
                                                   :effect (effect (update! (assoc card :server-target target))
                                                                   (effect-completed eid))}
-                                                 card nil))}
-              ]}))
+                                                 card nil))}]}))
 
 
 (define-card "Oddly Specific Horoscope"

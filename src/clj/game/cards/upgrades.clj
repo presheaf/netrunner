@@ -225,6 +225,7 @@
 
 (define-card "Caprice Nisei"
   {:events [{:event :pass-all-ice
+             :silent (req true)
              :req (req this-server)
              :psi {:not-equal {:msg "end the run"
                                :effect (effect (end-run eid card))}}}]})

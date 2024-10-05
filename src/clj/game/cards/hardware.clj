@@ -2165,7 +2165,12 @@
 
 (define-card "Chronicle"
   {:in-play [:memory 1]
-   :constant-effects [{:type :install-cost
+   :constant-effects [{:type :play-cost
+                       :req (req (and (= side :runner)
+                                      (= [:discard] (:zone target))
+                                      (event? target)))
+                        :value -1}
+                      {:type :install-cost
                        :req (req (and (= side :runner)
                                       (= [:discard] (:zone target))
                                       (or (program? target) (hardware? target))))

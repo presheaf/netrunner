@@ -2863,7 +2863,7 @@
      :events [{:event :agenda-stolen
                :async true
                :msg (msg "trash " (card-title (get-card state card))
-                         (when (:is-flipped (get-card state card))
+                         (when (not (:is-flipped (get-card state card)))
                            ", gain 4 [credits] and draw 3 cards"))
                :effect (req (let [is-flipped (:is-flipped (get-card state card))]
                               (wait-for (trash state side card {})

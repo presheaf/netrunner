@@ -1732,27 +1732,27 @@
                              (lose :runner :run-credit :all))}]})
 
 (define-card "Sonia Nahar: Steadfast Salvager"
-  (letfn [(prog-or-hw? [card] (or (hardware? card)
-                                  (program? card)))
+  (letfn [(shaper-program? [card] (and (= (:faction card) "Shaper")
+                                       (program? card)))
           (sonia-prompt-preprocessor
             ;; Transformer applied to cards in req-fns when checking if a target is eligible
             ;; as a target for an ability - normal evaluation is just (cardreqfn potential-target),
             ;; we get to conditionally mess with it
             [potential-target ability cardreqfn]
-            (if (and (:makes-proghw-grip-install ability) (prog-or-hw? potential-target))
+            (if (and (:makes-proghw-grip-install ability) (shaper-program? potential-target))
               (or (cardreqfn potential-target) (cardreqfn (assoc potential-target :zone [:hand])))
               (cardreqfn potential-target)))]
     {:implementation "Use ID ability to adjust power counters manually. Open heap display -before- resolving abilities to avoid accidents."
-     :abilities [{:label "Install a program or hardware from your heap"
-                  :prompt "Choose a program or hardware to install from your heap"
+     :abilities [{:label "Install a Shaper program from your heap"
+                  :prompt "Choose a Shaper program to install from your heap"
                   :show-discard true
                   :req (req (and (not (seq (get-in @state [:runner :locked :discard])))
                                  (not (install-locked? state side))
-                                 (some #(and (prog-or-hw? %)
+                                 (some #(and (shaper-program? %)
                                              (can-pay? state side (assoc eid :source card :source-type :runner-install) % nil
                                                        [:credit (install-cost state side %)]))
                                        (:discard runner))))
-                  :choices {:req (req (and (prog-or-hw? target)
+                  :choices {:req (req (and (shaper-program? target)
                                            (in-discard? target)
                                            (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
                                                      [:credit (install-cost state side target)])))}
@@ -1771,7 +1771,7 @@
                               (zero? (count-bad-pub state))))
                :effect (req (swap! state assoc-in [:special :prompt-target-preprocessor] sonia-prompt-preprocessor))}
               {:event :runner-install
-               :req (req (and (prog-or-hw? target)
+               :req (req (and (shaper-program? target)
                               (= [:discard] (:previous-zone target))))
                :msg "add a hosted power counter"
                :effect (effect (add-counter card :power 1))}]}))

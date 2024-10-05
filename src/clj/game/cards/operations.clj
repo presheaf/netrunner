@@ -2449,6 +2449,7 @@
                :effect (req
                         (if (= target lose-choice)
                           (do (lose-credits state :runner chosen-num)
+                              (system-msg state :runner (str "loses " chosen-num "[credit]"))
                               (effect-completed state side eid))
                           (do (wait-for (pay-sync state :corp card :credit chosen-num)
                                         (continue-ability state side
@@ -2461,15 +2462,19 @@
      :effect (req
               (show-wait-prompt state :corp "Runner to choose a number")
               (continue-ability state :runner
-                                   {:prompt (str "Choose a number")
-                                    :async true
-                                    :choices {:number (req (:credit corp))}
-                                    :effect (req (let [chosen-num target]
-                                                   (clear-wait-prompt state :corp)
-                                                   (continue-ability state :corp
-                                                                     (tutor-or-lose-ab target)
-                                                                     card nil)))}
-                                   card nil))}))
+                                {:prompt (str "Choose a number")
+                                 :async true
+                                 :choices {:number (req (inc (:credit corp)))}
+                                 :effect (req (let [chosen-num target]
+                                                (clear-wait-prompt state :corp)
+                                                (if (> chosen-num (:credit corp))
+                                                  (do (lose-credits state :runner chosen-num)
+                                                      (system-msg state :runner (str "loses " chosen-num "[credit]"))
+                                                      (effect-completed state side eid))
+                                                  (continue-ability state :corp
+                                                                    (tutor-or-lose-ab target)
+                                                                    card nil))))}
+                                card nil))}))
 (define-card "Carrington Flare"
   {:req (req (last-turn? state :runner :made-run))
    :msg "do 2 net damage"

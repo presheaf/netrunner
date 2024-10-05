@@ -1990,7 +1990,7 @@
                                      num-active-sds (count (filter #(and (= (:title %) "Subsidized Processor")
                                                                          (not (:is-flipped %)))
                                                                    (all-active-installed state :runner)))
-                                     adjusted-cost (- base-cost num-active-sds)]
+                                     adjusted-cost (if (program? target) (- base-cost num-active-sds) base-cost)]
                                  (if (not (pos? adjusted-cost))
                                    (runner-install state side (assoc eid :source card :source-type :runner-install) target nil)
                                    (do (host state side card
