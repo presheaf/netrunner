@@ -2273,14 +2273,15 @@
              :effect (effect (add-counter :runner card :virus 2))}]})
 
 (define-card "Progenitor"
-  {:abilities [{:label "Install a virus program on Progenitor"
+  {:abilities [{:label "Install a virus on Progenitor"
                 :req (req (empty? (:hosted card)))
                 :async true
                 :effect (effect (continue-ability
                                   {:cost [:click 1]
-                                   :prompt "Choose a Virus program to install on Progenitor"
+                                   :prompt "Choose a virus to install on Progenitor"
                                    :choices {:card #(and (program? %)
                                                          (has-subtype? % "Virus")
+                                                         (<= (:memoryunits %) 1)
                                                          (in-hand? %))}
                                    :msg (msg "host " (:title target))
                                    :async true
@@ -2292,9 +2293,10 @@
                                   card nil))}
                {:label "Host an installed virus on Progenitor"
                 :req (req (empty? (:hosted card)))
-                :prompt "Choose an installed virus program to host on Progenitor"
+                :prompt "Choose an installed virus to host on Progenitor"
                 :choices {:card #(and (program? %)
                                       (has-subtype? % "Virus")
+                                      (<= (:memoryunits %) 1)
                                       (installed? %))}
                 :msg (msg "host " (:title target))
                 :effect (effect (host card target)
