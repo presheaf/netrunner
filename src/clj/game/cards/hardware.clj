@@ -1650,14 +1650,12 @@
              :req (req (and (same-card? card target)
                             (not (pos? (get-counters card :power)))))
              :async true
-             :effect (req (wait-for (draw state :runner 2 nil)
-                                    (system-msg state side (str "draws 2 cards and should trash " (:title card) " manually when the run is done"))
-                                    (effect-completed state side eid)
-                                    ;; (trash state side eid card {:unpreventable true})  ;; TODO: rearchitect this - currently it cannot trash now because it hasn't moved the cards yet
-                                    ))}
+             :effect (req (system-msg state side (str "draws 2 cards and will trash " (:title card) " when the run is done"))
+                          (draw state :runner eid 2 nil))}
             {:event :post-access-card
              :async true
-             :req (req (= (first (:zone target)) :deck))
+             :req (req (and (= (first (:zone target)) :deck)
+                            (> (get-counters (get-card state card) :power) 0)))
              :effect
              (effect
                (continue-ability
@@ -1674,21 +1672,20 @@
                                (update! state side
                                         (assoc-in (get-card state card) [:special :cards-to-bottom]
                                                   (concat (get-in (get-card state card) [:special :cards-to-bottom])
-                                                          [accessed-card]))
-                                        )
+                                                          [accessed-card])))
                                (add-counter state side eid (get-card state card) :power -1 nil))}}})
                  card nil))}
-            ;; {:event :successful-run
-            ;;  :unregister-once-resolved true
-            ;;  :silent (req true)
-            ;;  :req (req (= target :rd))
-            ;;  :effect (effect (access-bonus :rd 3))}
             {:event :run-ends
-             :msg "actually move the cards"
+             :req (req (> (count (get-in (get-card state card) [:special :cards-to-bottom])) 0))
+             :msg "move the marked cards to the bottom of R&D"
+             :async true
              :effect (req
                       (doseq [c (get-in (get-card state card) [:special :cards-to-bottom] true)]
                         (move state :corp (get-card state c) :deck))
-                      (update! state side (assoc-in (get-card state card) [:special :cards-to-bottom] '())))}]})
+                      (update! state side (assoc-in (get-card state card) [:special :cards-to-bottom] '()))
+                      (if (> (get-counters (get-card state card) :power) 0)
+                          (effect-completed state side eid)
+                          (trash state side eid card {:unpreventable true})))}]})
 
 (define-card "Replicator"
   (letfn [(hardware-and-in-deck? [target runner]
