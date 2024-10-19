@@ -1199,6 +1199,23 @@
                   :effect (effect (damage-prevent :brain 1)
                                   (damage-prevent :net 1))}]}))
 
+(define-card "Spite"
+  {:constant-effects [{:type :ice-strength
+                       ;; :req (req (pos? (get-counters (get-card state target) :virus)))
+                       :value (req (- (get-counters (get-card state target) :virus)))}]
+   :effect (effect (update-all-ice))
+   :events [{:event :counter-added
+             :req (req (and (ice? target)
+                            (pos? (get-counters (get-card state card) :virus))))
+              :effect (effect (update-all-ice))}
+
+
+            {:event :purge
+             :req (req (<= 1 (:credit corp)))
+             :msg "force the Corp to lose 1 [Credits]"
+             :async true
+             :effect (req (lose-credits state :corp eid 1 nil))}]})
+
 (define-card "Synaptic Remodulator"
   {:effect (effect (damage eid :meat 1 {:unboostable true :card card}))
    :events [{:event :run-ends

@@ -3004,3 +3004,21 @@
                 :effect (req (let [credits (min 3 (get-counters card :credit))]
                                (add-counter state side card :credit (- credits))
                                (gain-credits state :runner credits)))}]})
+
+(define-card "Neutralizing Agent"
+  {:prompt "Name a Corp card"
+   :choices {:card-title (req (and (corp? target)
+                                   (not (identity? target))))}
+   :effect (effect (update! (assoc-in card [:special :neutralizing-agent-target] target))
+                   (system-msg (str "uses Neutralizing Agent to name " target)))
+   :abilities [{:cost [:click 1 :power 3]
+                :async true
+                :effect (req (as-agenda state :runner eid (get-card state card) 1))
+   :msg "add it to their score area as an agenda worth 1 agenda point"}]
+   :interactions {:access-ability {:label "Trash card"
+                                   :req (req (= (:title target) (get-in card [:special :neutralizing-agent-target])))
+                                   :msg (msg "trash " (:title target) " at no cost")
+                                   :async true
+                                   :effect (effect
+                                            (add-counter card :power 1)
+                                            (trash eid (assoc target :seen true) nil))}}})

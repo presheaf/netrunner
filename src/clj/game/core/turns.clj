@@ -123,7 +123,7 @@
     (let [faction (:faction (get-in @state [side :identity]))
           possible-presents (if present-type
                               (deckgen/presents-by-faction present-type)
-                              (if (#{"Apex" "Adam" "Sunny Lebeau"} faction)
+                              (if (#{"Apex" "Adam" "Sunny Lebeau" "Mako"} faction)
                                 ;; ;; TODO: fix the below, so Minifactions get all the other factions lists mashed together
                                 ;; (into [] (map #(into [] (apply concat %)) (partition 3 (apply interleave (map deckgen/presents-by-faction ("Shaper" "Anarch" "Criminal"))))))
                                 (deckgen/presents-by-faction (first (shuffle ["Shaper" "Criminal" "Anarch"])))

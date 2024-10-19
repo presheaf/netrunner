@@ -346,6 +346,12 @@
                             :effect (effect (continue-ability (card-def target) target nil))}
               :no-ability {:effect (effect (clear-wait-prompt :runner))}}})
 
+(define-card "Blatant Graft"
+  {:implementation "Shuffling into R&D not enforced"
+   :dare {:once :per-turn
+          :msg "reveal Blatant Graft from HQ"
+          :effect (req)}})
+
 (define-card "Brain Rewiring"
   {:async true
    :effect (effect (show-wait-prompt :runner "Corp to use Brain Rewiring")

@@ -1949,6 +1949,11 @@
                             (move state :runner card :hand)
                             (unregister-events state side card)))}]})
 
+(define-card "Market Disruption"
+  {:msg "gain 2[Credits] and make the Corp lose 2 [Credits]"
+   :effect (effect (lose-credits :corp 2)
+                   (gain-credits 2))})
+
 (define-card "Mars for Martians"
   (letfn [(count-clan [state] (count (filter #(and (has-subtype? % "Clan") (resource? %))
                                              (all-active-installed state :runner))))]
@@ -2849,6 +2854,17 @@
 (define-card "Stolen Contacts"
   {:effect (req (dotimes [_ 3]
                   (command-summon state :runner ["Easy Mark"] true)))})
+
+(define-card "Sudden Shortage"
+  {:implementation "Erroneously implemented as credit loss rather than additional cost"
+   :events [{:event :purge
+             :msg "force the Corp to lose 1 [Credits]"
+             :async true
+             :effect (req (lose-credits state :corp eid 1 nil))}
+            {:event :advance
+             :msg "force the Corp to lose 1 [Credits]"
+             :async true
+             :effect (req (lose-credits state :corp eid 1 nil))}]})
 
 (define-card "Sure Gamble"
   {:msg "gain 9 [Credits]"

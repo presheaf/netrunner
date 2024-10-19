@@ -1535,6 +1535,19 @@
      :events [(assoc ability :event :corp-turn-begins)]
      :abilities [ability]}))
 
+(define-card "Peekaboo"
+  {:flags {:rd-reveal (req true)}
+   :access {:msg "do 1 net damage"
+            ;; TODO: rework test to actually check if it's in the proper server
+            :req (req (or (= :deck (first (:zone card)))
+                          (installed? card)))
+            :async true
+            :effect (effect (damage eid :net 1 {:card card}))}
+   :events [{:event :corp-turn-begins
+             :msg "gain 2[credits] and add itself to HQ"
+             :effect (req (gain-credits state :corp 2)
+                          (move state side (get-card state card) :hand))}]})
+
 (define-card "Personalized Portal"
   {:events [{:event :corp-turn-begins
              :async true

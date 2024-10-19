@@ -3235,6 +3235,18 @@
               "Resolve a subroutine on a rezzed AP ice")]
     {:subroutines [sub]}))
 
+(define-card "Tetraphobia"
+  (let [sub {:player :runner
+             :async true
+             :label (str "Do 1 net damage unless the Runner pays 1 [Credits]")
+             :prompt (str "Suffer 1 net damage or pay 1 [Credits]?")
+             :choices ["Suffer 1 net damage"
+                       "Pay 1 [Credits]"]
+             :effect (req (if (= "Suffer 1 net damage" target)
+                            (continue-ability state side (do-net-damage 1) card nil)
+                            (pay-sync state :runner eid card [:credit 1])))}]
+    {:subroutines [sub sub sub sub]}))
+
 (define-card "Thicket"
   {:subroutines [end-the-run
                  end-the-run]
@@ -3400,6 +3412,18 @@
                  (do-net-damage 1)
                  (do-net-damage 1)
                  (do-net-damage 1)]})
+
+(define-card "Tulpa"
+  {:strength-bonus (req
+                    (let [revs (:events run)
+                          click-losses (map #(second (first (second %))) (filter #(and (= :runner-lose (first %))
+                                                                                       (= :click (first (first (second %)))))
+                                                                                 revs))
+                          click-spends (map #(second (second %)) (filter #(= :runner-spent-click (first %))
+                                                                         revs))
+                          num-clicks (+ (apply + click-losses) (apply + click-spends))]
+                      (if (> num-clicks 0) 3 0)))
+   :subroutines [end-the-run]})
 
 (define-card "Turing"
   {:implementation "AI restriction not implemented"
