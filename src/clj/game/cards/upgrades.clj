@@ -1164,6 +1164,7 @@
   {:init {:root "HQ"}
    :install-req (req (filter #{"HQ"} targets))
    :abilities [{:cost [:credit 1]
+                :keep-open :while-credits-left
                 :msg "draw 1 card"
                 :req (req (and run (= (first (:server run)) :hq)))
                 :effect (effect (draw))}]})

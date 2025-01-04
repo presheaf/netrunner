@@ -148,6 +148,7 @@
 (define-card "Bookmark"
   {:abilities [{:label "Host up to 3 cards from your Grip facedown"
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :msg "host up to 3 cards from their Grip facedown"
                 :choices {:max 3
                           :card #(and (runner? %)
@@ -2201,7 +2202,9 @@
      :abilities [ability]}))
 
 (define-card "Window"
-  {:abilities [{:cost [:click 1] :msg "draw 1 card from the bottom of their Stack"
+  {:abilities [{:cost [:click 1] 
+                :keep-open :while-clicks-left
+                :msg "draw 1 card from the bottom of their Stack"
                 :effect (effect (move (last (:deck runner)) :hand))}]})
 
 (define-card "Zamba"
