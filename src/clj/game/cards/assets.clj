@@ -2495,3 +2495,22 @@
                 :cost [:click 1 :credit 1]
                 :msg (msg "give the Runner 1 tag")
                 :effect (effect (gain-tags eid 1))}]})
+
+(define-card "Construction Crew"
+  {:implementation "Restriction to installs/advances in this server not enforced"
+   :abilities [{:cost [:click 1]
+                :once :per-turn
+                :label "Advance a card and gain 1[credit]"
+                :choices {:card installed?}
+                :msg (msg "gain 1[credit] and advance " (card-str state target))
+                :effect (req (gain-credits state :corp 1)
+                             (add-prop state :corp target :advance-counter 1 {:placed true}))}
+               {:cost [:click 1]
+                :once :per-turn
+                :label "Install a card and gain 1[credit]"
+                :choices {:card #(and (not (operation? %))
+                                      (corp? %)
+                                      (in-hand? %))}
+                :msg (msg "gain 1[credit] and " (corp-install-msg target))
+                :effect (effect (gain-credits 1)
+                                (corp-install eid target nil nil))}]})

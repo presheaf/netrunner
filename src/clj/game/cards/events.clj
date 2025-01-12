@@ -859,6 +859,14 @@
    :effect (effect (gain :click 1)
                    (make-run eid target nil card))})
 
+(define-card "Easy Mako"
+  {:prompt "Choose a Corp card"
+   :choices {:card #(and (installed? %)
+                         (corp? %))}
+   :msg (msg "gain 4 [Credits] and place a virus counter on " (card-str state target))
+   :effect (effect (gain-credits 4)
+                   (add-counter target :virus 1))})
+
 (define-card "Easy Mark"
   {:msg "gain 3 [Credits]"
    :effect (effect (gain-credits 3))})
@@ -2150,7 +2158,7 @@
                               (first-event? state side :successful-run is-central?)))
                :msg (msg (str "place 1 [Credit] on On the Trail"
                               (if (= (get-counters card :credit) 2) ", then take 3[Credit] and flip it" "")))
-               :effect (req (add-counter state side eid card :credit 1 nil)
+               :effect (req (add-counter state side eid card :credit 1 nil) ; TODO: figure out why we are passing the eid here - seems like an eid would get resolved twice... probably a bug
                             (when (= (get-counters card :credit) 2)
                               (add-counter state side eid (get-card state card) :credit -3 nil)
                               (gain-credits state side 3)
@@ -3176,3 +3184,29 @@
                                                        (when-not (event? topcard)
                                                          (str " to gain " cost " [Credits]"))))
                                       (effect-completed state side eid)))))})
+(define-card "Spare Change"
+  {:msg "lose all credits, then gain 3[Credits]"
+   :effect (effect (lose-credits :all)
+                   (gain-credits 3))
+   :events [{:event :runner-turn-begins
+             :location :discard
+             :condition :in-discard
+             :req (req (zero? (get-in @state [:runner :credit])))
+             :msg "add Spare Change to their hand from their discard pile"
+             :effect (req (move state side card :hand))}]})
+
+(define-card "Heist Planning"
+  {:implementation "Moving cards from deck and reshuffling is manual."
+   :msg (msg "reveal " (join ", " (map :title (take 5 (:deck runner)))) " from their deck")})
+
+(define-card "Pocket Lint"
+  {:implementation "Probably not going in the pack"
+   :async true
+   :prompt "Select a program to install from your heap"
+   :show-discard true
+   :choices
+   {:req (req (and (program? target)
+                   (in-discard? target)
+                   (< (install-cost state side target) 2)))}
+   :msg (msg " install " (:title target))
+   :effect (effect (runner-install (assoc eid :source card :source-type :runner-install) target nil))})

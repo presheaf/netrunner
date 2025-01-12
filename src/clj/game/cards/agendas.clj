@@ -2049,3 +2049,29 @@
                                       (not (has-subtype? target "Virtual"))
                                       (not (:facedown (second targets)))))
                        :value 1}]})
+
+(define-card "Mindmap Optimization"
+  {:advancement-cost-bonus (req (if (< (count (:hand runner)) 3)
+                                  -1 0)) ; TODO: is an event on runner draw updating advancement costs needed?
+   :access
+   {:req (req (= (count (:hand runner)) 0))
+    :msg "prevent it from being stolen"
+    :effect (effect (register-run-flag!
+                     card :can-steal
+                     (fn [_ _ c] (not (same-card? c card))))
+                    (effect-completed eid))}})
+
+(define-card "Free Shipping"
+  (let [tag-on-end {:msg "make the Runner draw 1 card and take 1 tag"
+                    :async true
+                    :effect (req (unregister-events state side card)
+                                 (wait-for (draw state :runner 1 nil)
+                                           (gain-tags state :runner eid 1)))}]
+    {:implementation "Hand size bonus not removed on with forfeit/swap"
+     :effect (effect (gain :runner :hand-size 1)
+                     (register-events
+                       card
+                       [(assoc tag-on-end :event :corp-turn-ends)
+                        (assoc tag-on-end :event :runner-turn-ends)]))
+     :events [{:event :corp-turn-ends}
+              {:event :runner-turn-ends}]}))

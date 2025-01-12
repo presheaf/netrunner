@@ -2235,3 +2235,12 @@
                 :async true
                 :effect (effect (gain-credits 1)
                                 (draw eid 2 nil))}]})
+
+
+(define-card "Scavenged Memchip"
+  {:implementation "Notifies on trash, but must be manually installed"
+   :in-play [:memory 1]
+   :trash-effect {:when-inactive true
+                  ;; :req (req (#{:meat :net} (:cause (last targets))))
+                  :effect (req (toast state :runner "You can install Scavenged Memchip from heap if you want to." "warning"))
+                  :msg "remember that it was trashed, and can be manually installed"}})
