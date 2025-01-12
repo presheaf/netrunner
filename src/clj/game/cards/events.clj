@@ -1299,6 +1299,10 @@
                                                      (has-subtype? target "Icebreaker"))))
                                   :type :credit}}}))
 
+(define-card "Fuzzing"
+  {:effect (req (dotimes [_ 3]
+                  (command-summon state :runner ["Tinkering"] true)))})
+
 (define-card "Game Day"
   {:msg (msg "draw " (- (hand-size state :runner) (count (:hand runner))) " cards")
    :async true
