@@ -436,7 +436,7 @@
                           (continue-ability state :runner
 
                                             {:prompt "Choose any number of cards from your grip (Card clicked last goes on bottom)"
-                                             :choices {:max (count (:hand runner))
+                                             :choices {:max (req (count (:hand runner)))
                                                        :card #(in-hand? %)}
                                              :async true
                                              :effect (req (doseq [t (reverse targets)]
