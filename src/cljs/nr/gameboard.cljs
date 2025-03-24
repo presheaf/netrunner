@@ -674,7 +674,8 @@
   [:div.panel.blue-shade.card-zoom.flip-card-zoom
    {:style
     {:opacity (if (and @zoom-card (reverse-face-code (:code @zoom-card))) 0.7 0)
-     :right (get-in @app-state [:options :log-width])}}
+     :right (get-in @app-state [:options :log-width])
+     :pointer-events "none"}}
    [card-zoom zoom-card true]])
 
 (defn server-menu
