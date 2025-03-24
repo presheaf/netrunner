@@ -663,6 +663,7 @@
 
 (define-card "Docklands Crackdown"
   {:abilities [{:cost [:click 2]
+                :keep-open :while-2-clicks-left
                 :msg "add 1 power counter"
                 :effect (effect (add-counter card :power 1))}]
    :constant-effects [{:type :install-cost ; oops - hits corp installs too
@@ -1015,15 +1016,18 @@
 (define-card "Isabel McGuire"
   {:abilities [{:label "Add an installed card to HQ"
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :choices {:card installed?}
                 :msg (msg "move " (card-str state target) " to HQ")
                 :effect (effect (move target :hand))}]})
 
 (define-card "IT Department"
   {:abilities [{:cost [:click 1]
+                :keep-open :while-clicks-left
                 :msg "add 1 counter"
                 :effect (effect (add-counter card :power 1))}
                {:cost [:power 1]
+                :keep-open :while-power-tokens-left
                 :label "Add strength to a rezzed ICE"
                 :choices {:card #(and (ice? %)
                                       (rezzed? %))}
@@ -1040,6 +1044,7 @@
 
 (define-card "Jackson Howard"
   {:abilities [{:cost [:click 1]
+                :keep-open :while-clicks-left
                 :msg "draw 2 cards"
                 :effect (effect (draw 2))}
                {:label "Shuffle up to 3 cards from Archives into R&D"
@@ -1967,6 +1972,7 @@
 
 (define-card "Shannon Claire"
   {:abilities [{:cost [:click 1]
+                :keep-open :while-clicks-left
                 :msg "draw 1 card from the bottom of R&D"
                 :effect (effect (move (last (:deck corp)) :hand))}
                {:label "Search R&D for an agenda"
@@ -2175,6 +2181,7 @@
 (define-card "Tenma Line"
   {:abilities [{:label "Swap 2 pieces of installed ICE"
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :prompt "Select two pieces of ICE to swap positions"
                 :choices {:card #(and (installed? %)
                                       (ice? %))
@@ -2443,6 +2450,7 @@
   {:abilities [{:label "Install an asset on Worlds Plaza"
                 :req (req (< (count (:hosted card)) 3))
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :prompt "Select an asset to install on Worlds Plaza"
                 :choices {:card #(and (asset? %)
                                       (in-hand? %)

@@ -197,6 +197,7 @@
    :effect (effect (add-counter card :power (* 2 target)))
    :events [(trash-on-empty :power)]
    :abilities [{:cost [:power 1]
+                :keep-open :while-power-tokens-left
                 :msg "look at the top card of Stack"
                 :optional
                 {:prompt (msg "Add " (:title (first (:deck runner))) " to bottom of Stack?")
@@ -1541,6 +1542,7 @@
                 :label "Install a non-virus program on London Library"
                 :makes-proghw-grip-install true
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :prompt "Select a non-virus program to install on London Library from your grip"
                 :choices {:card #(and (program? %)
                                       (not (has-subtype? % "Virus"))
@@ -1549,6 +1551,7 @@
                 :effect (effect (runner-install eid target {:host-card card :ignore-install-cost true}))}
                {:label "Add a program hosted on London Library to your Grip"
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :choices {:req (req (same-card? card (:host target)))}
                 :msg (msg "add " (:title target) " to their Grip")
                 :effect (effect (move target :hand))}]
@@ -2015,6 +2018,7 @@
      :abilities [{:async true
                   :label "Host a program or piece of hardware"
                   :cost [:click 1]
+                  :keep-open :while-clicks-left
                   :prompt "Select a card to host on Personal Workshop"
                   :choices {:card #(and (or (program? %)
                                             (hardware? %))
@@ -2744,6 +2748,7 @@
     {:flags {:drip-economy true}  ; not technically drip economy, but has an interaction with Drug Dealer
      :abilities [{:label "Host a resource or piece of hardware"
                   :cost [:click 1]
+                  :keep-open :while-clicks-left
                   :prompt "Select a card to host on The Supplier"
                   :choices {:card #(and (or (hardware? %)
                                             (resource? %))
@@ -2872,6 +2877,7 @@
   {:abilities [{:prompt "Choose a piece of Hardware" :msg (msg "add " (:title target) " to their Grip")
                 :choices (req (cancellable (filter hardware? (:deck runner)) :sorted))
                 :cost [:click 2]
+                :keep-open :while-2-clicks-left
                 :effect (effect (trigger-event :searched-stack nil)
                                 (shuffle! :deck)
                                 (move target :hand))}]})

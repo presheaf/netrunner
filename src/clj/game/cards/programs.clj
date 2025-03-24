@@ -907,6 +907,7 @@
   (auto-icebreaker {:abilities [(break-sub 1 1 "All")
                                 (strength-pump 1 1)
                                 {:cost [:click 1]
+                                 :keep-open :while-clicks-left
                                  :msg "place 1 virus counter"
                                  :effect (effect (add-counter card :virus 1))}]
                     :events [{:event :encounter-ice-ends
@@ -1441,6 +1442,7 @@
               (assoc e :event :corp-trash)]
      :abilities [{:async true
                   :cost [:click 1 :virus 1]
+                  :keep-open :while-virus-tokens-left
                   :msg "force the Corp to trash the top card of R&D"
                   :effect (effect (mill :corp eid :corp 1))}]}))
 
@@ -1466,6 +1468,7 @@
              :silent (req true)
              :effect (effect (add-counter card :virus 1))}]
    :abilities [{:cost [:click 1 :virus 2]
+                :keep-open :while-2-virus-tokens-left
                 :req (req (pos? (count (:hand corp))))
                 :msg "force the Corp to trash 1 card from HQ"
                 :async true
@@ -2464,6 +2467,7 @@
                 :async true
                 :effect (effect (resolve-ability
                                   {:cost [:click 1]
+                                   :keep-open :while-clicks-left
                                    :prompt "Choose a program to install on Scheherazade from your grip"
                                    :choices {:card #(and (program? %)
                                                          (runner-can-install? state side % false)
