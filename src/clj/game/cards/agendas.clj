@@ -1288,7 +1288,7 @@
                   (check-winner state side)))})
 
 (define-card "Project CAMB"
-  {:advanceable :false
+  {:advanceable :if-five-points
    :install-state :face-up
    :events [{:event :corp-turn-ends
              :req (req (installed? (get-card state card)))
