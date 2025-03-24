@@ -117,7 +117,7 @@
     (when-not host-card
       (corp-install-message state side c server install-state cost-str args))
     (play-sfx state side "install-corp" (assoc (make-sfx-card-info state card)
-                                               :install-type (nth slot 2))) ; :ices or :content
+                                               :install-type (if (> (count slot) 2) (nth slot 2) :content))) ; [:servers :rd :ices/:content] - or [:onhost]
 
     (let [moved-card (if host-card
                        (host state side host-card (assoc c :installed true))

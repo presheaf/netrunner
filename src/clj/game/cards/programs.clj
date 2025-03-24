@@ -2094,10 +2094,7 @@
                          (can-host? %)
                          (rezzed? %))}
    :effect (req (when-let [h (:host card)]
-                  (update! state side (assoc-in card [:special :installing] true))
-                  (update-ice-strength state side h)
-                  (when-let [card (get-card state card)]
-                    (update! state side (update-in card [:special] dissoc :installing)))))
+                  (update-ice-strength state side h)))
    :constant-effects [{:type :ice-strength
                        :req (req (same-card? target (:host card)))
                        :value (req (- (get-virus-counters state card)))}]
@@ -2112,9 +2109,6 @@
                             (<= (:current-strength target) 0)))
              :async true
              :effect (req (unregister-events state side card)
-                          (when (get-in card [:special :installing])
-                            (update! state side (update-in card [:special] dissoc :installing))
-                            (trigger-event state side :runner-install card))
                           (trash state side eid target {:unpreventable true}))
              :msg (msg "trash " (:title target))}]})
 
