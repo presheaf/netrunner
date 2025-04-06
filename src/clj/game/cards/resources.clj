@@ -3023,8 +3023,7 @@
                                             (add-counter card :power 1)
                                             (trash eid (assoc target :seen true) nil))}}})
 (define-card "Samsara"
-  { ;; :effect (effect (update-breaker-strength (:host card)))  ;; this is probably needed
-   :constant-effects [{:type :breaker-strength
+  {:constant-effects [{:type :breaker-strength
                        :req (req (has-subtype? target "Klesha"))
                        :value 1}]
    :events [{:event :agenda-scored
@@ -3040,15 +3039,11 @@
                      :effect (effect (system-msg :corp "spends [Click] to trash Samsara")
                                      (trash :corp eid card nil))}]})
 
-(define-card "Twitch Chat"
-  {:implementation "Ability must be automatically resolved by clicking the card, and does not check its trigger."
-   :data {:counter {:power 3}}
-   :abilities [{:cost [:power 1]
-                :msg "draw 2 cards"
-                :async true
-                :effect (req (wait-for (draw state :runner 2 nil)
-                                       (if (not (pos? (get-counters (get-card state card) :power)))
-                                         (trash state :runner eid card {:unpreventable true})
-                                         (effect-completed state side eid))))}]})
-
-
+(define-card "Snikr"
+  {:events [{:event :runner-turn-ends
+             :async true
+             :effect (req (let [num-trashes (count (filter #(= "Corp" (:side %)) (map first (turn-events state :runner :runner-trash))))]
+                            (if (> num-trashes 0)
+                              (do (system-msg (str "uses Snikr to draw 1 card"))
+                                  (draw state side eid 1 nil))
+                              (effect-completed state side eid))))}]})
