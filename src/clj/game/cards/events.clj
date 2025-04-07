@@ -1662,7 +1662,7 @@
 (define-card "Insight"
   {:async true
    :effect (req
-             (let [from (take 4 (:deck corp))]
+            (let [from (take 4 (:deck corp))]
                (when (pos? (count from))
                  (show-wait-prompt state :runner (str "Corp to rearrange the top " (count from) " cards of R&D"))
                  (wait-for (resolve-ability state :corp (reorder-choice :corp from) card targets)
@@ -3199,15 +3199,20 @@
   (letfn [(stakeout-choose [cards added]
             {:prompt "Choose a card to add to your grip"
              :choices (req (cancellable cards))
+             :async true
              :cancel-effect (req (shuffle! state side :deck)
+                                 (clear-wait-prompt state :corp)
                                  (when (> (count added) 0)
-                                   (system-msg state :runner (str "uses Stakeout to add " (join ", " added) " to their grip, paying 1[credit] each"))))
+                                   (system-msg state :runner (str "uses Stakeout to add " (join ", " added) " to their grip, paying 1[credit] each")))
+                                 (effect-completed state side eid))
              :effect (req (lose-credits state :runner 1)
                           (move state side target :hand)
                           (let [new-added (concat added [(:title target)])]
                               (if (and (> (count cards) 1) (> (:credit runner) 1)) ; TODO: I believe the above lose-credits will not be "seen" here yet
                                 (continue-ability state side (stakeout-choose (remove #{target} cards) new-added) card nil)
-                                (do (system-msg state :runner (str "uses Stakeout to add " (join ", " new-added) " to their grip, paying 1[credit] each"))
+                                (do (effect-completed state side eid)
+                                    (clear-wait-prompt state :corp)
+                                    (system-msg state :runner (str "uses Stakeout to add " (join ", " new-added) " to their grip, paying 1[credit] each"))
                                     (shuffle! state side :deck)))))})]
     {:msg (msg "reveal " (join ", " (map :title (take 5 (:deck runner)))) " from their deck")
      :async true
@@ -3227,14 +3232,3 @@
                         (shuffle! state :runner :deck)
                         (effect-completed state side eid)))))}))
 
-(define-card "Pocket Lint"
-  {:implementation "Probably not going in the pack"
-   :async true
-   :prompt "Select a program to install from your heap"
-   :show-discard true
-   :choices
-   {:req (req (and (program? target)
-                   (in-discard? target)
-                   (< (install-cost state side target) 2)))}
-   :msg (msg " install " (:title target))
-   :effect (effect (runner-install (assoc eid :source card :source-type :runner-install) target nil))})

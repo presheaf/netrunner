@@ -1233,7 +1233,7 @@
     {:events [(assoc nasol :event :agenda-scored)
               (assoc nasol :event :agenda-stolen)]}))
 
-(define-card "Newteki: Subtitle TBD"
+(define-card "Gandiva Therapeutics: Tailored Security"
   {:implementation "TODO: Deck restriction is not enforced"
    :events [{:event :corp-install
              :req (req (and (agenda? target)

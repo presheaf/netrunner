@@ -41,13 +41,13 @@
              (-> @state :runner :identity :title))
     (show-wait-prompt state :runner "Corp to keep hand or mulligan")))
 
+
 (defn- init-game-state
   "Initialises the game state"
   [{:keys [players gameid spectatorhands room format] :as game}]
   (let [corp (some #(when (corp? %) %) players)
         runner (some #(when (runner? %) %) players)
         is-jumpstart? (= format "jumpstart")
-        ;; corp-deck (create-deck (:deck corp) (:user corp))
         corp-deck (if is-jumpstart?
                     (create-js-deck (:user corp) :corp)
                     (create-deck (:deck corp) (:user corp)))

@@ -3235,7 +3235,7 @@
               "Resolve a subroutine on a rezzed AP ice")]
     {:subroutines [sub]}))
 
-(define-card "Tetraphobia"
+(define-card "Mastiff"
   (let [sub {:player :runner
              :async true
              :label (str "Do 1 net damage unless the Runner pays 1 [Credits]")
@@ -3245,7 +3245,7 @@
              :effect (req (if (= "Suffer 1 net damage" target)
                             (continue-ability state side (do-net-damage 1) card nil)
                             (pay-sync state :runner eid card [:credit 1])))}]
-    {:subroutines [sub sub sub sub]}))
+    {:subroutines [sub sub sub]}))
 
 (define-card "Thicket"
   {:subroutines [end-the-run
@@ -3422,7 +3422,7 @@
                           click-spends (map #(second (second %)) (filter #(= :runner-spent-click (first %))
                                                                          revs))
                           num-clicks (+ (apply + click-losses) (apply + click-spends))]
-                      (if (> num-clicks 0) 3 0)))
+                      (if (> num-clicks 0) 2 0)))
    :subroutines [end-the-run]})
 
 (define-card "Turing"
@@ -3696,7 +3696,10 @@
    :subroutines [end-the-run]})
 
 (define-card "Billboard"
-  {:rez-cost-bonus (req
-                    (if (some #(has-subtype? % "Advertisement") (all-active-installed state :corp))
-                      -2 0))
-   :subroutines [end-the-run]})
+  {:rez-cost-bonus (req (if (some #(has-subtype? % "Advertisement") (all-active-installed state :corp))
+                          -2 0))
+   :subroutines [{:label "Gain 1 [Credits] and end the run."
+                  :msg "gain 1 [Credits] and end the run"
+                  :async true
+                  :effect (effect (gain-credits :corp 1)
+                                  (end-run :corp eid card))}]})

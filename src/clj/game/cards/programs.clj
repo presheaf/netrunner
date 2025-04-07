@@ -2925,3 +2925,7 @@
 
 (define-card "Raga"
   (mako-breaker "Sentry" 1 2 4))
+
+(define-card "Negative Space"
+  {:implementation "MU usage restriction not enforced"
+   :in-play [:memory 2]})
