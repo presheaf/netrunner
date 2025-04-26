@@ -3691,10 +3691,6 @@
                    (brain-damage-if-bioroid-break 2)]
      :runner-abilities [(bioroid-break 2 2)]}))
 
-(define-card "Middle Manager"
-  {:implementation "Strength bonus/break prevention unimplemented. Probably not going in the pack."
-   :subroutines [end-the-run]})
-
 (define-card "Billboard"
   {:rez-cost-bonus (req (if (some #(has-subtype? % "Advertisement") (all-active-installed state :corp))
                           -2 0))
