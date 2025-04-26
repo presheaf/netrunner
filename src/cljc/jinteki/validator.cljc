@@ -72,8 +72,14 @@
 (defn legal-num-copies?
   "Returns true if there is a legal number of copies of a particular card."
   [identity {:keys [qty card]}]
-  (or (draft-id? identity)
-      (<= qty (:deck-limit card 3))))
+  (cond
+    (draft-id? identity) true
+    (and (= "Gandiva Therapeutics: Tailored Security" (:title identity))
+         (= "Agenda" (:type card))
+         (= 2 (:agendapoints card)))
+    (<= qty 2)
+    :else
+    (<= qty (:deck-limit card 3))))
 
 (defn is-prof-prog?
   "Check if ID is The Professor and card is a Program"
@@ -163,7 +169,8 @@
          "Oddly Specific Horoscope" #{"Jinteki" "NBN"}
          "Project Oskoreia" #{"Haas-Bioroid" "NBN"}
          "Power Grid Reroute" #{"Haas-Bioroid" "Weyland Consortium"}
-         "Psychomagnetic Pulse" #{"Haas-Bioroid" "Jinteki"}}]
+         "Psychomagnetic Pulse" #{"Haas-Bioroid" "Jinteki"}
+         "Flood the Zone" #{"NBN" "Weyland Consortium"}}]
     (if (dual-faction-agendas (:title card))
       ;; Currently, dual faction agendas are hardcoded as neutral cards, necessitating this branch
       ((dual-faction-agendas (:title card)) faction)

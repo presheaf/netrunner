@@ -3014,3 +3014,46 @@
                 :effect (req (let [credits (min 3 (get-counters card :credit))]
                                (add-counter state side card :credit (- credits))
                                (gain-credits state :runner credits)))}]})
+
+(define-card "Neutralizing Agent"
+  {:prompt "Name a Corp card"
+   :choices {:card-title (req (and (corp? target)
+                                   (not (identity? target))))}
+   :effect (effect (update! (assoc-in card [:special :neutralizing-agent-target] target))
+                   (system-msg (str "uses Neutralizing Agent to name " target)))
+   :abilities [{:cost [:click 1 :power 3]
+                :async true
+                :effect (req (as-agenda state :runner eid (get-card state card) 1))
+   :msg "add it to their score area as an agenda worth 1 agenda point"}]
+   :interactions {:access-ability {:label "Trash card"
+                                   :req (req (= (:title target) (get-in card [:special :neutralizing-agent-target])))
+                                   :msg (msg "trash " (:title target) " at no cost")
+                                   :async true
+                                   :effect (effect
+                                            (add-counter card :power 1)
+                                            (trash eid (assoc target :seen true) nil))}}})
+(define-card "Samsara"
+  {:constant-effects [{:type :breaker-strength
+                       :req (req (has-subtype? target "Klesha"))
+                       :value 1}]
+   :events [{:event :agenda-scored
+             :location :discard
+             :condition :in-discard
+             :async true
+             :req (req (not (install-locked? state :runner)))
+             :effect (effect (runner-install :runner eid card nil))}]
+   :corp-abilities [{:label "Trash Samsara"
+                     :async true
+                     :cost [:click 1]
+                     :req (req (= :corp side))
+                     :effect (effect (system-msg :corp "spends [Click] to trash Samsara")
+                                     (trash :corp eid card nil))}]})
+
+(define-card "Snikr"
+  {:events [{:event :runner-turn-ends
+             :async true
+             :effect (req (let [num-trashes (count (filter #(= "Corp" (:side %)) (map first (turn-events state :runner :runner-trash))))]
+                            (if (> num-trashes 0)
+                              (do (system-msg (str "uses Snikr to draw 1 card"))
+                                  (draw state side eid 1 nil))
+                              (effect-completed state side eid))))}]})

@@ -859,6 +859,14 @@
    :effect (effect (gain :click 1)
                    (make-run eid target nil card))})
 
+(define-card "Bad Seed"
+  {:prompt "Choose a Corp card"
+   :choices {:card #(and (installed? %)
+                         (corp? %))}
+   :msg (msg "gain 4 [Credits] and place a virus counter on " (card-str state target))
+   :effect (effect (gain-credits 4)
+                   (add-counter target :virus 1))})
+
 (define-card "Easy Mark"
   {:msg "gain 3 [Credits]"
    :effect (effect (gain-credits 3))})
@@ -1352,7 +1360,7 @@
   {:msg "trash all cards in the grip and gain 10 [Credits]"
    :async true
    :effect (req (wait-for (trash-cards state side (:hand runner) {:unpreventable true})
-                          (gain-credits state :runner eid 10 nil)))})
+                          (gain-credits state :runner eid 11 nil)))})
 
 (define-card "Hacktivist Meeting"
   {:constant-effects [{:type :rez-additional-cost
@@ -1658,7 +1666,7 @@
 (define-card "Insight"
   {:async true
    :effect (req
-             (let [from (take 4 (:deck corp))]
+            (let [from (take 4 (:deck corp))]
                (when (pos? (count from))
                  (show-wait-prompt state :runner (str "Corp to rearrange the top " (count from) " cards of R&D"))
                  (wait-for (resolve-ability state :corp (reorder-choice :corp from) card targets)
@@ -1953,6 +1961,11 @@
                             (move state :runner card :hand)
                             (unregister-events state side card)))}]})
 
+(define-card "Market Disruption"
+  {:msg "gain 2[Credits] and make the Corp lose 2 [Credits]"
+   :effect (effect (lose-credits :corp 2)
+                   (gain-credits 2))})
+
 (define-card "Mars for Martians"
   (letfn [(count-clan [state] (count (filter #(and (has-subtype? % "Clan") (resource? %))
                                              (all-active-installed state :runner))))]
@@ -2149,7 +2162,7 @@
                               (first-event? state side :successful-run is-central?)))
                :msg (msg (str "place 1 [Credit] on On the Trail"
                               (if (= (get-counters card :credit) 2) ", then take 3[Credit] and flip it" "")))
-               :effect (req (add-counter state side eid card :credit 1 nil)
+               :effect (req (add-counter state side eid card :credit 1 nil) ; TODO: figure out why we are passing the eid here - seems like an eid would get resolved twice... probably a bug
                             (when (= (get-counters card :credit) 2)
                               (add-counter state side eid (get-card state card) :credit -3 nil)
                               (gain-credits state side 3)
@@ -2854,6 +2867,17 @@
   {:effect (req (dotimes [_ 3]
                   (command-summon state :runner ["Easy Mark"] true)))})
 
+(define-card "Downsizing"
+  {:implementation "Erroneously implemented as credit loss rather than additional cost"
+   :events [{:event :purge
+             :msg "force the Corp to lose 1 [Credits]"
+             :async true
+             :effect (req (lose-credits state :corp eid 1 nil))}
+            {:event :advance
+             :msg "force the Corp to lose 1 [Credits]"
+             :async true
+             :effect (req (lose-credits state :corp eid 1 nil))}]})
+
 (define-card "Sure Gamble"
   {:msg "gain 9 [Credits]"
    :effect (effect (gain-credits 9))})
@@ -3164,3 +3188,51 @@
                                                        (when-not (event? topcard)
                                                          (str " to gain " cost " [Credits]"))))
                                       (effect-completed state side eid)))))})
+(define-card "Blue Monday"
+  {:msg "lose all credits, then gain 3[Credits]"
+   :effect (effect (lose-credits :all)
+                   (gain-credits 3))
+   :events [{:event :runner-turn-begins
+             :location :discard
+             :condition :in-discard
+             :req (req (zero? (get-in @state [:runner :credit])))
+             :msg "add Spare Change to their hand from their discard pile"
+             :effect (req (move state side card :hand))}]})
+
+(define-card "Stakeout"
+  (letfn [(stakeout-choose [cards added]
+            {:prompt "Choose a card to add to your grip"
+             :choices (req (cancellable cards))
+             :async true
+             :cancel-effect (req (shuffle! state side :deck)
+                                 (clear-wait-prompt state :corp)
+                                 (when (> (count added) 0)
+                                   (system-msg state :runner (str "uses Stakeout to add " (join ", " added) " to their grip, paying 1[credit] each")))
+                                 (effect-completed state side eid))
+             :effect (req (lose-credits state :runner 1)
+                          (move state side target :hand)
+                          (let [new-added (concat added [(:title target)])]
+                              (if (and (> (count cards) 1) (> (:credit runner) 1)) ; TODO: I believe the above lose-credits will not be "seen" here yet
+                                (continue-ability state side (stakeout-choose (remove #{target} cards) new-added) card nil)
+                                (do (effect-completed state side eid)
+                                    (clear-wait-prompt state :corp)
+                                    (system-msg state :runner (str "uses Stakeout to add " (join ", " new-added) " to their grip, paying 1[credit] each"))
+                                    (shuffle! state side :deck)))))})]
+    {:msg (msg "reveal " (join ", " (map :title (take 5 (:deck runner)))) " from their deck")
+     :async true
+     :effect (req (reveal state side (take 5 (:deck runner)))
+                  (let [top-5 (take 5 (:deck runner))
+                        run-evs (filter #(has-subtype? % "Run") top-5)
+                        other-cards (filter #(not (has-subtype? % "Run")) top-5)]
+                    (doseq [c run-evs] (move state side c :hand))
+                    (when (> (count run-evs) 0)
+                      (system-msg state :runner (str "uses Stakeout to add " (join ", " (map :title run-evs)) " to their grip")))
+                    (if (and (> (count other-cards) 0) (> (:credit runner) 0))
+                      (do (show-wait-prompt state :corp "Runner to choose cards for Stakeout")
+
+                          (continue-ability state side (stakeout-choose other-cards []) card nil))
+                      (do
+                        (system-msg state :runner "shuffles their deck")
+                        (shuffle! state :runner :deck)
+                        (effect-completed state side eid)))))}))
+

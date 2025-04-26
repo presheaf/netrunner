@@ -998,6 +998,64 @@
              :msg "gain 2 [Credits]"
              :effect (effect (gain-credits :runner 2))}]})
 
+(let []
+  (letfn [(sabotage-event-titles [] (map :title (filter #(and (= "Event" (:type %))
+                                                              (has-subtype? % "Sabotage"))
+                                                        (server-cards))))
+          (chooseable-events [curr-chosen]
+            (filter #(not ((set curr-chosen) %))
+                    (sabotage-event-titles)))
+          (rec-choose-abi [curr-chosen]
+            {:prompt (str "Choose a sabotage event (Chosen: " (join ", " curr-chosen) ")")
+             :choices (chooseable-events curr-chosen)
+             :async true
+             :effect (req
+                      (let [next-chosen (concat curr-chosen [target])]
+                        (cond
+                          (= 5 (count next-chosen))
+                          (continue-ability state :runner (finalize-choices-abi next-chosen) card nil)
+                          :else
+                          (continue-ability state :runner (rec-choose-abi next-chosen) card nil))))})
+
+          (finalize-choices-abi [curr-chosen]
+            {:prompt (str "Choices: " (join ", " curr-chosen) ")")
+             :choices ["Accept" "Restart"]
+             :async true
+             :effect (req
+                      (cond
+                        (= "Accept" target)
+                        (do
+                          (system-msg state :runner "chooses 5 different sabotage events")
+                          (update! state side (assoc-in (get-card state card) [:special :mako-events] curr-chosen))
+                          (clear-wait-prompt state :corp)
+                          (effect-completed state side eid))
+                        :else
+                        (continue-ability state :runner (rec-choose-abi []) card nil)))})]
+    (define-card "Mako Shuusei: Black Sheep"
+      {:implementation "Sabotage events are added to hand after the run by clicking on ID, and played manually (take a free click to do so)"
+       :events [{:event :pre-start-game
+                 :req (req (= side :runner))
+                 :async true
+                 :effect (effect (show-wait-prompt :corp "Runner to select sabotage events")
+                                 (continue-ability (rec-choose-abi []) card nil))}
+                {:event :run-ends
+                 :req (req (and (:successful target)
+                                (is-central? (:server target))))
+                 :msg "place 1 virus counter on itself."
+                 :effect (effect (add-counter card :virus 1))}]
+
+       ;; TODO: rework this to be an event trigger
+       :abilities [{:cost [:virus 4]
+                    :prompt "Choose a sabotage to play"
+                    :choices (req (cancellable (get-in (get-card state card) [:special :mako-events]) :sorted))
+                    :msg (msg "add the created copy of " target " to hand, and has gained a click to play it")
+                    :effect (effect (update! (assoc-in (get-card state card) [:special :mako-events]
+                                                       (vec (remove #{target} (set (get-in (get-card state card) [:special :mako-events]))))))
+
+                                    (add-counter (get-card state card) :virus (- (get-counters (get-card state card) :virus)))
+                                    (gain :click 1)
+                                    (command-summon [target] true))}]})))
+
 (define-card "MaxX: Maximum Punk Rock"
   (let [ability {:msg (msg (let [deck (:deck runner)]
                              (if (pos? (count deck))
@@ -1175,6 +1233,16 @@
                               :effect (effect (play-instant eid target nil))}}}]
     {:events [(assoc nasol :event :agenda-scored)
               (assoc nasol :event :agenda-stolen)]}))
+
+(define-card "Gandiva Therapeutics: Tailored Security"
+  {:implementation "TODO: Deck restriction is not enforced"
+   :events [{:event :corp-install
+             :req (req (and (agenda? target)
+                            (= (:agendapoints target) 2)))
+             :effect (req (swap! state update-in [:corp :register :cannot-score] #(cons target %)))}
+            {:event :pre-advancement-cost
+             :req (req (= (:agendapoints target) 2))
+             :effect (effect (advancement-cost-bonus -1))}]})
 
 (define-card "NEXT Design: Guarding the Net"
   (let [ndhelper (fn nd [n] {:prompt (str "When finished, click NEXT Design: Guarding the Net to draw back up to 5 cards in HQ. "

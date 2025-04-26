@@ -1435,6 +1435,19 @@
                                                     (effect-completed state side eid))))}
                                           card nil)))))}}}})
 
+(define-card "The Sisters"
+  {:implementation "Restriction to only bouncing cards in this server is not enforced."
+   :events [{:event :successful-run
+             :interactive (req true)
+             :optional
+             {:req (req this-server)
+              :prompt "Move a card installed in this server to the top of R&D?"
+              :yes-ability
+              {:prompt "Choose a card to move to the top of R&D"
+               :choices {:card installed?}
+               :msg (msg "move " (card-str state target) " to the top of R&D")
+               :effect (effect (move target :deck {:front true}))}}}]})
+
 (define-card "The Twins"
   {:events [{:event :pass-ice
              :optional

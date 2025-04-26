@@ -665,6 +665,30 @@
                 :once :per-turn
                 :effect (effect (add-prop target :advance-counter 1))}]})
 
+(define-card "Flood the Zone"
+  {:dare {:once :per-turn
+          :async true
+          :label "Reveal Flood the Zone from HQ"
+          :msg "reveals Flood the Zone from HQ"
+          :effect (req (let [id (get-card state (:identity corp))
+                             c (get-card state card)]
+                         (system-msg state side (str "reveals " (:title c) " from HQ"))
+                         (register-events
+                          state side id
+                          [{:event :corp-turn-begins
+                            :unregister-once-resolved true
+                            :effect (req (when (some #(= (:cid c) (:cid %)) (get-in @state [:corp :hand]))
+                                           (system-msg state :corp (str "shuffles " (:title c) " into R&D, gains 2[credit], and draws 1 card"))
+                                           (move state :corp c :deck)
+                                           (shuffle! state :corp :deck)
+                                           (gain-credits state :corp 2)
+                                           (draw state :corp 1)))}])
+                         (continue-ability
+                                     state :runner
+                                     {:prompt "The Corp has Flood the Zone in HQ"
+                                      :choices ["I understand"]}
+                                     card nil)))}})
+
 (define-card "Flower Sermon"
   {:silent (req true)
    :effect (effect (add-counter card :agenda 5))
@@ -2051,3 +2075,103 @@
                                       (not (has-subtype? target "Virtual"))
                                       (not (:facedown (second targets)))))
                        :value 1}]})
+
+(define-card "Mindmap Optimization"
+  {:advancement-cost-bonus (req (if (< (count (:hand runner)) 3)
+                                  -1 0)) ; TODO: is an event on runner draw updating advancement costs needed?
+   :steal-cost-bonus (req [:trash-from-hand 1])})
+
+(define-card "CommunaLink Rollout"
+  {:effect (req (change-hand-size state :runner 1)
+                (when tagged
+                  (change-hand-size state :corp 2)))
+   :leave-play (req (change-hand-size state :runner -1)
+                    (when tagged
+                      (change-hand-size state :corp -2)))
+   :events [;; Events for tracking hand size
+            {:event :runner-gain-tag
+             :effect (req
+                      (println (str "rgt: " target " " (count-tags state)))
+                      (when (and (> target 0) (= target (count-tags state))) ; runner now has exactly as many tags as they just got, so they went from untagged to tagged
+                            (change-hand-size state :corp 2)))}
+            {:event :runner-lose-tag
+             :effect (req (when (not tagged)
+                            (change-hand-size state :corp -2)))}]})
+
+(define-card "Uncanny Compulsion"
+  (let [prompts ["Choose first card to reshuffle"
+                 "Choose second card to reshuffle"
+                 "Choose card to go on top"]]
+    (letfn [(uc-finalize-abi [final-choices]
+              (let [n (count final-choices)
+                    reshuffled (if (>= n 2) (subvec (vec final-choices) 0 2) ; n is always at least 1
+                                   [(first final-choices)])
+                    top-card (when (>= n 3) (nth final-choices 2))
+                    bottom-card (when (= n 4) (nth final-choices 3))
+                    prompt-msg (str
+                                "Shuffled: " (join ", " (map card-title reshuffled)) ", "
+                                (when top-card
+                                  (str "Top: " (card-title top-card)))
+                                (when bottom-card
+                                  (str ", Bottom: " (card-title bottom-card)))
+                                 ". Proceed?")]
+                {:prompt prompt-msg
+                 :choices ["Yes" "No"]
+                 :async true
+                 :effect (req
+                          (if (= target "Yes")
+                            (do
+                              ;; Shuffle cards into deck
+                              (doseq [c reshuffled]
+                                (move state side c :deck))
+                              (shuffle! state :corp :deck)
+                              (when top-card
+                                (move state side top-card :deck {:front true}))
+                              (when bottom-card
+                                (move state side bottom-card :deck))
+                              (clear-wait-prompt state :runner)
+                              (effect-completed state side eid))
+                            ;; Restart the process
+                            (continue-ability state side
+                                              (uc-choose-abi final-choices [] 0)
+                                              card nil)))}))
+
+            (uc-choose-abi [all-cards choices idx]
+              {:prompt (nth prompts idx)
+               :choices (vec (remove (set choices) all-cards))
+               :async true
+               :effect (req
+                        (let [new-choices (conj choices target)
+                              unchosen (remove (set new-choices) all-cards)
+                              num-unchosen (count unchosen)]
+                          (if (or (= (inc idx) 3) (< num-unchosen 1)) ;; Stop when either 3 cards are chosen or only one remains unchosen
+                            (let [final-choices (if (= num-unchosen 1)
+                                                  (conj new-choices (first unchosen))
+                                                  new-choices)]
+                              (continue-ability state :corp
+                                                (uc-finalize-abi final-choices)
+                                                card nil))
+                            (continue-ability state :corp
+                                              (uc-choose-abi all-cards new-choices (inc idx))
+                                              card nil))))})]
+
+      {:prompt "Select up to 4 cards in Archives"
+       :show-discard true
+       :choices {:max 4
+                 :card #(and (corp? %)
+                             (in-discard? %))
+                 :all false}
+       :msg (msg (let [seen (filter :seen targets)
+                       unseen (filter #(not (:seen %)) targets)
+                       seen-msg (when (seq seen)
+                                  (str (join ", " (map card-title seen))))
+                       unseen-msg (when (seq unseen)
+                                    (str (count unseen) " facedown card" (when (> (count unseen) 1) "s")))]
+                   (str "put " (join ", " (filter some? [(when seen-msg (str seen-msg))
+                                                         (when unseen-msg unseen-msg)])) " into R&D")))
+       :async true
+       :effect (req (if (> (count targets) 0)
+                      (do (show-wait-prompt state :runner "Corp to secretly put the cards into R&D")
+                          (continue-ability state :corp (uc-choose-abi targets [] 0) card nil))
+                      (effect-completed state side eid)))})))
+

@@ -17,9 +17,16 @@
   "Called when the player clicks a card from hand."
   [state side {:keys [card server]}]
   (when-let [card (get-card state card)]
-    (case (:type card)
-      ("Event" "Operation") (play-ability state side {:card (get-in @state [side :basic-action-card]) :ability 3 :targets [card]})
-      ("Hardware" "Resource" "Program" "ICE" "Upgrade" "Asset" "Agenda") (play-ability state side {:card (get-in @state [side :basic-action-card]) :ability 2 :targets [card server]}))))
+    (if (= server "Dare")
+      (let [eid (make-eid state {:source card :source-type :ability})
+            dare-ab (:dare (card-def card))]
+        (resolve-ability state side eid dare-ab card nil))
+      (case (:type card)
+        ("Event" "Operation") (play-ability state side {:card (get-in @state [side :basic-action-card]) :ability 3 :targets [card]})
+        ("Hardware" "Resource" "Program" "ICE" "Upgrade" "Asset" "Agenda") (play-ability state side {:card (get-in @state [side :basic-action-card]) :ability 2 :targets [card server]})))))
+
+
+
 
 (defn shuffle-deck
   "Shuffle R&D/Stack."
@@ -813,7 +820,9 @@
   [state side {:keys [card] :as args}]
   (let [card (get-card state card)]
     (if card
-      (swap! state assoc-in [:corp :install-list] (installable-servers state card))
+      (swap! state assoc-in [:corp :install-list] (if (= (:title card) "Flood the Zone")
+                                                    (conj (installable-servers state card) "Dare")
+                                                    (installable-servers state card)))
       (swap! state dissoc-in [:corp :install-list]))))
 
 (defn generate-runnable-zones

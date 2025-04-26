@@ -2900,3 +2900,30 @@
   (cloud-icebreaker
    (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
                                   (strength-pump 1 1)]})))
+
+
+(defn- mako-breaker
+  [subtype boost-cost boost-amount counter-cost]
+  (auto-icebreaker {:abilities [(break-sub 0 1 subtype {:req (req (pos? (get-counters (get-card state current-ice) :virus)))})
+                                ;; (break-sub 4 0 "Sentry" {:msg "hei" :effect (effect (pump-ice current-ice -1) )})
+                                {:cost [:credit counter-cost]
+                                 :label "Place a virus counter"
+                                 :req (req (and (rezzed? current-ice)
+                                                (>= (get-strength (get-card state card))
+                                                    (get-strength (get-card state current-ice)))))
+                                 :msg (msg "place a virus counter on " (:title current-ice))
+                                 :effect (effect (add-counter (get-card state current-ice) :virus 1))}
+                                (strength-pump boost-cost boost-amount)]}))
+
+(define-card "Dvesha"
+  (mako-breaker "Barrier" 1 1 3))
+
+(define-card "Moha"
+  (mako-breaker "Code Gate" 2 2 2))
+
+(define-card "Raga"
+  (mako-breaker "Sentry" 1 2 4))
+
+(define-card "Negative Space"
+  {:implementation "MU usage restriction not enforced"
+   :in-play [:memory 2]})

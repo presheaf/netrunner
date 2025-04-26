@@ -3,7 +3,7 @@
             [game.core.card :refer :all]
             [game.core.card-defs :refer [define-card]]
             [game.core.effects :refer [register-floating-effect]]
-            [game.core.eid :refer [effect-completed]]
+            [game.core.eid :refer [make-eid effect-completed]]
             [game.core.card-defs :refer [card-def]]
             [game.core.prompts :refer [show-wait-prompt clear-wait-prompt]]
             [game.core.toasts :refer [toast]]
@@ -1540,6 +1540,19 @@
      :events [(assoc ability :event :corp-turn-begins)]
      :abilities [ability]}))
 
+(define-card "Kaede Ueno"
+  {:flags {:rd-reveal (req true)}
+   :access {:msg "do 1 net damage"
+            ;; TODO: rework test to actually check if it's in the proper server
+            :req (req (or (= :deck (first (:zone card)))
+                          (installed? card)))
+            :async true
+            :effect (effect (damage eid :net 1 {:card card}))}
+   :events [{:event :corp-turn-begins
+             :msg "gain 2[credits] and add itself to HQ"
+             :effect (req (gain-credits state :corp 2)
+                          (move state side (get-card state card) :hand))}]})
+
 (define-card "Personalized Portal"
   {:events [{:event :corp-turn-begins
              :async true
@@ -2490,3 +2503,79 @@
                 :cost [:click 1 :credit 1]
                 :msg (msg "give the Runner 1 tag")
                 :effect (effect (gain-tags eid 1))}]})
+
+(define-card "Project Genesis"
+  (letfn [(make-flip-info [state]
+            (let [pg-choice (get-in @state [:special :project-genesis])]
+              (case pg-choice
+                "Acheron"
+                {:front-face-code "54019"
+                 :back-face-code "54019_back_1"
+                 :front-face-title "Project Genesis"
+                 :back-face-title "Acheron"
+                 :new-card-keys
+                 {:type "Upgrade"       ; TODO: Make this an asset, but quickfix so you can install it in the same server
+                  :trash 5}}
+                "Cocytus"
+                {:front-face-code "54019"
+                 :back-face-code "54019_back_2"
+                 :front-face-title "Project Genesis"
+                 :back-face-title "Cocytus"
+                 :new-card-keys
+                 {:type "ICE"
+                  :strength 6}}
+                {:front-face-code "54019"
+                 :back-face-code "54019_back_3"
+                 :front-face-title "Project Genesis"
+                 :back-face-title "Phlegethon"
+                 :new-card-keys
+                 {:type "Upgrade"
+                  :trash 5}})))]
+
+    (let [flipside-events
+          {"Acheron"
+           [{:event :corp-turn-begins
+             :msg "gain 1 [Credits]"
+             :effect (effect (gain-credits 1))}]
+           "Phlegethon"
+           [{:event :run
+             :req (req this-server)
+             :msg "do 2 net damage"
+             :async true
+             :effect (effect (damage eid :net 2 {:card card}))}]}]
+      
+      {:events [{:event :corp-turn-begins
+                 :async true
+                 :req (req (let [card (find-latest state card)]
+                             (not (:is-flipped card))))
+                 :effect (req
+                          (let [card (find-latest state card)]
+                            (add-counter state side card :power -1)
+                            (if (= 0 (get-counters (get-card state card) :power))
+                              (let [card (get-card state card)]
+                                (update! state side (merge card
+                                                           (:new-card-keys (make-flip-info state))))
+
+                                (let [new-card (get-card state card)
+                                      install-abi {:async true
+                                                   :prompt (str "Where to install Project Genesis?")
+                                                   :choices (req (installable-servers state card))
+                                                   :msg "install Project Genesis"
+                                                   :effect (effect (corp-install eid card target {:no-install-effect true :ignore-all-cost true}))}]
+                                  
+                                  (wait-for (resolve-ability state side install-abi new-card nil)
+                                            (if async-result
+                                              (let [installed-card async-result
+                                                    pg-choice (get-in @state [:special :project-genesis])]
+                                                (flip-card state side (get-card state installed-card) (make-flip-info state))
+                                                (register-events state :corp (find-latest state installed-card) (flipside-events pg-choice))
+                                                (when (= pg-choice "Cocytus")
+                                                  ;TODO: this needs to be wrapped into a rez effect in case of derezzing
+                                                  (update! state side (assoc (find-latest state installed-card) :subtype ["AP" "Sentry"]))
+                                                  (add-sub! state side (find-latest state installed-card) (do-net-damage 2)))
+                                                (if (= pg-choice "Acheron")
+                                                  (shuffle-into-rd-effect state side eid (find-latest state installed-card) 2 false)
+                                                  (effect-completed state side eid)))
+                                              (effect-completed state side eid)))))
+                              (effect-completed state side eid))))}]
+       :effect (effect (add-counter card :power 3))})))
