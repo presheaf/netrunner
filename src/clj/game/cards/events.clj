@@ -436,7 +436,7 @@
                           (continue-ability state :runner
 
                                             {:prompt "Choose any number of cards from your grip (Card clicked last goes on bottom)"
-                                             :choices {:max (count (:hand runner))
+                                             :choices {:max (req (count (:hand runner)))
                                                        :card #(in-hand? %)}
                                              :async true
                                              :effect (req (doseq [t (reverse targets)]
@@ -1306,6 +1306,10 @@
                                                 (and (= :ability (:source-type eid))
                                                      (has-subtype? target "Icebreaker"))))
                                   :type :credit}}}))
+
+(define-card "Fuzzing"
+  {:effect (req (dotimes [_ 3]
+                  (command-summon state :runner ["Tinkering"] true)))})
 
 (define-card "Game Day"
   {:msg (msg "draw " (- (hand-size state :runner) (count (:hand runner))) " cards")

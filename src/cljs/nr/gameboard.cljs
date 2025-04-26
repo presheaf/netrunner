@@ -1,11 +1,11 @@
 (ns nr.gameboard
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [chan put! <!] :as async]
-            [clojure.string :as s :refer [capitalize includes? join lower-case split]]
+            [clojure.string :as s :refer [capitalize includes? join lower-case split start-with? ends-with?]]
             [clojure.set :refer [intersection]]
             [differ.core :as differ]
             [game.core.card :refer [active? has-subtype? asset? rezzed? ice? corp?
-                                    faceup? installed? same-card?]]
+                                    faceup? installed? same-card? get-counters]]
             [jinteki.utils :refer [str->int is-tagged?] :as utils]
             [jinteki.cards :refer [all-cards]]
             [nr.appstate :refer [app-state]]
@@ -208,6 +208,7 @@
   (let [actions (action-list card)
         c (+ (count actions) (count abilities))
         card-side (keyword (.toLowerCase (:side card)))]
+        (swap! c-state dissoc :keep-menu-open)
     (when-not (and (= card-side :runner) facedown)
       (cond
 
@@ -243,6 +244,10 @@
         (if (= (count abilities) 1)
           (send-command "ability" {:card card :ability 0})
           (send-command (first actions) {:card card}))))))
+
+(defn close-abilities
+  [c-state]
+  (swap! c-state dissoc :abilities :corp-abilities :runner-abilities :keep-menu-open))          
 
 (defn handle-card-click [{:keys [type zone root] :as card} c-state]
   (let [side (:side @game-state)]
@@ -674,7 +679,8 @@
   [:div.panel.blue-shade.card-zoom.flip-card-zoom
    {:style
     {:opacity (if (and @zoom-card (reverse-face-code (:code @zoom-card))) 0.7 0)
-     :right (get-in @app-state [:options :log-width])}}
+     :right (get-in @app-state [:options :log-width])
+     :pointer-events "none"}}
    [card-zoom zoom-card true]])
 
 (defn server-menu
@@ -691,22 +697,99 @@
             label])
          servers)])))
 
+(defn list-abilities
+  [ab-type card c-state abilities]
+  (map-indexed
+    (fn [i ab]
+      (let [command (case ab-type
+                      :runner "runner-ability"
+                      :corp "corp-ability"
+                      :ability (if (:dynamic ab) "dynamic-ability" "ability"))]
+        [:div {:key i
+               :on-click #(do
+                            (send-command command {:card card :ability i})
+                            (if (:keep-menu-open ab)
+                              (swap! c-state assoc :keep-menu-open (keyword (:keep-menu-open ab)))
+                              (close-abilities c-state)))}
+         (render-icons (add-cost-to-label ab))]))
+      abilities))
+
+(defn check-keep-menu-open
+  [card c-state]
+  (let [side (:side @game-state)
+        keep-menu-open (case (:keep-menu-open @c-state)
+                        :while-credits-left
+                        (pos? (get-in @game-state [side :credit]))
+
+                        :while-clicks-left
+                        (pos? (get-in @game-state [side :click]))
+
+                        :while-2-clicks-left
+                        (>= (get-in @game-state [side :click]) 2)
+
+                        :while-3-clicks-left
+                        (>= (get-in @game-state [side :click]) 3)
+
+                        :while-4-clicks-left
+                        (>= (get-in @game-state [side :click]) 4)
+
+                        :while-cards-in-hand
+                        (not-empty (get-in @game-state [side :hand]))
+
+                        :while-power-tokens-left
+                        (pos? (get-counters card :power))
+
+                        :while-2-power-tokens-left
+                        (>= (get-counters card :power) 2)
+
+                        :while-3-power-tokens-left
+                        (>= (get-counters card :power) 3)
+
+                        :while-5-power-tokens-left
+                        (>= (get-counters card :power) 5)
+
+                        :while-advancement-tokens-left
+                        (pos? (get-counters card :advancement))
+
+                        :while-agenda-tokens-left
+                        (pos? (get-counters card :agenda))
+
+                        :while-virus-tokens-left
+                        (pos? (get-counters card :virus))
+
+                        :while-2-virus-tokens-left
+                        (>= (get-counters card :virus) 2)
+
+                        :if-abilities-available
+                        (pos? (+ (count (:corp-abilities card))
+                                 (count (:runner-abilities card))
+                                 (count (remove #(or (starts-with? (:label % "") "Toggle auto-resolve on")
+                                                     (ends-with? (:label % "") "(start of turn)"))
+                                                (:abilities card)))))
+
+                        :for-agendas
+                        (or (some #(= "score" %) (action-list card))          ; can score
+                            (not (zero? (get-in @game-state [side :click])))) ; clicks left
+
+                        :forever true
+
+                        false)]
+    (when-not keep-menu-open (close-abilities c-state))
+    keep-menu-open))
+
+
 (defn runner-abs [card c-state runner-abilities subroutines title]
   (when (:runner-abilities @c-state)
     [:div.panel.blue-shade.runner-abilities {:style {:display "inline"}}
+    [:button.win-right {:on-click #(close-abilities c-state) :type "button"} "✘"]
      (when (or (seq runner-abilities)
                (seq subroutines))
        [:span.float-center "Abilities:"])
-     (map-indexed
-       (fn [i ab]
-         [:div {:key i
-                :on-click #(send-command "runner-ability" {:card card
-                                                           :ability i})}
-          (render-icons (:label ab))])
-       runner-abilities)
+     (list-abilities :runner card c-state runner-abilities)
      (when (seq subroutines)
-       [:div {:on-click #(send-command "system-msg"
-                                       {:msg (str "indicates to fire all unbroken subroutines on " title)})}
+       [:div {:on-click #(do (send-command "system-msg"
+                                       {:msg (str "indicates to fire all unbroken subroutines on " title)})
+                                       (close-abilities c-state))}
         "Let all subroutines fire"])
      (when (seq subroutines)
        [:span.float-center "Subroutines:"])
@@ -729,51 +812,50 @@
 (defn corp-abs [card c-state corp-abilities]
   (when (:corp-abilities @c-state)
     [:div.panel.blue-shade.corp-abilities {:style {:display "inline"}}
+    [:button.win-right {:on-click #(close-abilities c-state) :type "button"} "✘"]
      (when (seq corp-abilities)
        [:span.float-center "Abilities:"])
-     (map-indexed
-       (fn [i ab]
-         [:div {:on-click #(send-command "corp-ability" {:card card
-                                                         :ability i})}
-          (render-icons (:label ab))])
-       corp-abilities)]))
+     (list-abilities :corp card c-state corp-abilities)]))
 
 (defn card-abilities [card c-state abilities subroutines]
   (let [actions (action-list card)
         dynabi-count (count (filter :dynamic abilities))]
     (when (and (:abilities @c-state)
+               (or (nil? (:keep-menu-open @c-state))
+                   (check-keep-menu-open card c-state))
                (or (pos? (+ (count actions)
                             (count abilities)
                             (count subroutines)))
                    (some #{"derez" "rez" "advance" "trash"} actions)
                    (= type "ICE")))
       [:div.panel.blue-shade.abilities {:style {:display "inline"}}
+      [:button.win-right {:on-click #(close-abilities c-state) :type "button"} "✘"]
        (when (seq actions)
          [:span.float-center "Actions:"])
        (when (seq actions)
          (map-indexed
            (fn [i action]
-             [:div {:key i
-                    :on-click #(do (send-command action {:card card}))}
-              (capitalize action)])
-           actions))
+             (let [keep-menu-open (case action
+                                    "derez" false
+                                    "rez" :if-abilities-available
+                                    "trash" false
+                                    "advance" :for-agendas
+                                    "score" false
+                                    false)]
+               [:div {:key i
+                      :on-click #(do (send-command action {:card card})
+                                     (if keep-menu-open
+                                       (swap! c-state assoc :keep-menu-open keep-menu-open)
+                                       (close-abilities c-state)))}
+                (capitalize action)]))
+             actions))
        (when (seq abilities)
          [:span.float-center "Abilities:"])
        (when (seq abilities)
-         (map-indexed
-           (fn [i ab]
-             (if (:dynamic ab)
-               [:div {:key i
-                      :on-click #(send-command "dynamic-ability" (assoc (select-keys ab [:dynamic :source :index])
-                                                                        :card card))}
-                (render-icons (:label ab))]
-               [:div {:key i
-                      :on-click #(send-command "ability" {:card card
-                                                          :ability (- i dynabi-count)})}
-                (render-icons (:label ab))]))
-           abilities))
+         (list-abilities :ability card c-state abilities))
        (when (seq (remove :fired subroutines))
-         [:div {:on-click #(send-command "unbroken-subroutines" {:card card})}
+         [:div {:on-click #(do (send-command "unbroken-subroutines" {:card card})
+                               (close-abilities c-state))}
           "Fire unbroken subroutines"])
        (when (seq subroutines)
          [:span.float-center "Subroutines:"])
@@ -781,8 +863,9 @@
          (map-indexed
            (fn [i sub]
              [:div {:key i
-                    :on-click #(send-command "subroutine" {:card card
-                                                           :subroutine i})}
+                    :on-click #(do (send-command "subroutine" {:card card
+                                                           :subroutine i})
+                                                           (close-abilities c-state))}
               [:span (cond (:broken sub)
                            {:class :disabled
                             :style {:font-style :italic}}

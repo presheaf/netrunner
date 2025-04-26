@@ -597,6 +597,7 @@
                                   (fn [state side card]
                                     ((constantly false)
                                      (toast state :corp "Cannot advance cards this turn due to Efficiency Committee." "warning")))))
+                :keep-open :while-agenda-tokens-left
                 :msg "gain [Click][Click]"}]})
 
 (define-card "Elective Upgrade"
@@ -623,6 +624,7 @@
    :interactive (req true)
    :abilities [{:cost [:click 1 :agenda 1]
                 :msg "draw 5 cards"
+                :keep-open :while-agenda-tokens-left
                 :effect (effect (draw 5))}]})
 
 (define-card "Explode-a-palooza"
@@ -733,6 +735,7 @@
 (define-card "Gila Hands Arcology"
   {:abilities [{:cost [:click 2]
                 :msg "gain 3 [Credits]"
+                :keep-open :while-2-clicks-left
                 :effect (effect (gain-credits 3))}]})
 
 (define-card "Gish Gallop"
@@ -1252,6 +1255,7 @@
 (define-card "Private Security Force"
   {:abilities [{:req (req tagged)
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :effect (effect (damage eid :meat 1 {:card card}))
                 :msg "do 1 meat damage"}]})
 
@@ -1292,6 +1296,7 @@
   {:silent (req true)
    :effect (effect (add-counter card :agenda (max 0 (- (get-counters card :advancement) 3))))
    :abilities [{:cost [:agenda 1]
+                :keep-open false
                 :prompt "Choose a card"
                 :label "Search R&D and add 1 card to HQ"
                 ;; we need the req or the prompt will still show
@@ -1312,7 +1317,7 @@
                   (check-winner state side)))})
 
 (define-card "Project CAMB"
-  {:advanceable :false
+  {:advanceable :if-five-points
    :install-state :face-up
    :events [{:event :corp-turn-ends
              :req (req (installed? (get-card state card)))
@@ -1414,6 +1419,7 @@
   {:silent (req true)
    :effect (effect (add-counter card :agenda (- (get-counters card :advancement) 3)))
    :abilities [{:cost [:agenda 1]
+                :keep-open false
                 :label "Add 1 card from Archives to HQ"
                 :prompt "Choose a card in Archives to add to HQ"
                 :show-discard true
@@ -1441,6 +1447,7 @@
                                (has-subtype? current-ice "Bioroid")
                                (= :approach-ice (:phase run))))
                 :cost [:agenda 1]
+                :keep-open :while-agenda-tokens-left
                 :msg (str "make the approached piece of Bioroid ICE gain \"[Subroutine] End the run\""
                           "after all its other subroutines for the remainder of this run")
                 :effect  (effect (add-extra-sub! (get-card state current-ice)
@@ -1726,6 +1733,7 @@
 
 (define-card "Restructured Datapool"
   {:abilities [{:cost [:click 1]
+                :keep-open :while-clicks-left
                 :trace {:base 3
                         :successful {:msg "give the Runner 1 tag"
                                      :async true

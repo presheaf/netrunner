@@ -907,6 +907,7 @@
   (auto-icebreaker {:abilities [(break-sub 1 1 "All")
                                 (strength-pump 1 1)
                                 {:cost [:click 1]
+                                 :keep-open :while-clicks-left
                                  :msg "place 1 virus counter"
                                  :effect (effect (add-counter card :virus 1))}]
                     :events [{:event :encounter-ice-ends
@@ -1441,6 +1442,7 @@
               (assoc e :event :corp-trash)]
      :abilities [{:async true
                   :cost [:click 1 :virus 1]
+                  :keep-open :while-virus-tokens-left
                   :msg "force the Corp to trash the top card of R&D"
                   :effect (effect (mill :corp eid :corp 1))}]}))
 
@@ -1466,6 +1468,7 @@
              :silent (req true)
              :effect (effect (add-counter card :virus 1))}]
    :abilities [{:cost [:click 1 :virus 2]
+                :keep-open :while-2-virus-tokens-left
                 :req (req (pos? (count (:hand corp))))
                 :msg "force the Corp to trash 1 card from HQ"
                 :async true
@@ -2094,10 +2097,7 @@
                          (can-host? %)
                          (rezzed? %))}
    :effect (req (when-let [h (:host card)]
-                  (update! state side (assoc-in card [:special :installing] true))
-                  (update-ice-strength state side h)
-                  (when-let [card (get-card state card)]
-                    (update! state side (update-in card [:special] dissoc :installing)))))
+                  (update-ice-strength state side h)))
    :constant-effects [{:type :ice-strength
                        :req (req (same-card? target (:host card)))
                        :value (req (- (get-virus-counters state card)))}]
@@ -2112,9 +2112,6 @@
                             (<= (:current-strength target) 0)))
              :async true
              :effect (req (unregister-events state side card)
-                          (when (get-in card [:special :installing])
-                            (update! state side (update-in card [:special] dissoc :installing))
-                            (trigger-event state side :runner-install card))
                           (trash state side eid target {:unpreventable true}))
              :msg (msg "trash " (:title target))}]})
 
@@ -2470,6 +2467,7 @@
                 :async true
                 :effect (effect (resolve-ability
                                   {:cost [:click 1]
+                                   :keep-open :while-clicks-left
                                    :prompt "Choose a program to install on Scheherazade from your grip"
                                    :choices {:card #(and (program? %)
                                                          (runner-can-install? state side % false)

@@ -197,6 +197,7 @@
    :effect (effect (add-counter card :power (* 2 target)))
    :events [(trash-on-empty :power)]
    :abilities [{:cost [:power 1]
+                :keep-open :while-power-tokens-left
                 :msg "look at the top card of Stack"
                 :optional
                 {:prompt (msg "Add " (:title (first (:deck runner))) " to bottom of Stack?")
@@ -1202,8 +1203,11 @@
              :msg (msg "gain " (get-agenda-points state :runner target) " [Credits]")
              :effect (effect (gain-credits (get-agenda-points state :runner target)))}]})
 
-(letfn [(target-in-rd-or-hq [t]
-          (#{:deck :hand} (first (:previous-zone t))))]
+(letfn [(target-in-central [t]
+          (or (#{:deck :hand} (first (:previous-zone t)))
+              (= [:servers :hq :content] (:previous-zone t))
+              (= [:servers :rd :content] (:previous-zone t))
+              (= [:servers :archives :content] (:previous-zone t))))]
   (define-card "Human Rights Riot"
     {:implementation "Ability can be triggered manually in case of bugs."
      :abilities [{:label "gain 1 [Credit] and force the Corp to trash a random card from HQ"
@@ -1214,7 +1218,8 @@
                                (let [card-to-trash (first (shuffle (:hand corp)))]
                                  (trash state :corp eid card-to-trash nil)))}]
      :events [{:event :trash-during-access
-               :req (req (first-event? state side :trash-during-access #(target-in-rd-or-hq (first %))))
+               :req (req (first-event? state side :trash-during-access #(target-in-central (first %))))
+               :once :per-turn
                :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
                :async true
                :effect (req (gain-credits state :runner 1)
@@ -1537,6 +1542,7 @@
                 :label "Install a non-virus program on London Library"
                 :makes-proghw-grip-install true
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :prompt "Select a non-virus program to install on London Library from your grip"
                 :choices {:card #(and (program? %)
                                       (not (has-subtype? % "Virus"))
@@ -1545,6 +1551,7 @@
                 :effect (effect (runner-install eid target {:host-card card :ignore-install-cost true}))}
                {:label "Add a program hosted on London Library to your Grip"
                 :cost [:click 1]
+                :keep-open :while-clicks-left
                 :choices {:req (req (same-card? card (:host target)))}
                 :msg (msg "add " (:title target) " to their Grip")
                 :effect (effect (move target :hand))}]
@@ -2011,6 +2018,7 @@
      :abilities [{:async true
                   :label "Host a program or piece of hardware"
                   :cost [:click 1]
+                  :keep-open :while-clicks-left
                   :prompt "Select a card to host on Personal Workshop"
                   :choices {:card #(and (or (program? %)
                                             (hardware? %))
@@ -2740,6 +2748,7 @@
     {:flags {:drip-economy true}  ; not technically drip economy, but has an interaction with Drug Dealer
      :abilities [{:label "Host a resource or piece of hardware"
                   :cost [:click 1]
+                  :keep-open :while-clicks-left
                   :prompt "Select a card to host on The Supplier"
                   :choices {:card #(and (or (hardware? %)
                                             (resource? %))
@@ -2868,6 +2877,7 @@
   {:abilities [{:prompt "Choose a piece of Hardware" :msg (msg "add " (:title target) " to their Grip")
                 :choices (req (cancellable (filter hardware? (:deck runner)) :sorted))
                 :cost [:click 2]
+                :keep-open :while-2-clicks-left
                 :effect (effect (trigger-event :searched-stack nil)
                                 (shuffle! :deck)
                                 (move target :hand))}]})
