@@ -346,12 +346,6 @@
                             :effect (effect (continue-ability (card-def target) target nil))}
               :no-ability {:effect (effect (clear-wait-prompt :runner))}}})
 
-(define-card "Blatant Graft"
-  {:implementation "Shuffling into R&D not enforced"
-   :dare {:once :per-turn
-          :msg "reveal Blatant Graft from HQ"
-          :effect (req)}})
-
 (define-card "Brain Rewiring"
   {:async true
    :effect (effect (show-wait-prompt :runner "Corp to use Brain Rewiring")
@@ -668,6 +662,30 @@
                 :msg (msg "place 1 advancement tokens on " (card-str state target))
                 :once :per-turn
                 :effect (effect (add-prop target :advance-counter 1))}]})
+
+(define-card "Flood the Zone"
+  {:dare {:once :per-turn
+          :async true
+          :label "Reveal Flood the Zone from HQ"
+          :msg "reveals Flood the Zone from HQ"
+          :effect (req (let [id (get-card state (:identity corp))
+                             c (get-card state card)]
+                         (system-msg state side (str "reveals " (:title c) " from HQ"))
+                         (register-events
+                          state side id
+                          [{:event :corp-turn-begins
+                            :unregister-once-resolved true
+                            :effect (req (when (some #(= (:cid c) (:cid %)) (get-in @state [:corp :hand]))
+                                           (system-msg state :corp (str "shuffles " (:title c) " into R&D, gains 2[credit], and draws 1 card"))
+                                           (move state :corp c :deck)
+                                           (shuffle! state :corp :deck)
+                                           (gain-credits state :corp 2)
+                                           (draw state :corp 1)))}])
+                         (continue-ability
+                                     state :runner
+                                     {:prompt "The Corp has Flood the Zone in HQ"
+                                      :choices ["I understand"]}
+                                     card nil)))}})
 
 (define-card "Flower Sermon"
   {:silent (req true)

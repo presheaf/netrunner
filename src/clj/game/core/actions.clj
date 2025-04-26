@@ -820,7 +820,7 @@
   [state side {:keys [card] :as args}]
   (let [card (get-card state card)]
     (if card
-      (swap! state assoc-in [:corp :install-list] (if (= (:title card) "Blatant Graft")
+      (swap! state assoc-in [:corp :install-list] (if (= (:title card) "Flood the Zone")
                                                     (conj (installable-servers state card) "Dare")
                                                     (installable-servers state card)))
       (swap! state dissoc-in [:corp :install-list]))))

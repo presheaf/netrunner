@@ -1048,11 +1048,12 @@
        :abilities [{:cost [:virus 4]
                     :prompt "Choose a sabotage to play"
                     :choices (req (cancellable (get-in (get-card state card) [:special :mako-events]) :sorted))
-                    :msg (msg "add the created copy of " target " to hand, and should take a click to play it for free")
+                    :msg (msg "add the created copy of " target " to hand, and has gained a click to play it")
                     :effect (effect (update! (assoc-in (get-card state card) [:special :mako-events]
                                                        (vec (remove #{target} (set (get-in (get-card state card) [:special :mako-events]))))))
 
                                     (add-counter (get-card state card) :virus (- (get-counters (get-card state card) :virus)))
+                                    (gain :click 1)
                                     (command-summon [target] true))}]})))
 
 (define-card "MaxX: Maximum Punk Rock"
