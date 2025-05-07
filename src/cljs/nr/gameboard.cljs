@@ -1,12 +1,12 @@
 (ns nr.gameboard
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [chan put! <!] :as async]
-            [clojure.string :as s :refer [capitalize includes? join lower-case split start-with? ends-with?]]
+            [clojure.string :as s :refer [capitalize includes? join lower-case split starts-with? ends-with?]]
             [clojure.set :refer [intersection]]
             [differ.core :as differ]
             [game.core.card :refer [active? has-subtype? asset? rezzed? ice? corp?
                                     faceup? installed? same-card? get-counters]]
-            [jinteki.utils :refer [str->int is-tagged?] :as utils]
+            [jinteki.utils :refer [str->int is-tagged? add-cost-to-label] :as utils]
             [jinteki.cards :refer [all-cards]]
             [nr.appstate :refer [app-state]]
             [nr.auth :as auth]
@@ -245,9 +245,10 @@
           (send-command "ability" {:card card :ability 0})
           (send-command (first actions) {:card card}))))))
 
+
 (defn close-abilities
   [c-state]
-  (swap! c-state dissoc :abilities :corp-abilities :runner-abilities :keep-menu-open))          
+  (swap! c-state dissoc :abilities :corp-abilities :runner-abilities :keep-menu-open))
 
 (defn handle-card-click [{:keys [type zone root] :as card} c-state]
   (let [side (:side @game-state)]
@@ -829,7 +830,12 @@
                    (some #{"derez" "rez" "advance" "trash"} actions)
                    (= type "ICE")))
       [:div.panel.blue-shade.abilities {:style {:display "inline"}}
-      [:button.win-right {:on-click #(close-abilities c-state) :type "button"} "✘"]
+       [:button.win-right
+        {:type     "button"
+         :on-click (fn [e]
+                     (.stopPropagation e)
+                     (close-abilities c-state))}
+        "✘"]
        (when (seq actions)
          [:span.float-center "Actions:"])
        (when (seq actions)
