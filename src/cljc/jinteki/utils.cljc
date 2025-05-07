@@ -59,3 +59,22 @@
        (s/split $ #"[ \t\n\x0B\f\r!\"#$%&'()*+,-./:;<=>?@\\\[\]^_`{|}~]+")
        (filter seq $)
        (s/join sep $)))))
+
+(defn -make-label
+  "Looks into an ability for :label, if it doesn't find it, capitalizes :msg instead."
+  [ability]
+  (s/capitalize (or (:label ability)
+                      (and (string? (:msg ability))
+                           (:msg ability))
+                      "")))
+
+(defn add-cost-to-label
+  [ability]
+  (let [label (-make-label ability)
+        cost-label (:cost-label ability)]
+    (cond
+      (and (not (s/blank? cost-label))
+           (not (s/blank? label)))
+      (str cost-label ": " label)
+      :else
+      label)))
