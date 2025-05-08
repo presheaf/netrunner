@@ -1279,7 +1279,7 @@
 (define-card "Rutherford Grid"
   {:events [{:event :pre-init-trace
              :req (req this-server)
-             :effect (effect (init-trace-bonus 2))}]})
+             :effect (effect (init-trace-bonus 3))}]})
 
 (define-card "Ryon Knight"
   {:abilities [{:label "Do 1 brain damage"
