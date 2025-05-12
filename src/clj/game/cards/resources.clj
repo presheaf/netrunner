@@ -3032,7 +3032,7 @@
                                    :effect (effect
                                             (add-counter card :power 1)
                                             (trash eid (assoc target :seen true) nil))}}})
-(define-card "Samsara"
+(define-card "Vipaka"
   {:constant-effects [{:type :breaker-strength
                        :req (req (has-subtype? target "Klesha"))
                        :value 1}]
@@ -3042,11 +3042,11 @@
              :async true
              :req (req (not (install-locked? state :runner)))
              :effect (effect (runner-install :runner eid card nil))}]
-   :corp-abilities [{:label "Trash Samsara"
+   :corp-abilities [{:label "Trash Vipaka"
                      :async true
                      :cost [:click 1]
                      :req (req (= :corp side))
-                     :effect (effect (system-msg :corp "spends [Click] to trash Samsara")
+                     :effect (effect (system-msg :corp "spends [Click] to trash Vipaka")
                                      (trash :corp eid card nil))}]})
 
 (define-card "Snikr"
@@ -3054,6 +3054,6 @@
              :async true
              :effect (req (let [num-trashes (count (filter #(= "Corp" (:side %)) (map first (turn-events state :runner :runner-trash))))]
                             (if (> num-trashes 0)
-                              (do (system-msg (str "uses Snikr to draw 1 card"))
+                              (do (system-msg state side (str "uses Snikr to draw 1 card"))
                                   (draw state side eid 1 nil))
                               (effect-completed state side eid))))}]})
