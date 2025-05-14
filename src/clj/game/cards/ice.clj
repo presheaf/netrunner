@@ -1044,10 +1044,10 @@
                   :cancel-effect (effect (system-msg "declines to play a transaction with Dark Pool")
                                          (effect-completed eid))
                   :effect (effect (play-instant eid target nil))}
-                 {:label "End the run if the Corp has 25[Credits]"
-                  :msg (msg (when (< (:credit corp) 25) "not ") "end the run")
+                 {:label "End the run if the Corp has 20[Credits]"
+                  :msg (msg (when (< (:credit corp) 20) "not ") "end the run")
                   :async true
-                  :effect (req (if (< (:credit corp) 25)
+                  :effect (req (if (< (:credit corp) 20)
                                  (effect-completed state side eid)
                                  (end-run state :corp eid card)))}]})
 
@@ -3699,3 +3699,16 @@
                   :async true
                   :effect (effect (gain-credits :corp 1)
                                   (end-run :corp eid card))}]})
+(define-card "Almenara"
+  {:events [{:event :pass-ice
+             :optional
+             {:req (req (and (> (get-counters card :power) 0)
+                             (> (:credit corp) 0)))
+              :prompt "Give the Runner 1 tag by paying 1[credit] and a power counter?"
+              :yes-ability {:async true
+                            :cost [:credit 1]
+                            :effect (effect (add-counter card :power -1)
+                                            (gain-tags :runner eid 1))
+                            :msg (msg "give the Runner 1 tag")}}}]
+   :effect (effect (add-counter card :power 1))
+   :subroutines [end-the-run]})

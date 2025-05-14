@@ -2600,12 +2600,14 @@
                     card))}]})
 
 (define-card "Study Guide"
-  {:abilities [(break-sub 1 1 "Code Gate")
-               {:cost [:credit 2]
-                :msg "place 1 power counter"
-                :effect (effect (add-counter card :power 1)
-                                (update-breaker-strength card))}]
-   :strength-bonus (req (get-counters card :power))})
+  (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
+                                {:cost [:credit 2]
+                                 :msg "place 1 power counter"
+                                 :req (req true)
+                                 :pump 1
+                                 :effect (effect (add-counter card :power 1)
+                                                 (update-breaker-strength card))}]
+                    :strength-bonus (req (get-counters card :power))}))
 
 (define-card "Sūnya"
   {:abilities [(break-sub 2 0 "Sentry")]
@@ -2905,15 +2907,10 @@
 (defn- mako-breaker
   [subtype boost-cost boost-amount counter-cost]
   (auto-icebreaker {:abilities [(break-sub 0 1 subtype {:req (req (pos? (get-counters (get-card state current-ice) :virus)))})
-                                ;; (break-sub 4 0 "Sentry" {:msg "hei" :effect (effect (pump-ice current-ice -1) )})
-                                {:cost [:credit counter-cost]
-                                 :label "Place a virus counter"
-                                 :req (req (and (rezzed? current-ice)
-                                                (>= (get-strength (get-card state card))
-                                                    (get-strength (get-card state current-ice)))))
-                                 :msg (msg "place a virus counter on " (:title current-ice))
-                                 :effect (effect (add-counter (get-card state current-ice) :virus 1))}
-                                (strength-pump boost-cost boost-amount)]}))
+                                (strength-pump boost-cost boost-amount)
+                                (break-sub counter-cost 0 subtype {:label "place 1 virus counter and break any number of subroutines"
+                                                                   :additional-ability {:msg (msg "place a virus counter on " (:title current-ice))
+                                                                                        :effect (effect (add-counter (get-card state current-ice) :virus 1))}})]}))
 
 (define-card "Dvesha"
   (mako-breaker "Barrier" 1 1 3))
