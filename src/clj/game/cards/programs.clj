@@ -2600,12 +2600,14 @@
                     card))}]})
 
 (define-card "Study Guide"
-  {:abilities [(break-sub 1 1 "Code Gate")
-               {:cost [:credit 2]
-                :msg "place 1 power counter"
-                :effect (effect (add-counter card :power 1)
-                                (update-breaker-strength card))}]
-   :strength-bonus (req (get-counters card :power))})
+  (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate")
+                                {:cost [:credit 2]
+                                 :msg "place 1 power counter"
+                                 :req (req true)
+                                 :pump 1
+                                 :effect (effect (add-counter card :power 1)
+                                                 (update-breaker-strength card))}]
+                    :strength-bonus (req (get-counters card :power))}))
 
 (define-card "Sūnya"
   {:abilities [(break-sub 2 0 "Sentry")]
