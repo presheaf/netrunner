@@ -1190,9 +1190,8 @@
 (define-card "For the Laughs"
   {:async true
    :makes-run true
-   :msg "draw a card and make a run on HQ"
-   :effect (req (wait-for (draw state side 1 nil)
-                          (make-run state side eid :hq nil card)))
+   :msg "make a run on HQ"
+   :effect (effect (make-run eid :hq nil card))
    :interactions {:access-ability {:label "Trash at no cost"
                                    :req (req (and (not (get-in @state [:per-run (:cid card)]))
                                                   run))
@@ -1296,7 +1295,7 @@
                                                                     :ignore-all-cost true})
                                           (if async-result
                                             (let [installed-card async-result]
-                                              (add-counter state side installed-card :credit 6)
+                                              (add-counter state side installed-card :credit 7)
                                               (flip-card state side (get-card state installed-card) flip-info)
                                               (effect-completed state side eid))
                                             (effect-completed state side eid))))))}]
@@ -2868,8 +2867,7 @@
                   (command-summon state :runner ["Easy Mark"] true)))})
 
 (define-card "Downsizing"
-  {:implementation "Erroneously implemented as credit loss rather than additional cost"
-   :events [{:event :purge
+  {:events [{:event :purge
              :msg "force the Corp to lose 1 [Credits]"
              :async true
              :effect (req (lose-credits state :corp eid 1 nil))}

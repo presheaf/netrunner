@@ -1222,9 +1222,19 @@
                :once :per-turn
                :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
                :async true
-               :effect (req (gain-credits state :runner 1)
-                            (let [card-to-trash (first (shuffle (:hand corp)))]
-                              (trash state :corp eid card-to-trash nil)))}]}))
+               :effect (effect (gain-credits 1)
+                            (show-wait-prompt :runner "Corp to trash 1 card from HQ")
+                             (continue-ability
+                               {:prompt "Choose a card in HQ to discard"
+                                :player :corp
+                                :choices {:all true
+                                          :card #(and (in-hand? %)
+                                                      (corp? %))}
+                                :msg "force the Corp to trash 1 card from HQ"
+                                :async true
+                                :effect (effect (clear-wait-prompt :runner)
+                                                (trash :corp eid target nil))}
+                               card nil))}]}))
 
 (define-card "Hunting Grounds"
   {:implementation "Use prevention ability during approach, after ice is rezzed"

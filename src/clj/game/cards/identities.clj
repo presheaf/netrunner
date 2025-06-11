@@ -1683,8 +1683,8 @@
 
 (define-card "The Horde: Defiant Disenfrancistos"
   (let [gain-credit-ab
-        {:effect (effect (gain-credits 1))
-         :msg "gain 1 [Credit]"}
+        {:effect (effect (gain-credits 2))
+         :msg "gain 2[Credit]"}
 
         draw-card-ab
         {:effect (effect (draw eid 1 nil))

@@ -935,7 +935,8 @@
                       (set-current-ice state)))}}}]})
 
 (define-card "Midway Station Grid"
-  {:constant-effects [{:type :break-sub-additional-cost
+  {:implementation "Requires icebreakers to manually resolve sub breaking, and will not work when 'break-all'/'match-strength-and-break-all' abilities are used"
+   :constant-effects [{:type :break-sub-additional-cost
                        :req (req (and ; The card is an icebreaker
                                       (has-subtype? target "Icebreaker")
                                       ; and is using a break ability

@@ -1205,11 +1205,11 @@
                        ;; :req (req (pos? (get-counters (get-card state target) :virus)))
                        :value (req (- (get-counters (get-card state target) :virus)))}]
    :effect (effect (update-all-ice))
+   :in-play [:memory 1]
    :events [{:event :counter-added
              :req (req (and (ice? target)
                             (pos? (get-counters (get-card state card) :virus))))
               :effect (effect (update-all-ice))}
-
 
             {:event :purge
              :req (req (<= 1 (:credit corp)))
