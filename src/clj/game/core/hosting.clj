@@ -60,7 +60,8 @@
                         (:corp-abilities tdef)
                         (:runner-abilities tdef)))
            (card-init state side c {:resolve-effect false
-                                    :init-data true})))
+                                    :init-data true
+                                    :suppress-events-constants true})))
        (when (:events tdef)
          (when (and installed (:recurring tdef))
            (unregister-events state side target)

@@ -285,7 +285,11 @@
 (defn can-advance?
   "Checks if the corp can advance cards"
   [state side card]
-  (check-flag-types? state side card :can-advance [:current-turn :persistent]))
+  (and (check-flag-types? state side card :can-advance [:current-turn :persistent])
+       (or (can-be-advanced? (get-card state card))
+           ;; TODO: This is not really the place for it, but I am not 100% sure on the distinctions between "cannot be advanced" and "you cannot advance".
+           (and (= :if-five-points (:advanceable (get-card state card)))
+                (> (:agenda-point (:corp @state)) 4)))))
 
 (defn can-score?
   "Checks if the corp can score cards"

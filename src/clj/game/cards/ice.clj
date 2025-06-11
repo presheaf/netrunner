@@ -76,6 +76,16 @@
   ([cost qty args]
    (break-sub [:click cost {:action :bioroid-cost}] qty nil args)))
 
+(defn credit-break
+  ([cost qty] (credit-break cost qty nil))
+  ([cost qty args]
+   (break-sub [:credit cost {}] qty nil args)))
+
+(defn discard-break
+  ([cost qty] (discard-break cost qty nil))
+  ([cost qty args]
+   (break-sub [:trash-from-hand cost "a label maybe"] qty nil args)))
+
 ;;; General subroutines
 (def end-the-run
   "Basic ETR subroutine"
@@ -392,8 +402,22 @@
   [note ice-def]
   (assoc ice-def :implementation note))
 
-;; Card definitions
+;;; Flip ice helper functions
+(defn flip-change-subtypes
+  "new-types, old-types are both arrays"
+  [state side card new-types old-types]
+  (update! state side (assoc card
+                              ;; :subtype-target new-types   ;; This would be necessary for marking modified types in the frontend
+                             :subtype (apply combine-subtypes true
+                                                        (apply remove-subtypes (:subtype card) old-types)
+                                                        new-types)))
+  (update-ice-strength state side card))
 
+(defn flipped-ice-strength-toggle
+  [faceup-strength facedown-strength]
+  (req (if (:is-flipped card) (- facedown-strength faceup-strength) 0)))
+
+;; Card definitions
 (define-card "Afshar"
   (let [breakable-fn (req (if (= :hq (second (:zone card)))
                             (empty? (filter #(and (:broken %) (:printed %)) (:subroutines card)))
@@ -489,6 +513,10 @@
                   :msg "do 1 net damage and remove all hosted advancement counters"
                   :effect (effect (add-prop target :advance-counter (- (get-counters card :advancement)))
                                   (damage eid :net 1 {:card (get-card state card)}))}})
+(define-card "Anklebiter"
+  {:effect take-bad-pub
+   :subroutines [add-runner-card-to-grip
+                 end-the-run]})
 
 (define-card "Archangel"
   {:flags {:rd-reveal (req true)}
@@ -753,6 +781,47 @@
   {:subroutines [(trace-ability 3 (gain-credits-sub 3))
                  (trace-ability 2 end-the-run)]})
 
+(define-card "Caterpillar"
+  (let [flip-info  {:front-face-code "51009"
+                    :back-face-code "51009_flip"
+                    :front-face-title "Caterpillar"
+                    :back-face-title "Monarch"
+                    :front-face-strength 1
+                    :back-face-strength 3
+                    :front-face-subtypes ["Mythic"]
+                    :back-face-subtypes ["Barrier" "AP"]
+                    :front-face-subs [{:label "Runner loses 1 [Credits]"
+                                       :msg "make the Runner lose 1 [Credits]"
+                                       :effect (effect (lose-credits :runner 1))}]
+                    :back-face-subs [(do-net-damage 1) end-the-run (do-net-damage 1)]}
+        set-subtypes-fn (fn [state side card]
+                          ;; This is called after being flipped, so if the card now is facedown, it should have the back face subtypes
+                         (if (:is-flipped card)
+                           (flip-change-subtypes state side card (:back-face-subtypes flip-info) (:front-face-subtypes flip-info))
+                           (flip-change-subtypes state side card (:front-face-subtypes flip-info) (:back-face-subtypes flip-info))))
+        update-subs-fn (fn [state side card]
+                         (let [subs-to-add (if (:is-flipped card) (:back-face-subs flip-info) (:front-face-subs flip-info))]
+                              (remove-subs! state side card)
+                              (doseq [sub subs-to-add]
+                                (add-sub! state side (get-card state card) sub))))
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info)
+                                       (set-subtypes-fn (get-card state card))
+                                       (update-subs-fn (get-card state card)))}]
+    {:strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
+     :abilities [flip-card-abi]
+     :events [{:event :corp-turn-begins
+               :req (req (not (:is-flipped card)))
+               :effect (req (add-counter state side card :power -1)
+                            (when (= 0 (get-counters (get-card state card) :power))
+                              (continue-ability state side flip-card-abi (get-card state card) nil)))}]
+     :flags {:cannot-lower-strength (req (:is-flipped (get-card state card)))}
+     ; Necessary if the card is flipped while derezzed
+     :effect (req (when (not (:is-flipped card))
+                    (add-counter state side card :power 3))
+                  (update-subs-fn state side (get-card state card)))}))
+
 (define-card "Cell Portal"
   {:subroutines [{:msg "make the Runner approach the outermost ICE"
                   :effect (req (let [server (central->name (first (:server run)))]
@@ -947,6 +1016,40 @@
                            (and (not (same-card? card target))
                                 (= (card->server state card) (card->server state target)))))
                :effect (effect (update-ice-strength card))}])})
+
+(define-card "Curator"
+  {:on-encounter {:msg "increase the trash cost of assets by 2 for the remainder of this run"
+                  :effect (req (register-floating-effect
+                                state side card
+                                {:type :trash-cost
+                                 :duration :end-of-run
+                                 :req (req (asset? target))
+                                 :value 2}))}
+   :subroutines [{:label "Runner loses [click], if able, otherwise end the run"
+                  :msg "force the Runner to lose [click] if able, otherwise end the run"
+                  :effect (req (if (pos? (:click runner))
+                                 (do (lose state :runner :click 1)
+                                     (effect-completed state side eid))
+                                 (end-run state :corp eid card)))}]})
+
+(define-card "Dark Pool"
+  {:strength-bonus (req (quot (:credit corp) 10))
+   :subroutines [{:label "Search R&D for a transaction to play"
+                  :prompt "Choose a transaction"
+                  :msg (msg "play " (:title target) " from R&D, paying all costs")
+                  :choices (req (cancellable (filter #(and (operation? %)
+                                                           (has-subtype? % "Transaction"))
+                                                     (:deck corp)) :sorted))
+                  :async true
+                  :cancel-effect (effect (system-msg "declines to play a transaction with Dark Pool")
+                                         (effect-completed eid))
+                  :effect (effect (play-instant eid target nil))}
+                 {:label "End the run if the Corp has 20[Credits]"
+                  :msg (msg (when (< (:credit corp) 20) "not ") "end the run")
+                  :async true
+                  :effect (req (if (< (:credit corp) 20)
+                                 (effect-completed state side eid)
+                                 (end-run state :corp eid card)))}]})
 
 (define-card "Data Hound"
   (letfn [(dh-trash [cards]
@@ -1355,6 +1458,38 @@
                                  (do (system-msg state :runner "chooses to end the run")
                                      (end-run state :corp eid card))
                                  (damage state :runner eid :net 2 {:card card :unpreventable true})))}]})
+
+(define-card "Foxtrot"
+  (let [flip-info  {:front-face-code "51013"
+                    :back-face-code "51013_flip"
+                    :front-face-title "Foxtrot"
+                    :back-face-title "Blockade"
+                    :front-face-strength 4
+                    :back-face-strength 5
+                    :front-face-subtypes ["Sentry" "Tracer" "Observer"]
+                    :back-face-subtypes ["Barrier"]
+                    :front-face-subs [(tag-trace 4) (trace-ability 3 (do-meat-damage 2)) ]
+                    :back-face-subs [end-the-run end-the-run end-the-run]}
+        set-subtypes-fn (fn [state side card]
+                          ;; This is called after being flipped, so if the card now is facedown, it should have the back face subtypes
+                         (if (:is-flipped card)
+                           (flip-change-subtypes state side card (:back-face-subtypes flip-info) (:front-face-subtypes flip-info))
+                           (flip-change-subtypes state side card (:front-face-subtypes flip-info) (:back-face-subtypes flip-info))))
+        update-subs-fn (fn [state side card]
+                         (let [subs-to-add (if (:is-flipped card) (:back-face-subs flip-info) (:front-face-subs flip-info))]
+                              (remove-subs! state side card)
+                              (doseq [sub subs-to-add]
+                                (add-sub! state side (get-card state card) sub))))
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info)
+                                       (set-subtypes-fn (get-card state card))
+                                       (update-subs-fn (get-card state card)))}]
+    {:implementation "Must be manually flipped by clicking the card"
+     :strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
+     :abilities [flip-card-abi]
+     ; Necessary if the card is flipped while derezzed
+     :effect (req (update-subs-fn state side card))}))
 
 (define-card "Free Lunch"
   {:abilities [{:cost [:power 1]
@@ -1890,6 +2025,21 @@
                                     :not-self true}
                           :msg (msg "force the Runner to encounter " (card-str state target))})})
 
+(define-card "Kyuudoka"
+  {:additional-cost [:forfeit]
+   :subroutines [{:async true
+                  :label "Corp may draw 1 card"
+                  :effect (effect (continue-ability
+                                   {:optional
+                                    {:prompt "Draw 1 card?"
+                                     :yes-ability {:async true
+                                                   :msg "draw 1 card"
+                                                   :effect (effect (draw eid 1 nil))}}}
+                                   card nil))}
+                 (net-damage-with-sfx 1 "archer-trash")
+                 (net-damage-with-sfx 1 "archer-trash")
+                 end-the-run]})
+
 (define-card "Lab Dog"
   {:subroutines [{:label "Force the Runner to trash an installed piece of hardware"
                   :player :runner
@@ -2278,7 +2428,7 @@
 (define-card "Negotiator"
   {:subroutines [(gain-credits-sub 2)
                  trash-program]
-   :runner-abilities [(bioroid-break 2 1)]})
+   :runner-abilities [(credit-break 2 1)]})
 
 (define-card "Nerine 2.0"
   (let [sub {:label "Do 1 brain damage and Corp may draw 1 card"
@@ -3011,6 +3161,59 @@
                                    :msg "reduce cards accessed for this run by 1"
                                    :effect (effect (access-bonus :total -1))})]})
 
+(define-card "Talent Scout"
+  (let [etr-unless-runner-pay-per-tag   ; TODO: copy-paste of other stuff, but it's dynamic...
+        {:player :runner
+         :async true
+         :label (str "End the run unless the Runner pays 1 [Credits] per tag")
+         :prompt (str "End the run or pay 1 [Credits] per tag?")
+         :choices ["End the run"
+                   (str "Pay 1 [Credits] per tag")]
+         :effect (req (if (= "End the run" target)
+                        (do (system-msg state :corp
+                                        (str "uses " (:title card) " to end the run"))
+                            (end-run state :corp eid card))
+                        (wait-for (pay-sync state :runner card [:credit (count-tags state)])
+                                  (when async-result
+                                    (let [cost-str (str async-result
+                                                        " due to " (:title card)
+                                                        " subroutine")]
+                                      (system-msg state :runner cost-str)))
+                                  (effect-completed state side eid))))}
+        flip-info  {:front-face-code "51011"
+                    :back-face-code "51011_flip"
+                    :front-face-title "Talent Scout"
+                    :back-face-title "Red Carpet"
+                    :front-face-strength 2
+                    :back-face-strength 6
+                    :front-face-subtypes ["Code Gate" "Observer"]
+                    :back-face-subtypes ["Sentry" "Observer"]
+                    :front-face-subs [(end-the-run-unless-runner "takes 1 tag" "take 1 tag" (give-tags 1))
+                                      runner-loses-click]
+                    :back-face-subs [(give-tags 1) (give-tags 1) etr-unless-runner-pay-per-tag]}
+        set-subtypes-fn (fn [state side card]
+                          ;; This is called after being flipped, so if the card now is facedown, it should have the back face subtypes
+                         (if (:is-flipped card)
+                           (flip-change-subtypes state side card (:back-face-subtypes flip-info) (:front-face-subtypes flip-info))
+                           (flip-change-subtypes state side card (:front-face-subtypes flip-info) (:back-face-subtypes flip-info))))
+        update-subs-fn (fn [state side card]
+                         (let [subs-to-add (if (:is-flipped card) (:back-face-subs flip-info) (:front-face-subs flip-info))]
+                              (remove-subs! state side card)
+                              (doseq [sub subs-to-add]
+                                (add-sub! state side (get-card state card) sub))))
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info)
+                                       (set-subtypes-fn (get-card state card))
+                                       (update-subs-fn (get-card state card)))}]
+    {:strength-bonus (flipped-ice-strength-toggle (:front-face-strength flip-info) (:back-face-strength flip-info))
+     :abilities [flip-card-abi]
+     :events [(assoc flip-card-abi
+                     :event :corp-turn-begins
+                     :req (req (and tagged (not (:is-flipped card)))))]
+     ; Necessary if the card is flipped while derezzed
+     :effect (req (update-subs-fn state side card))}))
+
 (define-card "Tapestry"
   {:subroutines [runner-loses-click
                  {:async true
@@ -3025,6 +3228,29 @@
 
 (define-card "Taurus"
   (constellation-ice 2 trash-hardware))
+
+(define-card "Tenuki"
+  (let [sub (resolve-another-subroutine
+              #(has-subtype? % "AP")
+              "Resolve a subroutine on a rezzed AP ice")]
+    {:subroutines [sub]}))
+
+(define-card "Mastiff"
+  (let [sub {:player :runner
+             :async true
+             :label (str "Do 1 net damage unless the Runner pays 1 [Credits]")
+             :prompt (str "Suffer 1 net damage or pay 1 [Credits]?")
+             :choices ["Suffer 1 net damage"
+                       "Pay 1 [Credits]"]
+             :effect (req (if (= "Suffer 1 net damage" target)
+                            (continue-ability state side (do-net-damage 1) card nil)
+                            (pay-sync state :runner eid card [:credit 1])))}]
+    {:subroutines [sub sub sub]}))
+
+(define-card "Thicket"
+  {:subroutines [end-the-run
+                 end-the-run]
+   :runner-abilities [(discard-break 1 1)]})
 
 (define-card "Thimblerig"
   (let [ability {:optional
@@ -3187,6 +3413,18 @@
                  (do-net-damage 1)
                  (do-net-damage 1)]})
 
+(define-card "Tulpa"
+  {:strength-bonus (req
+                    (let [revs (:events run)
+                          click-losses (map #(second (first (second %))) (filter #(and (= :runner-lose (first %))
+                                                                                       (= :click (first (first (second %)))))
+                                                                                 revs))
+                          click-spends (map #(second (second %)) (filter #(= :runner-spent-click (first %))
+                                                                         revs))
+                          num-clicks (+ (apply + click-losses) (apply + click-spends))]
+                      (if (> num-clicks 0) 2 0)))
+   :subroutines [end-the-run]})
+
 (define-card "Turing"
   {:implementation "AI restriction not implemented"
    :subroutines [(end-the-run-unless-runner
@@ -3275,6 +3513,46 @@
 (define-card "Virgo"
   (constellation-ice 2 (give-tags 1)))
 
+(define-card "Vulcan 1.0"
+  (let [flip-info  {:front-face-code "51005"
+                    :back-face-code "51005_flip"
+                    :front-face-title "Vulcan 1.0"
+                    :back-face-title "Mind Maze"
+                    :front-face-strength 5
+                    :back-face-strength 9
+                    :front-face-subtypes ["Sentry" "AP" "Bioroid"]
+                    :back-face-subtypes ["Code Gate"]
+                    :front-face-subs [(do-brain-damage 1) (do-brain-damage 1)]
+                    :back-face-subs [end-the-run]}
+        set-subtypes-fn (fn [state side card]
+                          ;; This is called after being flipped, so if the card now is facedown, it should have the back face subtypes
+                         (if (:is-flipped card)
+                           (flip-change-subtypes state side card (:back-face-subtypes flip-info) (:front-face-subtypes flip-info))
+                           (flip-change-subtypes state side card (:front-face-subtypes flip-info) (:back-face-subtypes flip-info))))
+        update-subs-fn (fn [state side card]
+                         (let [subs-to-add (if (:is-flipped card) (:back-face-subs flip-info) (:front-face-subs flip-info))]
+                              (remove-subs! state side card)
+                              (doseq [sub subs-to-add]
+                                (add-sub! state side (get-card state card) sub))))
+        flip-card-abi {:label "flip this card"
+                       :msg "flip itself"
+                       :effect (effect (flip-card card flip-info)
+                                       (set-subtypes-fn (get-card state card))
+                                       (update-subs-fn (get-card state card)))}]
+    {:implementation "Can (but shouldn't need to) be manually flipped by clicking the card"
+     :events [{:event :pass-ice
+               :req (req (and (not (:is-flipped target))
+                              (same-card? card target)
+                              (empty? (remove :broken (:subroutines target)))))
+               :async true
+               :effect (effect (continue-ability flip-card-abi (get-card state card) nil))}]
+     :strength-bonus (req (if (:is-flipped card) (- (- (:back-face-strength flip-info) (:front-face-strength flip-info)) (count (:hand runner))) 0))
+     :abilities [flip-card-abi]
+     ; Necessary if the card is flipped while derezzed
+     :effect (req (update-subs-fn state side card))
+     :runner-abilities [(assoc (bioroid-break 1 1) ; TODO: not sure this req-ing works...
+                               :req (req (not (:is-flipped (get-card state card)))))]}))
+
 (define-card "Waiver"
   {:subroutines [(trace-ability
                    5 {:label "Reveal the grip and trash cards"
@@ -3290,7 +3568,7 @@
 (define-card "Waldemar 1.0"
   (let [ability {:req (req (and (ice? target)
                                 (has-subtype? target "Bioroid")))
-                 :effect (effect (reset-variable-subs card (subtype-ice-count corp "Bioroid") end-the-run))}]
+                 :effect (effect (reset-variable-subs card (min 6 (subtype-ice-count corp "Bioroid")) end-the-run))}]
     {:runner-abilities [(bioroid-break 1 1)]
      :events [(assoc ability :event :rez)
               (assoc ability :event :derez)]}))
@@ -3392,16 +3670,45 @@
                              :no-ability {:effect (effect (system-msg :corp (str "does not use Yagura to move the top card of R&D to the bottom")))}}}
                  (do-net-damage 1)]})
 
-(define-card "Zed 1.0"
-  {:implementation "Restriction on having spent [click] is not implemented"
-   :subroutines [(do-brain-damage 1)
-                 (do-brain-damage 1)]
-   :runner-abilities [(bioroid-break 1 1)]})
+(letfn [(brain-damage-if-bioroid-break [dmg]
+            {:label (str "Do " dmg " brain damage if the Runner has spent [click] to break a sub")
+             :async true
+             :msg (str "do " dmg " brain damage if the Runner has spent [click] to break a subroutine")
+             :effect (req (if (some #(and (= :runner-spent-click (first %))
+                                          (> (second (second %)) 0) ; number of clicks spent
+                                          ((set (first (second %))) :bioroid-cost))
+                                    (:events (:run @state)))
+                            (damage state side eid :brain dmg {:card card})
+                            (effect-completed state side eid)))})]
+  (define-card "Zed 1.0"
+    {:subroutines [(brain-damage-if-bioroid-break 1)
+                   (brain-damage-if-bioroid-break 1)]
+     :runner-abilities [(bioroid-break 1 1)]})
 
-(define-card "Zed 2.0"
-  {:implementation "Restriction on having spent [click] is not implemented"
-   :subroutines [trash-hardware
-                 trash-hardware
-                 (do-brain-damage 2)]
-   :runner-abilities [(bioroid-break 2 2)]})
+  (define-card "Zed 2.0"
+    {:subroutines [trash-hardware
+                   trash-hardware
+                   (brain-damage-if-bioroid-break 2)]
+     :runner-abilities [(bioroid-break 2 2)]}))
 
+(define-card "Billboard"
+  {:rez-cost-bonus (req (if (some #(has-subtype? % "Advertisement") (all-active-installed state :corp))
+                          -2 0))
+   :subroutines [{:label "Gain 1 [Credits] and end the run."
+                  :msg "gain 1 [Credits] and end the run"
+                  :async true
+                  :effect (effect (gain-credits :corp 1)
+                                  (end-run :corp eid card))}]})
+(define-card "Almenara"
+  {:events [{:event :pass-ice
+             :optional
+             {:req (req (and (> (get-counters card :power) 0)
+                             (> (:credit corp) 0)))
+              :prompt "Give the Runner 1 tag by paying 1[credit] and a power counter?"
+              :yes-ability {:async true
+                            :cost [:credit 1]
+                            :effect (effect (add-counter card :power -1)
+                                            (gain-tags :runner eid 1))
+                            :msg (msg "give the Runner 1 tag")}}}]
+   :effect (effect (add-counter card :power 1))
+   :subroutines [end-the-run]})

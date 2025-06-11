@@ -49,6 +49,7 @@
                                  :title id}])]
     (case faction
       "Adam" (icon-span "adam")
+      "Mako" (icon-span "mako")
       "Anarch" (icon-span "anarch")
       "Apex" (icon-span "apex")
       "Criminal" (icon-span "criminal")
@@ -140,6 +141,7 @@
           "[trash]" "trash"
           "[t]" "trash"
           "[adam]" "adam"
+          "[mako]" "mako"
           "[anarch]" "anarch"
           "[apex]" "apex"
           "[criminal]" "criminal"

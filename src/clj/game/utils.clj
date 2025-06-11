@@ -241,11 +241,14 @@
   "Takes an existing subtype-string, adds in the new-subtypes, and removes
   duplicates if is-distinct is truthy"
   [is-distinct subtype-string & new-subtypes]
-  (let [do-distinct #(if is-distinct (distinct %) %)]
-    (->> (split (or subtype-string " - ") #" - ")
-         (concat new-subtypes)
-         do-distinct
-         (join " - "))))
+
+  (if (= subtype-string "")
+    (join " - " new-subtypes)
+    (let [do-distinct #(if is-distinct (distinct %) %)]
+      (->> (split (or subtype-string " - ") #" - ")
+           (concat new-subtypes)
+           do-distinct
+           (join " - ")))))
 
 (defn remove-subtypes
   "Takes an existing subtype-string and removes all instances of

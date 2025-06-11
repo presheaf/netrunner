@@ -17,9 +17,16 @@
   "Called when the player clicks a card from hand."
   [state side {:keys [card server]}]
   (when-let [card (get-card state card)]
-    (case (:type card)
-      ("Event" "Operation") (play-ability state side {:card (get-in @state [side :basic-action-card]) :ability 3 :targets [card]})
-      ("Hardware" "Resource" "Program" "ICE" "Upgrade" "Asset" "Agenda") (play-ability state side {:card (get-in @state [side :basic-action-card]) :ability 2 :targets [card server]}))))
+    (if (= server "Dare")
+      (let [eid (make-eid state {:source card :source-type :ability})
+            dare-ab (:dare (card-def card))]
+        (resolve-ability state side eid dare-ab card nil))
+      (case (:type card)
+        ("Event" "Operation") (play-ability state side {:card (get-in @state [side :basic-action-card]) :ability 3 :targets [card]})
+        ("Hardware" "Resource" "Program" "ICE" "Upgrade" "Asset" "Agenda") (play-ability state side {:card (get-in @state [side :basic-action-card]) :ability 2 :targets [card server]})))))
+
+
+
 
 (defn shuffle-deck
   "Shuffle R&D/Stack."
@@ -268,17 +275,27 @@
   "Attempt to select the given card to satisfy the current select prompt. Calls resolve-select
   if the max number of cards has been selected."
   [state side {:keys [card] :as args}]
-  (let [target (get-card state card)
-        prompt (first (get-in @state [side :selected]))
+  (let [prompt (first (get-in @state [side :selected]))
         ability (:ability prompt)
         card-req (:req prompt)
         card-condition (:card prompt)
-        cid (:not-self prompt)]
+        cid (:not-self prompt)
+        target (get-card state card)]
     (when (and (not= (:cid target) cid)
-               (cond
-                 card-condition (card-condition target)
-                 card-req (card-req state side (:eid ability) (get-card state (:card ability)) [target])
-                 :else true))
+               (let [preproc (get-in @state [:special :prompt-target-preprocessor])]
+                 ;; This whole let-block checks if the card is a valid target. In principle this just
+                 ;; requires calling the card-req or card-condition functions on the target, but if
+                 ;; the Sonia Nahar identity is active we must permit her to meddle with this checking
+                 (cond
+                   (or card-condition card-req)
+                   (letfn [(cardreqfn [potential-target]
+                             (if card-condition
+                               (card-condition potential-target)
+                               (card-req state side (:eid ability) (get-card state (:card ability)) [potential-target])))]
+                     (if preproc
+                       (preproc target ability cardreqfn)
+                       (cardreqfn target)))
+                   :else true)))
       (let [c (update-in target [:selected] not)]
         (update! state side c)
         (if (:selected c)
@@ -320,15 +337,12 @@
                            (gain state side :credit 1)
                            (trigger-event-sync state side eid :spent-credits-from-card card))}
              (get-in cdef [:abilities ability]))
+        cardobj-ab (get-in card [:abilities ability])
+        ab (if (and cardobj-ab (:overrides-cdef-abs cardobj-ab))
+             cardobj-ab
+             ab)
         cannot-play (or (:disabled card)
                         (any-effects state side :prevent-ability true? card [ab ability]))]
-    ;; (println "\n\nplay-ability says:")
-    ;; (println (str card))
-    ;; (println (str abilities))
-    ;; problem: only abilities in :cdef has an :effect ...
-    ;; possible fix: make all abilities on flippable cards dynamic?
-    ;; (println (str ab))
-    ;; (println (str (get-in cdef [:abilities ability])))
     (when-not cannot-play
       (do-play-ability state side card ab ability targets))))
 
@@ -806,7 +820,9 @@
   [state side {:keys [card] :as args}]
   (let [card (get-card state card)]
     (if card
-      (swap! state assoc-in [:corp :install-list] (installable-servers state card))
+      (swap! state assoc-in [:corp :install-list] (if (= (:title card) "Flood the Zone")
+                                                    (conj (installable-servers state card) "Dare")
+                                                    (installable-servers state card)))
       (swap! state dissoc-in [:corp :install-list]))))
 
 (defn generate-runnable-zones

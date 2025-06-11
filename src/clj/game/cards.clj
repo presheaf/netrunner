@@ -23,6 +23,15 @@
                   (play-sfx state side sfx-id (make-sfx-card-info state card)))
                 (trash state side eid target {:cause :subroutine} (not sfx-id)))})
 
+(defn net-damage-with-sfx
+  [dmg sfx-id]
+  {:label (str "Do " dmg " net damage")
+   :async true
+   :msg (str "do " dmg " net damage")
+   :effect (req (when sfx-id
+                  (play-sfx state side sfx-id (make-sfx-card-info state card)))
+                (damage state side eid :net dmg {:card card}))})
+
 (def trash-program (trash-program-with-sfx nil))
 
 
@@ -319,7 +328,8 @@
                                               :recurring
                                               (do (set-prop state side target :rec-counter (dec current-counters)) 1)
                                               :credit
-                                              (do (set-prop state side target :counter {:credit (dec current-counters)}) 1)
+                                              ;; We do this awkwardly to avoid clearing non-credit counters if multiple counter types exist
+                                              (do (set-prop state side target :counter (assoc-in (:counter target) [:credit] (dec current-counters))) 1)
                                               ; Custom credits will be handled separately later
                                               0)
                              selected-cards (update selected-cards (:cid target)

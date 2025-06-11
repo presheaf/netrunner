@@ -305,7 +305,7 @@
                    new-eid (make-eid state eid)
                    ability-to-do (if (and (= prompt-choice "Yes")
                                           yes-ability
-                                          (can-pay? state side eid card (:title card) (:cost yes-ability)))
+                                          (can-pay? state side eid card (card-title card) (:cost yes-ability)))
                                    yes-ability
                                    no-ability)]
                (wait-for (resolve-ability state side new-eid ability-to-do card targets)

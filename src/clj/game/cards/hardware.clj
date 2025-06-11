@@ -148,6 +148,7 @@
 (define-card "Bookmark"
   {:abilities [{:label "Host up to 3 cards from your Grip facedown"
                 :cost [:click 1]
+                :keep-menu-open :while-clicks-left
                 :msg "host up to 3 cards from their Grip facedown"
                 :choices {:max 3
                           :card #(and (runner? %)
@@ -300,6 +301,19 @@
                                                            (draw state :runner eid 1 nil)
                                                            (lose-tags state :runner eid 1)))})
                                          card nil)))}]})
+
+(define-card "Chronicle"
+  {:in-play [:memory 1]
+   :constant-effects [{:type :play-cost
+                       :req (req (and (= side :runner)
+                                      (= [:discard] (:zone target))
+                                      (event? target)))
+                        :value -1}
+                      {:type :install-cost
+                       :req (req (and (= side :runner)
+                                      (= [:discard] (:zone target))
+                                      (or (program? target) (hardware? target))))
+                       :value -1}]})
 
 (define-card "Clone Chip"
   {:abilities [{:prompt "Select a program to install from your Heap"
@@ -561,6 +575,16 @@
                                                   (update-base-mu ref hand-size))))))
      :leave-play (req (remove-watch state :ekomind))}))
 
+(define-card "Elysium"
+  (letfn [(half-runner-points [s] (quot (max (get-in s [:runner :agenda-point] 0) 0) 2))]
+    {:in-play [:memory 2]
+     :recurring (req (when (< (get-counters card :recurring) (half-runner-points @state))
+                       (set-prop state side card :rec-counter (half-runner-points @state))))
+     :effect (req (when (< (get-counters card :recurring) (half-runner-points @state))
+                       (set-prop state side card :rec-counter (half-runner-points @state))))
+     :interactions {:pay-credits {:req (req run)
+                                  :type :recurring}}}))
+
 (define-card "EMP Device"
   {:abilities [{:req (req run)
                 :msg "prevent the Corp from rezzing more than 1 piece of ICE for the remainder of the run"
@@ -735,6 +759,22 @@
                                   ab (if (> amt-trashed 1) mult-ab sing-ab)]
                               (continue-ability state side ab card targets)))}]}))
 
+(define-card "Furnace"
+  (letfn [(maybe-trash-for-access [the-server furnace-card]
+            {:async true
+             :prompt "Choose a card to trash for an extra access"
+             :choices {:card #(and (runner? %)
+                                   (installed? %)
+                                   (not (same-card? % furnace-card)))}
+             :msg (msg "trash " (:title target) " and gain 3 [Credits]")
+             :effect (effect (access-bonus the-server 1)
+                             (trash eid target {:unpreventable true}))})]
+    {:events [{:event :successful-run
+               :req (req (or (= target :rd)
+                             (= target :hq)))
+               :async true
+               :effect (effect (continue-ability (maybe-trash-for-access target (get-card state card)) card nil))}]}))
+
 (define-card "Gachapon"
   (letfn [(shuffle-end [remove-from-game shuffle-back]
             {:msg (msg "shuffle " (join ", " (map :title shuffle-back)) " into the stack"
@@ -862,6 +902,17 @@
                                (:effects @state)))
                       (update-breaker-strength state side host)))})
 
+(define-card "Glee"
+  (let [glee-event {;; TODO: as written this will not give enough creds if multiple corp cards are trashed in the same event, but i don't think that's possible? check
+               :req (req (and (some corp? targets)
+                              run
+                              (#{:hq :archives :rd} (first (:server run)))))
+               :msg (msg "gain 1 [Credit]")
+                    :effect (req (gain-credits state :runner 1))}]
+    {:in-play [:memory 1]
+     :events [(assoc glee-event :event :runner-trash)  ; TODO: check that this works instead
+              (assoc glee-event :event :corp-trash)]}))
+
 (define-card "GPI Net Tap"
   {:implementation "Trash and jack out effect is manual"
    :abilities [{:req (req (and (ice? current-ice) (not (rezzed? current-ice))))
@@ -874,6 +925,28 @@
              :silent (req true)
              :req (req (has-subtype? target "Virus"))
              :effect (effect (add-counter target :virus 1))}]})
+
+(define-card "GyroDrive Soles"
+  {:effect (effect (damage eid :meat 1 {:unboostable true :card card}))
+   :events [{:event :begin-run
+             :once :per-turn
+             :req (req (first-event? state side :runner-spent-click))
+             :msg "to reduce the trash cost of all cards by 2 this run"
+             ;; TODO: rework this so it stops being active if the card is trashed
+             :effect (effect (register-floating-effect
+                              card
+                              {:type :trash-cost
+                               :duration :end-of-run
+                               :value -2}))}
+            ;; {:event :begin-run
+            ;;  :msg "to reduce the trash cost of all cards by 2 this run"
+            ;;  :req (req (<= 3 (get-in @state [:runner :click])))
+            ;;  :effect (effect (register-floating-effect
+            ;;                   card
+            ;;                   {:type :trash-cost
+            ;;                    :duration :end-of-run
+            ;;                    :value -2}))}
+            ]})
 
 (define-card "Heartbeat"
   {:in-play [:memory 1]
@@ -1109,6 +1182,7 @@
   (let [mhelper
         (fn mh [n]
           {:prompt "Select a program to install"
+           :makes-proghw-grip-install true
            :choices {:req (req (and (program? target)
                                     (in-hand? target)
                                     (can-pay? state side (assoc eid :source card :source-type :runner-install) target nil
@@ -1125,6 +1199,40 @@
                   :cost [:trash-program-from-grip 1]
                   :effect (effect (damage-prevent :brain 1)
                                   (damage-prevent :net 1))}]}))
+
+(define-card "Spite"
+  {:constant-effects [{:type :ice-strength
+                       ;; :req (req (pos? (get-counters (get-card state target) :virus)))
+                       :value (req (- (get-counters (get-card state target) :virus)))}]
+   :effect (effect (update-all-ice))
+   :in-play [:memory 1]
+   :events [{:event :counter-added
+             :req (req (and (ice? target)
+                            (pos? (get-counters (get-card state card) :virus))))
+              :effect (effect (update-all-ice))}
+
+            {:event :purge
+             :req (req (<= 1 (:credit corp)))
+             :msg "force the Corp to lose 1 [Credits]"
+             :async true
+             :effect (req (lose-credits state :corp eid 1 nil))}]})
+
+(define-card "Synaptic Remodulator"
+  {:effect (effect (damage eid :meat 1 {:unboostable true :card card}))
+   :events [{:event :run-ends
+             :req (req (:successful target))
+             :effect (req
+                      (let [revs (:events target)
+
+                            ;; TODO: does this work on losses of e.g. a click + 2 creds? spend does work on ikawah
+                            click-losses (map #(second (first (second %))) (filter #(and (= :runner-lose (first %))
+                                                                                         (= :click (first (first (second %))))) revs))
+                            click-spends (map #(second (second %)) (filter #(= :runner-spent-click (first %)) revs))
+                            num-clicks (+ (apply + click-losses) (apply + click-spends))]
+                        (when (> num-clicks 0)
+                          ;; we avoid :msg to avoid saying anything unless >0 creds gained
+                          (system-msg state :runner (str "uses Synaptic Remodulator to gain " num-clicks " credits"))
+                          (gain-credits state :runner num-clicks))))}]})
 
 (define-card "Mu Safecracker"
   {:implementation "Stealth credit restriction not enforced"
@@ -1268,6 +1376,33 @@
                                                (program? target)
                                                (same-card? card (:host target))))
                                 :type :recurring}}})
+
+(define-card "P3tri"
+  {:in-play [:memory 1]
+   ;; Printed cost is 2, so to offer the choice of paying a virus counter instead we reduce it to 0, then add an additional cost
+   :install-cost-bonus (req (- 2))
+   :additional-cost [:virus-or-two-creds 1] ; TODO: This makes log message ugly, but we have a hacky fix...
+   :abilities [{:cost [:trash]
+                :effect (req (resolve-ability
+                               state side
+                               {:msg (msg "place 1 virus counter on " (:title target))
+                                :choices {:card #(and (runner? %) (installed? %))}
+                                :async true
+                                :effect (effect (add-counter eid target :virus 1 nil))}
+                               card nil))}]})
+
+(define-card "P4inappl3"
+  {:events [{:event :rez
+             :req (req (and (ice? target)
+                            run
+                            (#{:hq :rd :archives} (first (:server run)))
+                            (< (:cost target 0) 4)))
+             :msg (msg "trash Pineapple, suffer 1 brain damage, trash " (:title target) " and jack out")
+             :async true
+             :effect (req (wait-for (trash state side target nil)
+                                    (wait-for (damage state :runner :brain 1 {:card card})
+                                              (wait-for (trash state side card nil)
+                                                        (jack-out state side eid)))))}]})
 
 (define-card "Paragon"
   {:in-play [:memory 1]
@@ -1525,6 +1660,51 @@
                             (reveal state :corp card)
                             (system-msg state :runner (str  "force the Corp to reveal " (:title card) " from HQ"))))}]})
 
+(define-card "Refragmenter"
+  {:data {:counter {:power 3}}
+   :effect (effect
+            (update! (assoc-in (get-card state card) [:special :cards-to-bottom] '())))
+   :events [{:event :counter-added
+             :req (req (and (same-card? card target)
+                            (not (pos? (get-counters card :power)))))
+             :async true
+             :effect (req (system-msg state side (str "draws 2 cards and will trash " (:title card) " when the run is done"))
+                          (draw state :runner eid 2 nil))}
+            {:event :post-access-card
+             :async true
+             :req (req (and (= (first (:zone target)) :deck)
+                            (> (get-counters (get-card state card) :power) 0)))
+             :effect
+             (effect
+               (continue-ability
+                 (let [accessed-card target]
+                   {:optional
+                    {:req (req (or (= [:deck] (:zone accessed-card))
+                                   (= [:deck] (:previous-zone accessed-card))))
+                     :async true
+                     :prompt (str "Move " (:title accessed-card) " to the bottom of R&D?")
+                     :yes-ability
+                     {:msg "mark the card just accessed for being moved to the bottom of R&D"
+                      :asyn true
+                      :effect (req
+                               (update! state side
+                                        (assoc-in (get-card state card) [:special :cards-to-bottom]
+                                                  (concat (get-in (get-card state card) [:special :cards-to-bottom])
+                                                          [accessed-card])))
+                               (add-counter state side eid (get-card state card) :power -1 nil))}}})
+                 card nil))}
+            {:event :run-ends
+             :req (req (> (count (get-in (get-card state card) [:special :cards-to-bottom])) 0))
+             :msg "move the marked cards to the bottom of R&D"
+             :async true
+             :effect (req
+                      (doseq [c (get-in (get-card state card) [:special :cards-to-bottom] true)]
+                        (move state :corp (get-card state c) :deck))
+                      (update! state side (assoc-in (get-card state card) [:special :cards-to-bottom] '()))
+                      (if (> (get-counters (get-card state card) :power) 0)
+                          (effect-completed state side eid)
+                          (trash state side eid card {:unpreventable true})))}]})
+
 (define-card "Replicator"
   (letfn [(hardware-and-in-deck? [target runner]
             (and (hardware? target)
@@ -1542,12 +1722,12 @@
 
 (define-card "Respirocytes"
   (let [ability {:once :per-turn
-                 :msg "draw 1 card and add a power counter"
+                 :msg "draw 2 cards and add a power counter"
                  :async true
-                 :effect (req (wait-for (draw state :runner 1 nil)
+                 :effect (req (wait-for (draw state :runner 2 nil)
                                         (add-counter state side (get-card state card) :power 1)
-                                        (if (= 5 (get-counters (get-card state card) :power))
-                                          (do (system-msg state :runner "trashes Respirocytes as it reached 5 power counters")
+                                        (if (= 3 (get-counters (get-card state card) :power))
+                                          (do (system-msg state :runner "trashes Respirocytes because it reached 3 power counters")
                                               (trash state side eid card {:unpreventable true}))
                                           (effect-completed state side eid))))}
         event {:req (req (zero? (count (:hand runner))))
@@ -1788,6 +1968,27 @@
                 :cost [:trash]
                 :effect (effect (prompt! card (str "The top card of R&D is " (:title (first (:deck corp)))) ["OK"] {}))}]})
 
+(define-card "Stim Graft"
+  {:data [:counter {:power 6}]
+   :interactions {:pay-credits {:req (req run) :type :credit}}
+   :abilities [{:cost [:click 1]
+                :label "make a run on any server"
+                :msg (msg "make a run on " target " and place " (get-counters (get-card state card) :power) "credits on Stim Graft")
+                :makes-run true
+                :prompt "Choose a server to run with Stim Graft"
+                :choices (req runnable-servers)
+                :effect (req
+                         (add-counter state side card :credit (get-counters (get-card state card) :power))
+                         (make-run state side target nil (get-card state card))
+                         (register-events
+                          state side card
+                          [{:event :run-ends
+                            :duration :end-of-run
+                            :async true
+                            :effect (req (add-counter state side (get-card state card) :power -1)
+                                         (add-counter state side (get-card state card) :credit (- (get-counters (get-card state card) :credit)))
+                                         (damage state side eid :brain 1 {:card (get-card state card)}))}]))}]})
+
 (define-card "Subsidized Processor"
   (let [flip-info  {:front-face-code "50009"
                     :back-face-code "50009_flip"
@@ -1988,6 +2189,7 @@
                     (seq (filter
                            #(and (rezzed? %)
                                  (installed? %)
+                                 (not (ice? %))
                                  (or (has-subtype? % "Bioroid")
                                      (has-subtype? % "Clone")
                                      (has-subtype? % "Executive")
@@ -2017,7 +2219,9 @@
      :abilities [ability]}))
 
 (define-card "Window"
-  {:abilities [{:cost [:click 1] :msg "draw 1 card from the bottom of their Stack"
+  {:abilities [{:cost [:click 1] 
+                :keep-menu-open :while-clicks-left
+                :msg "draw 1 card from the bottom of their Stack"
                 :effect (effect (move (last (:deck runner)) :hand))}]})
 
 (define-card "Zamba"

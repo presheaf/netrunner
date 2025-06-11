@@ -70,9 +70,9 @@
 
 (defn card-init
   "Initializes the abilities and events of the given card."
-  ([state side card] (card-init state side card {:resolve-effect true :init-data true}))
+  ([state side card] (card-init state side card {:resolve-effect true :init-data true :suppress-events-constants false}))
   ([state side card args] (card-init state side (make-eid state) card args))
-  ([state side eid card {:keys [resolve-effect init-data] :as args}]
+  ([state side eid card {:keys [resolve-effect init-data suppress-events-constants] :as args}]
    (let [cdef (card-def card)
          recurring (:recurring cdef)
          abilities (ability-init cdef)
@@ -95,8 +95,9 @@
              :req (req (not (:disabled card)))
              :effect r}])))
      (update! state side c)
-     (register-events state side c)
-     (register-constant-effects state side c)
+     (when (not suppress-events-constants)
+       (register-events state side c)
+       (register-constant-effects state side c))
      (if (and resolve-effect (is-ability? cdef))
        (resolve-ability state side eid (dissoc cdef :cost :additional-cost) c nil)
        (effect-completed state side eid))

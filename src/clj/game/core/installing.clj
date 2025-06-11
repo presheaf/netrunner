@@ -117,7 +117,7 @@
     (when-not host-card
       (corp-install-message state side c server install-state cost-str args))
     (play-sfx state side "install-corp" (assoc (make-sfx-card-info state card)
-                                               :install-type (nth slot 2))) ; :ices or :content
+                                               :install-type (if (> (count slot) 2) (nth slot 2) :content))) ; [:servers :rd :ices/:content] - or [:onhost]
 
     (let [moved-card (if host-card
                        (host state side host-card (assoc c :installed true))
@@ -318,7 +318,7 @@
   "Installs specified runner card if able"
   ([state side card] (runner-install state side (make-eid state) card nil))
   ([state side card params] (runner-install state side (make-eid state) card params))
-  ([state side eid card {:keys [host-card facedown no-mu no-msg cost-bonus] :as params}]
+  ([state side eid card {:keys [host-card facedown no-mu no-msg cost-bonus no-install-effect] :as params}]
    (let [eid (eid-set-defaults eid :source nil :source-type :runner-install)]
      (if (and (empty? (get-in @state [side :locked (-> card :zone first)]))
               (not (install-locked? state :runner)))
@@ -367,7 +367,7 @@
                              (update-breaker-strength state side installed-card))
                            (let [new-eid (make-eid state eid)]
                              (wait-for (trigger-event-simult state side :runner-install
-                                                             (when-not facedown
+                                                             (when-not (or facedown no-install-effect)
                                                                {:card-abilities (card-as-handler (get-card state installed-card))})
                                                              (get-card state installed-card))
                                        (complete-with-result state side eid (get-card state installed-card)))))

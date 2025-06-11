@@ -179,7 +179,7 @@
 
 ;;; Damage
 (defn flatline [state]
-  (when-not (:winner state)
+  (when-not (or (:winner state) (get-in @state [:special :cannot-flatline]))
     (system-msg state :runner "is flatlined")
     (win state :corp "Flatline")))
 
@@ -282,7 +282,8 @@
                     (swap! state update-in [:runner :hand-size :mod] #(- % n)))
                   (when-let [trashed-msg (join ", " (map card-title cards-trashed))]
                     (system-msg state :runner (str "trashes " trashed-msg " due to " (name type) " damage")))
-                  (if (< (count hand) n)
+                  (if (and (< (count hand) n))
+                    ;; if cannot-flatline flag is set, flatline will do nothing, then all cards are trashed
                     (do (flatline state)
                         (swap! state update-in [:stats :corp :damage :all] (fnil + 0) n)
                         (swap! state update-in [:stats :corp :damage type] (fnil + 0) n)
@@ -459,16 +460,18 @@
   "Apply agenda-point modifications to calculate the number of points this card is worth
   to the given player."
   [state side card]
-  (let [base-points (:agendapoints card 0)
-        as-agenda-points (:as-agenda-points card 0)
-        points-fn (if (= side :corp)
-                    (:agendapoints-corp (card-def card))
-                    (:agendapoints-runner (card-def card)))]
-    (if (fn? points-fn)
-      (points-fn state side nil card nil)
-      (+ base-points
-         as-agenda-points
-         (sum-effects state side card :agenda-value nil)))))
+  (if (not card)
+    0
+    (let [base-points (:agendapoints card 0)
+          as-agenda-points (:as-agenda-points card 0)
+          points-fn (if (= side :corp)
+                      (:agendapoints-corp (card-def card))
+                      (:agendapoints-runner (card-def card)))]
+      (if (fn? points-fn)
+        (points-fn state side nil card nil)
+        (+ base-points
+           as-agenda-points
+           (sum-effects state side card :agenda-value nil))))))
 
 (defn advancement-cost-bonus
   "Applies an advancement requirement increase of n the next agenda whose advancement requirement
@@ -575,7 +578,8 @@
   [state side]
   (trigger-event state side :pre-purge)
   (play-sfx state side "virus-purge")
-  (let [installed-cards (concat (all-installed state :runner)
+  (let [installed-cards (concat [(get-in @state [:runner :identity])] ; Mako Shuusei can get virus counters
+                                (all-installed state :runner)
                                 (all-installed state :corp))
         hosted-on-ice (->> (get-in @state [:corp :servers]) seq flatten (mapcat :ices) (mapcat :hosted))]
     (doseq [card (concat installed-cards hosted-on-ice)]

@@ -16,6 +16,10 @@
 
 (enable-console-print!)
 
+(defn chsk-reconnect!
+  []
+  (sente/chsk-reconnect! chsk))
+
 (let [ws-handlers (atom {})]
   (defn register-ws-handler! [event handler-fn]
     (swap! ws-handlers assoc event handler-fn))

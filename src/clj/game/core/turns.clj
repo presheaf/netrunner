@@ -41,13 +41,13 @@
              (-> @state :runner :identity :title))
     (show-wait-prompt state :runner "Corp to keep hand or mulligan")))
 
+
 (defn- init-game-state
   "Initialises the game state"
   [{:keys [players gameid spectatorhands room format] :as game}]
   (let [corp (some #(when (corp? %) %) players)
         runner (some #(when (runner? %) %) players)
         is-jumpstart? (= format "jumpstart")
-        ;; corp-deck (create-deck (:deck corp) (:user corp))
         corp-deck (if is-jumpstart?
                     (create-js-deck (:user corp) :corp)
                     (create-deck (:deck corp) (:user corp)))
@@ -123,7 +123,7 @@
     (let [faction (:faction (get-in @state [side :identity]))
           possible-presents (if present-type
                               (deckgen/presents-by-faction present-type)
-                              (if (#{"Apex" "Adam" "Sunny Lebeau"} faction)
+                              (if (#{"Apex" "Adam" "Sunny Lebeau" "Mako"} faction)
                                 ;; ;; TODO: fix the below, so Minifactions get all the other factions lists mashed together
                                 ;; (into [] (map #(into [] (apply concat %)) (partition 3 (apply interleave (map deckgen/presents-by-faction ("Shaper" "Anarch" "Criminal"))))))
                                 (deckgen/presents-by-faction (first (shuffle ["Shaper" "Criminal" "Anarch"])))
@@ -151,15 +151,33 @@
     (init-identity state :corp corp-identity)
     (init-identity state :runner runner-identity)
     (create-basic-action-cards state)
-    (let [side :corp]
-      (wait-for (trigger-event-sync state side :pre-start-game nil)
-                (let [side :runner]
-                  (wait-for (trigger-event-sync state side :pre-start-game nil)
-                            (init-hands state)))))
 
     (if (:include-presents game)  ; 'use presents' option is set
       ;; nil below implicitly defaults to ID faction
       (register-presents! state (or presents-map {:runner nil :corp nil})))
+
+    ;; Check if Project Genesis is in the Corp's deck, and if so permit them to select a facet
+    (let [choose-pg-abi
+          {:async true
+           :effect (req
+                    (let [num-pgs (count (filter #(= (:title %) "Project Genesis")
+                                                 (get-in @state [:corp :deck])))]
+                      (if (> num-pgs 0)
+                        (do
+                          (show-wait-prompt state :runner "Corp to choose a version for Project Genesis")
+                          (continue-ability state side
+                                            {:prompt "Choose a version for Project Genesis"
+                                             :choices ["Acheron" "Cocytus" "Phlegethon"]
+                                             :effect (req (system-msg state side (str "reveals " num-pgs " copies of Project Genesis and secretly chooses a version for them"))
+                                                          (swap! state assoc-in [:special :project-genesis] target)
+                                                          (clear-wait-prompt state :runner))} nil nil))
+                        (effect-completed state side eid))))}]
+      (let [side :corp]
+        (wait-for (resolve-ability state side choose-pg-abi nil nil)
+                  (wait-for (trigger-event-sync state side :pre-start-game nil)
+                            (let [side :runner]
+                              (wait-for (trigger-event-sync state side :pre-start-game nil)
+                                        (init-hands state)))))))
     state))
 
 (defn create-basic-action-cards

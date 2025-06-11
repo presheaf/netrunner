@@ -64,7 +64,7 @@
          version-path (if has-art
                         (get (:alt_art alt-card) (keyword art) (:code card))
                         (:code card))]
-     (str "/img/cards/" version-path ".png"))))
+     (str "https://media.reteki.fun/img/cards/" version-path ".png"))))
 
 (defn- alt-version-from-string
   "Given a string name, get the keyword version or nil"
@@ -214,7 +214,7 @@
       "Corp" (cons "Identity" corp-types))))
 
 (defn factions [side]
-  (let [runner-factions ["Anarch" "Criminal" "Shaper" "Adam" "Apex" "Sunny Lebeau"]
+  (let [runner-factions ["Anarch" "Criminal" "Shaper" "Adam" "Apex" "Sunny Lebeau" "Mako"]
         corp-factions ["Jinteki" "Haas-Bioroid" "NBN" "Weyland Consortium" "Neutral"]]
     (case side
       "All" (concat runner-factions corp-factions)

@@ -3,7 +3,7 @@
             [game.core.card :refer :all]
             [game.core.card-defs :refer [define-card]]
             [game.core.effects :refer [register-floating-effect]]
-            [game.core.eid :refer [effect-completed]]
+            [game.core.eid :refer [make-eid effect-completed]]
             [game.core.card-defs :refer [card-def]]
             [game.core.prompts :refer [show-wait-prompt clear-wait-prompt]]
             [game.core.toasts :refer [toast]]
@@ -247,6 +247,36 @@
   {:effect (effect (lock-zone (:cid card) :runner :discard))
    :leave-play (effect (release-zone (:cid card) :runner :discard))})
 
+(define-card "Nootropics Campaign"
+  (let [ability {:async true
+                 :interactive (req true)
+                 :req (req (> (count (:hand corp)) (+ 2 (count (:hand runner)))))
+                 :effect (effect (continue-ability
+                                   {:optional
+                                    {:prompt "Use Nootropics Campaign to draw 1 card?"
+                                     :yes-ability {:async true
+                                                   :msg "draw 1 card"
+                                                   :effect (effect (draw eid 1 nil))}}}
+                                   card nil))}]
+    {:derezzed-events [corp-rez-toast]
+     :flags {:corp-phase-12 (req true)}
+     :events [{:event :corp-turn-begins
+               :req (req (> (count (:hand corp)) (count (:hand runner))))
+               :interactive (req true)
+               :async true
+               :effect (req (gain-credits state :corp 1)
+                            (system-msg state :corp " uses Nootropics Campaign to gain 1[Credit]")
+                            (if (> (count (:hand corp)) (+ 2 (count (:hand runner))))
+                              (continue-ability
+                               state side
+                               {:optional
+                                {:prompt "Use Nootropics Campaign to draw 1 card?"
+                                 :yes-ability {:async true
+                                               :msg "draw 1 card"
+                                               :effect (effect (draw eid 1 nil))}}}
+                               card nil)
+                              (effect-completed state side eid)))}]}))
+
 (define-card "Brain-Taping Warehouse"
   {:constant-effects [{:type :rez-cost
                        :req (req (and (ice? target)
@@ -311,6 +341,37 @@
   {:abilities [{:cost [:click 1]
                 :msg "gain 2 [Credits]"
                 :effect (effect (gain-credits 2))}]})
+
+(define-card "CDO Portfolio"
+  (let [draw-ability
+        {:async true
+         :effect (effect (add-counter card :credit 1)
+                         (continue-ability
+                          {:optional
+                           {:prompt "Use CDO Portfolio to draw 1 card?"
+                            :yes-ability {:async true
+                                          :msg "draw 1 card"
+                                          :effect (effect (draw eid 1 nil))}}}
+                          (get-card state card) nil))}
+        take-cred-ability
+        {:msg (msg "take 1[Credits] from CDO Portfolio")
+         :async true
+         :effect (effect (gain-credits 1)
+                         (add-counter eid card :credit -1 nil))}
+        draw-or-take-cred
+        {:once :per-turn
+         :async true
+         :label "Place 1[Credits] or optionally draw 1 card"
+         :interactive (req true)
+         :effect (effect (continue-ability
+                          (if (>= (get-counters card :credit) 1)
+                            take-cred-ability
+                            draw-ability)
+                          card nil))}]
+    {:derezzed-events [corp-rez-toast]
+     :flags {:corp-phase-12 (req true)}
+     :events [(assoc draw-or-take-cred :event :corp-turn-begins)]
+     :abilities [draw-or-take-cred]}))
 
 (define-card "Cerebral Overwriter"
   (advance-ambush 3 {:async true
@@ -602,6 +663,7 @@
 
 (define-card "Docklands Crackdown"
   {:abilities [{:cost [:click 2]
+                :keep-menu-open :while-2-clicks-left
                 :msg "add 1 power counter"
                 :effect (effect (add-counter card :power 1))}]
    :constant-effects [{:type :install-cost ; oops - hits corp installs too
@@ -683,6 +745,32 @@
   {:constant-effects [{:type :trash-cost
                        :req (req (installed? target))
                        :value 1}]})
+
+(define-card "Engagement Metrics"
+  (let [ability {:msg (msg "gain 2[Credits]")
+                 :once :per-turn
+                 :req (req (:corp-phase-12 @state))
+                 :label (str "Gain 2 [Credits] (start of turn)")
+                 :async true
+                 :effect (effect (gain-credits 2)
+                                 (add-counter eid card :credit -2 nil))}]
+    {:effect (effect (add-counter card :credit 8))
+     :derezzed-events [corp-rez-toast]
+     :events [(assoc ability :event :corp-turn-begins)
+              {:event :counter-added
+               :req (req (and (same-card? card target)
+                              (not (pos? (get-counters card :credit)))))
+               :async true
+               :effect (effect (system-msg (str "trashes " (:title card)))
+                               (register-events card
+                                                [{:event :corp-turn-ends
+                                                  :duration :end-of-turn
+                                                  :unregister-once-resolved true
+                                                  :async true
+                                                  :msg "give the Runner 1 tag"
+                                                  :effect (effect (gain-tags eid 1))}])
+                               (trash eid card {:unpreventable true}))}]
+     :abilities [ability]}))
 
 (define-card "Estelle Moon"
   {:events [{:event :corp-install
@@ -928,15 +1016,18 @@
 (define-card "Isabel McGuire"
   {:abilities [{:label "Add an installed card to HQ"
                 :cost [:click 1]
+                :keep-menu-open :while-clicks-left
                 :choices {:card installed?}
                 :msg (msg "move " (card-str state target) " to HQ")
                 :effect (effect (move target :hand))}]})
 
 (define-card "IT Department"
   {:abilities [{:cost [:click 1]
+                :keep-menu-open :while-clicks-left
                 :msg "add 1 counter"
                 :effect (effect (add-counter card :power 1))}
                {:cost [:power 1]
+                :once :per-turn
                 :label "Add strength to a rezzed ICE"
                 :choices {:card #(and (ice? %)
                                       (rezzed? %))}
@@ -953,6 +1044,7 @@
 
 (define-card "Jackson Howard"
   {:abilities [{:cost [:click 1]
+                :keep-menu-open :while-clicks-left
                 :msg "draw 2 cards"
                 :effect (effect (draw 2))}
                {:label "Shuffle up to 3 cards from Archives into R&D"
@@ -1174,8 +1266,8 @@
                                  (gain-credits 1))}]
     {:abilities [ability
                  {:cost [:click 1]
-                  :msg "store 3 [Credits]"
-                  :effect (effect (add-counter card :credit 3))}]
+                  :msg "store 4 [Credits]"
+                  :effect (effect (add-counter card :credit 4))}]
      :events [(assoc ability :event :corp-turn-begins)]}))
 
 (define-card "MCA Austerity Policy"
@@ -1448,6 +1540,19 @@
      :events [(assoc ability :event :corp-turn-begins)]
      :abilities [ability]}))
 
+(define-card "Kaede Ueno"
+  {:flags {:rd-reveal (req true)}
+   :access {:msg "do 1 net damage"
+            ;; TODO: rework test to actually check if it's in the proper server
+            :req (req (or (= :deck (first (:zone card)))
+                          (installed? card)))
+            :async true
+            :effect (effect (damage eid :net 1 {:card card}))}
+   :events [{:event :corp-turn-begins
+             :msg "gain 2[credits] and add itself to HQ"
+             :effect (req (gain-credits state :corp 2)
+                          (move state side (get-card state card) :hand))}]})
+
 (define-card "Personalized Portal"
   {:events [{:event :corp-turn-begins
              :async true
@@ -1556,6 +1661,7 @@
   {:effect (effect (add-counter card :credit 14))
    :events [(trash-on-empty :credit)]
    :abilities [{:cost [:click 1]
+                :label "Take 2 [Credits]"
                 :msg (msg "gain " (min 2 (get-counters card :credit)) " [Credits]")
                 :effect (req (let [credits (min 2 (get-counters card :credit))]
                                (add-counter state side card :credit (- credits))
@@ -1717,6 +1823,24 @@
                                                (effect-completed eid))})
                             card nil))}]})
 
+(define-card "Recycling Plant"
+  (let [trash-for-draw-ab
+        {:label "Trash a card from HQ to draw 1 card and gain 1[Credit]"
+         :once :per-turn
+         :req (req (and (pos? (count (:hand corp)))))
+         :async true
+         :choices {:card #(and (in-hand? %)
+                               (corp? %))}
+         :cancel-effect (effect (effect-completed eid))
+         :effect (req (wait-for (trash state side target nil)
+                                (system-msg state :corp "uses Recycling Plant to trash a card to gain 1[Credit] and draw 1 card")
+                                (gain-credits state side 1)
+                                (draw state side eid 1 nil)))}]
+    {:derezzed-events [corp-rez-toast]
+     :flags {:corp-phase-12 (req true)}
+     :events [(assoc trash-for-draw-ab :event :corp-turn-begins)]
+     :abilities [trash-for-draw-ab]}))
+
 (define-card "Reversed Accounts"
   {:advanceable :always
    :abilities [{:cost [:click 1 :trash]
@@ -1861,6 +1985,7 @@
 
 (define-card "Shannon Claire"
   {:abilities [{:cost [:click 1]
+                :keep-menu-open :while-clicks-left
                 :msg "draw 1 card from the bottom of R&D"
                 :effect (effect (move (last (:deck corp)) :hand))}
                {:label "Search R&D for an agenda"
@@ -2069,6 +2194,7 @@
 (define-card "Tenma Line"
   {:abilities [{:label "Swap 2 pieces of installed ICE"
                 :cost [:click 1]
+                :keep-menu-open :while-clicks-left
                 :prompt "Select two pieces of ICE to swap positions"
                 :choices {:card #(and (installed? %)
                                       (ice? %))
@@ -2337,6 +2463,7 @@
   {:abilities [{:label "Install an asset on Worlds Plaza"
                 :req (req (< (count (:hosted card)) 3))
                 :cost [:click 1]
+                :keep-menu-open :while-clicks-left
                 :prompt "Select an asset to install on Worlds Plaza"
                 :choices {:card #(and (asset? %)
                                       (in-hand? %)
@@ -2376,3 +2503,79 @@
                 :cost [:click 1 :credit 1]
                 :msg (msg "give the Runner 1 tag")
                 :effect (effect (gain-tags eid 1))}]})
+
+(define-card "Project Genesis"
+  (letfn [(make-flip-info [state]
+            (let [pg-choice (get-in @state [:special :project-genesis])]
+              (case pg-choice
+                "Acheron"
+                {:front-face-code "54019"
+                 :back-face-code "54019_back_1"
+                 :front-face-title "Project Genesis"
+                 :back-face-title "Acheron"
+                 :new-card-keys
+                 {:type "Upgrade"       ; TODO: Make this an asset, but quickfix so you can install it in the same server
+                  :trash 5}}
+                "Cocytus"
+                {:front-face-code "54019"
+                 :back-face-code "54019_back_2"
+                 :front-face-title "Project Genesis"
+                 :back-face-title "Cocytus"
+                 :new-card-keys
+                 {:type "ICE"
+                  :strength 6}}
+                {:front-face-code "54019"
+                 :back-face-code "54019_back_3"
+                 :front-face-title "Project Genesis"
+                 :back-face-title "Phlegethon"
+                 :new-card-keys
+                 {:type "Upgrade"
+                  :trash 5}})))]
+
+    (let [flipside-events
+          {"Acheron"
+           [{:event :corp-turn-begins
+             :msg "gain 1 [Credits]"
+             :effect (effect (gain-credits 1))}]
+           "Phlegethon"
+           [{:event :run
+             :req (req this-server)
+             :msg "do 2 net damage"
+             :async true
+             :effect (effect (damage eid :net 2 {:card card}))}]}]
+      
+      {:events [{:event :corp-turn-begins
+                 :async true
+                 :req (req (let [card (find-latest state card)]
+                             (not (:is-flipped card))))
+                 :effect (req
+                          (let [card (find-latest state card)]
+                            (add-counter state side card :power -1)
+                            (if (= 0 (get-counters (get-card state card) :power))
+                              (let [card (get-card state card)]
+                                (update! state side (merge card
+                                                           (:new-card-keys (make-flip-info state))))
+
+                                (let [new-card (get-card state card)
+                                      install-abi {:async true
+                                                   :prompt (str "Where to install Project Genesis?")
+                                                   :choices (req (installable-servers state card))
+                                                   :msg "install Project Genesis"
+                                                   :effect (effect (corp-install eid card target {:no-install-effect true :ignore-all-cost true}))}]
+                                  
+                                  (wait-for (resolve-ability state side install-abi new-card nil)
+                                            (if async-result
+                                              (let [installed-card async-result
+                                                    pg-choice (get-in @state [:special :project-genesis])]
+                                                (flip-card state side (get-card state installed-card) (make-flip-info state))
+                                                (register-events state :corp (find-latest state installed-card) (flipside-events pg-choice))
+                                                (when (= pg-choice "Cocytus")
+                                                  ;TODO: this needs to be wrapped into a rez effect in case of derezzing
+                                                  (update! state side (assoc (find-latest state installed-card) :subtype ["AP" "Sentry"]))
+                                                  (add-sub! state side (find-latest state installed-card) (do-net-damage 2)))
+                                                (if (= pg-choice "Acheron")
+                                                  (shuffle-into-rd-effect state side eid (find-latest state installed-card) 2 false)
+                                                  (effect-completed state side eid)))
+                                              (effect-completed state side eid)))))
+                              (effect-completed state side eid))))}]
+       :effect (effect (add-counter card :power 3))})))

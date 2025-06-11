@@ -338,6 +338,9 @@ span.small
   &.adam
     background-image: url('/img/factions/runner-adam.png')
 
+  &.mako
+    background-image: url('/img/factions/runner-mako.png')
+
   &.anarch
     background-image: url('/img/factions/runner-anarch.png')
 
@@ -584,6 +587,9 @@ nav ul
 
 .influence.apex
   color: maroon
+
+.influence.mako
+  color: black
 
 .influence.criminal
   color: royalblue
@@ -1273,6 +1279,11 @@ nav ul
         button.small
           margin: 3px 6px 3px 0
 
+      .notes
+        margin-top: 20px
+        white-space: pre-wrap;
+        font-style: italic
+
       .group
         display: inline-block
         width: 100%
@@ -1331,6 +1342,9 @@ nav ul
         margin: 0 15px
         line-height: 18px
         flex(1)
+
+      .notes-edit
+        flex: 0.25
 
 .deck-status, .user-status
   position: relative
@@ -2293,6 +2307,13 @@ nav ul
       position: relative
       transition(opacity 0.2s ease-in-out)
       opacity: 0
+      z-index: 100
+
+      .flip-card-zoom
+       margin-top: 1px
+       margin-right: 0px
+
+       position: absolute
 
       .card-preview
         width: 100%
