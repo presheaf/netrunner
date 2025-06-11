@@ -1224,7 +1224,7 @@
              :effect (req
                       (let [revs (:events target)
 
-                            ;; TODO: does this work on loses of e.g. a click + 2 creds? spend does work on ikawah
+                            ;; TODO: does this work on losses of e.g. a click + 2 creds? spend does work on ikawah
                             click-losses (map #(second (first (second %))) (filter #(and (= :runner-lose (first %))
                                                                                          (= :click (first (first (second %))))) revs))
                             click-spends (map #(second (second %)) (filter #(= :runner-spent-click (first %)) revs))
