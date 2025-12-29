@@ -3011,6 +3011,7 @@
    :abilities [{:cost [:click 1]
                 :msg (msg "gain " (min 3 (get-counters card :credit)) " [Credits]")
                 :req (req (some #{:hq :archives :rd} (:successful-run runner-reg)))
+                :once :per-turn
                 :effect (req (let [credits (min 3 (get-counters card :credit))]
                                (add-counter state side card :credit (- credits))
                                (gain-credits state :runner credits)))}]})
@@ -3057,3 +3058,51 @@
                               (do (system-msg state side (str "uses Snikr to draw 1 card"))
                                   (draw state side eid 1 nil))
                               (effect-completed state side eid))))}]})
+
+(define-card "Calling Card"
+  (let [ability {:once :per-turn
+                 :cost [:power 1]
+                 :req (req (:runner-phase-12 @state))
+                 ;; :async true
+                 :interactive (req true)
+                 :effect (req (when (not (pos? (get-counters (get-card state card) :power)))
+                                (let [run-server (get-in card [:special :server-target])]
+                                  (register-events state :runner card
+                                                   [{:event :run-ends
+                                                     :unregister-once-resolved true
+                                                     :duration :end-of-run
+                                                     :msg (msg (if (:successful target)
+                                                                 "gain 5[Credits] and"
+                                                                 "")
+                                                               "trash Calling Card")
+                                                     :effect (req (when (:successful target)
+                                                                    (gain-credits state :runner 5))
+                                                                  (trash state :runner eid card nil))}])
+
+                                  (system-msg state :runner (str "makes a run on " run-server))
+                                  (make-run state side eid run-server nil card))))}]
+    {:implementation "Erroneously trashes itself after the run is completed."
+     :prompt "Choose a server for Calling Card"
+     :choices (req servers)
+     :effect (effect (update! (assoc-in card [:special :server-target] target)))
+     :msg (msg "target " target)
+     :data {:counter {:power 2}}
+     :events [(assoc ability :event :runner-turn-begins)]
+     :abilities [ability]}))
+
+
+(define-card "Lab Rat"
+  (let [ability {:once :per-turn
+                 :label "Gain 2 [Credits] (start of turn)"
+                 :req (req (:runner-phase-12 @state))
+                 :msg (msg "gain 2[Credits]")
+                 :effect (req (gain-credits state :runner 2)
+                              (gain state :runner :hand-size 1) ;
+                              (add-counter state side card :power -1))}]
+    {:data {:counter {:power 5}}
+     :effect (effect (lose :runner :hand-size 5))
+     :leave-play (effect (gain :hand-size (get-counters (get-card state card) :power)))
+     :flags {:drip-economy true}
+     :abilities [ability]
+     :events [(assoc ability :event :runner-turn-begins)
+              (trash-on-empty :power)]}))

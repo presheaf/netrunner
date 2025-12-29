@@ -2538,3 +2538,17 @@
 
       {:async true
        :effect (effect (continue-ability (choose-and-resolve-abi []) card nil))})))
+
+(define-card "Crunch Time"
+  {:prompt "Choose a piece of ICE with printed rez cost 6[credit] or less"
+   :implementation "Grabbing ice from Archives is unimplemented (and must be done manually by cancelling)"
+   :choices (req (cancellable (filter #(and (ice? %) (<= (or (:cost %) 0) 6))
+                                      (:deck corp))
+                              :sorted))
+   :effect (req state side
+                (if target
+                  (do (system-msg (str "reveals " (:title target) " and adds it to HQ, then shuffles R&D"))
+                      (reveal target)
+                      (move target :hand))
+                  (system-msg "shuffles R&D without adding a card"))
+                (shuffle! :deck))})

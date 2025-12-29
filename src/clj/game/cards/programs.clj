@@ -2906,11 +2906,19 @@
 
 (defn- mako-breaker
   [subtype boost-cost boost-amount counter-cost]
-  (auto-icebreaker {:abilities [(break-sub 0 1 subtype {:req (req (pos? (get-counters (get-card state current-ice) :virus)))})
+  (auto-icebreaker {:implementation "The displayed cost of match-and-break neglects the cost of placing a virus counter (but is performed correctly)"
+                    :abilities [(break-sub 0 1 subtype {:req (req (pos? (get-counters (get-card state current-ice) :virus)))})
                                 (strength-pump boost-cost boost-amount)
                                 (break-sub counter-cost 0 subtype {:label "place 1 virus counter and break any number of subroutines"
                                                                    :additional-ability {:msg (msg "place a virus counter on " (:title current-ice))
-                                                                                        :effect (effect (add-counter (get-card state current-ice) :virus 1))}})]}))
+                                                                                        :effect (effect (add-counter (get-card state current-ice) :virus 1))}})
+                                {:label "Place a virus counter on current ice (without breaking subs)"
+                                 :cost [:credit counter-cost]
+                                 :req (req (and (= :encounter-ice (:phase run))
+                                                (has-subtype? current-ice subtype)
+                                                (<= (get-strength current-ice) (get-strength card))))
+                                 :msg (msg "place a virus counter on " (:title current-ice))
+                                 :effect (effect (add-counter (get-card state current-ice) :virus 1))}]}))
 
 (define-card "Dvesha"
   (mako-breaker "Barrier" 1 1 3))

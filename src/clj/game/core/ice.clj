@@ -420,9 +420,15 @@
                                          (system-msg state :runner (str cost-str " to " message)))
                                        (doseq [sub broken-subs]
                                          (break-subroutine! state (get-card state ice) sub breaker)
-                                         (resolve-ability state side (make-eid state {:source card :source-type :ability})
-                                                          (:additional-ability args)
-                                                          card nil))
+                                         (when (not (zero? n))
+                                           ;; Strictly speaking, this only works properly when n=1. But the current cardpool only has n=1 and n=0...
+                                           (resolve-ability state side (make-eid state {:source card :source-type :ability})
+                                                            (:additional-ability args)
+                                                            card nil)))
+                                       (when (zero? n)
+                                           (resolve-ability state side (make-eid state {:source card :source-type :ability})
+                                                            (:additional-ability args)
+                                                            card nil))
                                        (let [ice (get-card state ice)
                                              on-break-subs (when ice (:on-break-subs (card-def ice)))
                                              event-args (when on-break-subs {:card-abilities (ability-as-handler ice on-break-subs)})]

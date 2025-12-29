@@ -373,7 +373,7 @@
                      card nil))})
 
 (define-card "Braintrust"
-  {:effect (effect (add-counter card :agenda (quot (- (get-counters card :advancement) 3) 1)))
+  {:effect (effect (add-counter card :agenda (max 0 (quot (- (get-counters card :advancement) 3) 1))))
    :silent (req true)
    :constant-effects [{:type :rez-cost
                        :req (req (ice? target))
@@ -2175,3 +2175,15 @@
                           (continue-ability state :corp (uc-choose-abi targets [] 0) card nil))
                       (effect-completed state side eid)))})))
 
+(define-card "Zero-waste AgRefineries"
+  {:events [{:event :runner-draw
+             :req (req (first-event? state :runner :runner-draw))
+             :msg "gain 1 [Credits] from the Runner’s first draw this turn"
+             :effect (effect (gain-credits :corp 1))}
+            {:event :corp-turn-begins
+             :once :per-turn
+             :optional {:prompt "Make each player draw 1 card?"
+                        :yes-ability {:async true
+                                      :msg "makes each player draw 1 card"
+                                      :effect (req (wait-for (draw state :runner 1 nil)
+                                                             (draw state :corp eid 1 nil)))}}}]})

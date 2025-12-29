@@ -2579,3 +2579,16 @@
                                               (effect-completed state side eid)))))
                               (effect-completed state side eid))))}]
        :effect (effect (add-counter card :power 3))})))
+
+(define-card "Cerevue Campaign"
+  (letfn [(no-cardcreds [state]
+            (no-event? state :corp :corp-credit-gain #(not= :corp-click-credit (first %))))]
+    (let [ability {:label "Gain 2 [Credits] (end of turn)"
+                   :once :per-turn
+                   :req (req (no-cardcreds state))
+                   :effect (req (when (no-cardcreds state) ; The check needs to happen here to ensure two Cerevues do not combo. It is duplicated above to be less confusing with multiple triggers.
+                                  (gain-credits state :corp 2)
+                                  (system-msg state :corp "uses Cerevue Campaign to gain 2[Credits]")))}]
+      {:events [(assoc ability :event :corp-turn-ends)]
+       :abilities [ability]})))
+

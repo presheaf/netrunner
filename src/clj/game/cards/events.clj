@@ -3236,3 +3236,21 @@
                         (shuffle! state :runner :deck)
                         (effect-completed state side eid)))))}))
 
+
+
+(define-card "24 Hour Stream"
+  (letfn [(multi-run [n]
+            (if (pos? n)
+              {:async true
+               :prompt "Choose a server to run"
+               :choices (req runnable-servers)
+               :msg (msg "makes run " (- 5 n) " of 4 on " target)
+               :effect (req
+                         (wait-for (make-run state side target nil card)
+                                   (continue-ability state side (multi-run (dec n)) card nil)))}
+              {:effect (req (effect-completed state side eid))}))]
+    {:async true
+     :makes-run true
+     :effect (req
+               (system-msg state :runner "starts a sequence of 4 runs")
+               (continue-ability state side (multi-run 4) card nil))}))

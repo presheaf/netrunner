@@ -177,7 +177,9 @@
                   (<= 0 (- (total-available-credits state side eid card) amount)))
       :click (<= 0 (- (get-in @state [side :click]) amount))
       :trash (installed? (get-card state card))
-      :forfeit (<= 0 (- (count (get-in @state [side :scored])) amount))
+      :forfeit (<= 0 (-
+                      (+ (count (get-in @state [side :scored]))
+                         (count (filter #(and (rezzed? %) (= (:title %) "Bowstring")) (all-active-installed state side)))) amount))
       :forfeit-self (is-scored? state side (get-card state card))
       ; Can't use count-tags as we can't remove additional tags
       :tag (<= 0 (- (get-in @state [:runner :tag :base] 0) amount))
@@ -358,7 +360,7 @@
       (do (lose-no-event state side :credit amount)
           (complete-with-result state side eid (str "pays " amount " [Credits]")))
       :else
-      (complete-with-result state side eid (str (if (= (:title card) "Virus Chip") "" "pays 0 [Credits]"))))))
+      (complete-with-result state side eid (str (if (= (:title card) "P3tri") "" "pays 0 [Credits]"))))))
 
 (defn pay-clicks
   [state side eid actions costs cost-type amount]
@@ -393,12 +395,18 @@
                     {:prompt "Choose an Agenda to forfeit"
                      :async true
                      :choices {:max amount
-                               :card #(is-scored? state side %)}
-                     :effect (req (wait-for (forfeit state side target {:msg false})
-                                            (complete-with-result
-                                              state side eid
-                                              (str "forfeits " (quantify amount "agenda")
-                                                   " (" (:title target) ")"))))}
+                               :card #(or (is-scored? state side %)
+                                          (and (rezzed? %) (= (:title %) "Bowstring")))}
+                     :effect (req (if (= (:title target) "Bowstring")
+                                    (wait-for (trash state side target {:unpreventable true})
+                                              (complete-with-result
+                                               state side eid
+                                               (str "trashes Bowstring")))
+                                    (wait-for (forfeit state side target {:msg false})
+                                              (complete-with-result
+                                               state side eid
+                                               (str "forfeits " (quantify amount "agenda")
+                                                    " (" (:title target) ")")))))}
                     card nil))
 
 (defn pay-forfeit-self

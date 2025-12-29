@@ -3703,7 +3703,8 @@
   {:events [{:event :pass-ice
              :optional
              {:req (req (and (> (get-counters card :power) 0)
-                             (> (:credit corp) 0)))
+                             (> (:credit corp) 0)
+                             (same-card? target card)))
               :prompt "Give the Runner 1 tag by paying 1[credit] and a power counter?"
               :yes-ability {:async true
                             :cost [:credit 1]
@@ -3712,3 +3713,12 @@
                             :msg (msg "give the Runner 1 tag")}}}]
    :effect (effect (add-counter card :power 1))
    :subroutines [end-the-run]})
+
+(define-card "Doublespeak"
+  {:effect take-bad-pub
+   :subroutines [(assoc (trace-ability 6 end-the-run)
+                        :breakable (req (runner-has-installed? state "Decoder")))]})
+
+(define-card "Bowstring"
+  {:implementation "Paying of Archer cost not implemented"
+   :subroutines [(end-the-run-unless-runner-pays 3)]})
