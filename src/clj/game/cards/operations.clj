@@ -2539,16 +2539,29 @@
       {:async true
        :effect (effect (continue-ability (choose-and-resolve-abi []) card nil))})))
 
+
 (define-card "Crunch Time"
-  {:prompt "Choose a piece of ICE with printed rez cost 6[credit] or less"
-   :implementation "Grabbing ice from Archives is unimplemented (and must be done manually by cancelling)"
-   :choices (req (cancellable (filter #(and (ice? %) (<= (or (:cost %) 0) 6))
-                                      (:deck corp))
-                              :sorted))
-   :effect (req state side
-                (if target
-                  (do (system-msg (str "reveals " (:title target) " and adds it to HQ, then shuffles R&D"))
-                      (reveal target)
-                      (move target :hand))
-                  (system-msg "shuffles R&D without adding a card"))
-                (shuffle! :deck))})
+  {:prompt "Choose where to search for ICE"
+   :choices ["R&D" "Archives"]
+   :async true
+   :effect (req (continue-ability
+                 state :corp
+                 (if (= target "R&D")
+                   {:prompt "Choose a piece of ICE in R&D with printed rez cost 6[credit] or less"
+                    :choices (req (cancellable (filter #(and (ice? %) (<= (or (:cost %) 0) 6))
+                                                       (:deck corp)) :sorted))
+                    :msg (msg (if target
+                                (str "reveals " (:title target) " and adds it to HQ, then shuffles R&D")
+                                (str "shuffles R&D without choosing a card")))
+                    :effect (req (when target
+                                   (reveal state :corp target)
+                                   (move state side target :hand))
+                                 (shuffle! state side :deck))}
+                   {:prompt "Choose a piece of ICE in Archives with printed rez cost 6[credit] or less"
+                    :show-discard true
+                    :choices {:card #(and (corp? %) (ice? %) (<= (or (:cost %) 0) 6) (in-discard? %))}
+                    :msg (msg "add " (:title target) " to HQ")
+                    :effect (req (reveal state :corp target)
+                                 (move state :corp target :hand) )})
+                 card nil))})
+

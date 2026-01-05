@@ -511,7 +511,7 @@
    :on-encounter {:async true
                   :req (req (pos? (get-counters card :advancement)))
                   :msg "do 1 net damage and remove all hosted advancement counters"
-                  :effect (effect (add-prop target :advance-counter (- (get-counters card :advancement)))
+                  :effect (effect (add-prop target :advance-counter (- (get-counters (get-card state card) :advancement)))
                                   (damage eid :net 1 {:card (get-card state card)}))}})
 (define-card "Anklebiter"
   {:effect take-bad-pub
@@ -1354,10 +1354,12 @@
              :msg "force the Runner to pay 2 [Credits] or trash an installed card"
              :player :runner
              :prompt "Choose one"
+             :async true
              :choices ["Pay 2 [Credits]" "Trash an installed card"]
              :effect (req (if (= target "Pay 2 [Credits]")
                             (do (pay state side card :credit 2)
-                                (system-msg state side "pays 2 [Credits]"))
+                                (system-msg state side "pays 2 [Credits]")
+                                (effect-completed state side eid))
                             (continue-ability state :runner runner-trash-installed-sub card nil)))}]
     {:subroutines [sub
                    sub

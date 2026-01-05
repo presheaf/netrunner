@@ -1674,7 +1674,7 @@
                     [(break-sub 2 0 "Barrier")
                      (strength-pump 3 6)]))
 
-(letfn [(luxury-icebreaker-events [flag-kw]
+(letfn [(luxury-icebreaker-events [flag-kw cred-loss]
           [{:event :encounter-ice-ends
             :req (req (any-subs-broken-by-card? target card))
             :effect (req (swap! state assoc-in [:run :special flag-kw] true))}
@@ -1682,19 +1682,19 @@
             :effect (req (when (and (:successful target)
                                     (get-in target [:special flag-kw]))
                            (continue-ability state :runner
-                                             {:msg "lose 2 [Credits]"
-                                              :effect (effect (lose-credits :runner 2))}
+                                             {:msg (str "lose " cred-loss " [Credits]")
+                                              :effect (effect (lose-credits :runner cred-loss))}
                                              card nil)))}])]
   (define-card "Lamis"
     (auto-icebreaker {:abilities [(break-sub 1 2 "Sentry") (strength-pump 1 1)]
-                      :events (luxury-icebreaker-events :bullseye-used)}))
+                      :events (luxury-icebreaker-events :lamis-used 2)}))
   (define-card "Maron"
     (auto-icebreaker {:abilities [(break-sub 1 1 "Code Gate") (strength-pump 1 2)]
-                      :events (luxury-icebreaker-events :almanac-used)}))
+                      :events (luxury-icebreaker-events :maron-used 3)}))
   (define-card "Gemon"
     (auto-icebreaker {:abilities [(break-sub 0 1 "Barrier")
                                   (strength-pump 2 3)]
-                      :events (luxury-icebreaker-events :detour-used)})))
+                      :events (luxury-icebreaker-events :gemon-used 2)})))
 
 (define-card "Lamprey"
   {:events [{:event :successful-run

@@ -766,7 +766,7 @@
              :choices {:card #(and (runner? %)
                                    (installed? %)
                                    (not (same-card? % furnace-card)))}
-             :msg (msg "trash " (:title target) " and gain 3 [Credits]")
+             :msg (msg "trash " (:title target) " to access an additional card")
              :effect (effect (access-bonus the-server 1)
                              (trash eid target {:unpreventable true}))})]
     {:events [{:event :successful-run
@@ -1201,7 +1201,8 @@
                                   (damage-prevent :net 1))}]}))
 
 (define-card "Spite"
-  {:constant-effects [{:type :ice-strength
+  {:in-play [:memory 3]
+   :constant-effects [{:type :ice-strength
                        ;; :req (req (pos? (get-counters (get-card state target) :virus)))
                        :value (req (- (get-counters (get-card state target) :virus)))}]
    :effect (effect (update-all-ice))
@@ -1803,6 +1804,7 @@
 (define-card "Security Nexus"
   {:in-play [:memory 1 :link 1]
    :events [{:event :encounter-ice
+             :interactive (req true)
              :optional
              {:req (req (not-used-once? state {:once :per-turn} card))
               :prompt "Trace 5 to bypass current ice?"

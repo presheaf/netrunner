@@ -1190,9 +1190,8 @@
 (define-card "For the Laughs"
   {:async true
    :makes-run true
-   :msg "draw a card and make a run on HQ"
-   :effect (req (wait-for (draw state side 1 nil)
-                          (make-run state side eid :hq nil card)))
+   :msg "make a run on HQ"
+   :effect (req (make-run state side eid :hq nil card))
    :interactions {:access-ability {:label "Trash at no cost"
                                    :req (req (and (not (get-in @state [:per-run (:cid card)]))
                                                   run))
@@ -1296,7 +1295,7 @@
                                                                     :ignore-all-cost true})
                                           (if async-result
                                             (let [installed-card async-result]
-                                              (add-counter state side installed-card :credit 6)
+                                              (add-counter state side installed-card :credit 7)
                                               (flip-card state side (get-card state installed-card) flip-info)
                                               (effect-completed state side eid))
                                             (effect-completed state side eid))))))}]
@@ -1360,7 +1359,7 @@
   {:msg "trash all cards in the grip and gain 10 [Credits]"
    :async true
    :effect (req (wait-for (trash-cards state side (:hand runner) {:unpreventable true})
-                          (gain-credits state :runner eid 11 nil)))})
+                          (gain-credits state :runner eid 10 nil)))})
 
 (define-card "Hacktivist Meeting"
   {:constant-effects [{:type :rez-additional-cost
@@ -1655,10 +1654,11 @@
    :makes-run true
    :prompt "Choose a server"
    :choices (req runnable-servers)
-   :effect (effect (make-run eid target nil card))
+   :effect (effect (update! (assoc-in card [:special :ij-run-id] eid)) ; store the run ID of the run to not have the event trigger on doppleganger runs
+                   (make-run eid target nil card))
    :events [{:event :encounter-ice
-             :req (req (first-run-event? state side :encounter-ice))
-             ;; TODO: this req also needs to check that the eid of the run is the same as when the run was initiatev...
+             :req (req (and (first-run-event? state side :encounter-ice)
+                            (= (:eid run) (get-in card [:special :ij-run-id]))))
              :once :per-turn
              :msg (msg "bypass " (:title target))
              :effect (req (bypass-ice state))}]})

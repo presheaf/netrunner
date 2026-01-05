@@ -1277,7 +1277,7 @@
              :event :runner-install
              :req (req (has-subtype? target "Virus"))
              :msg "force the Corp to trash the top card of R&D"
-             :effect (effect (mill :runner eid :corp 1))}]})
+             :effect (effect (mill :corp eid :corp 1))}]})
 
 (define-card "Null: Whistleblower"
   {:events [{:event :encounter-ice
@@ -1683,8 +1683,8 @@
 
 (define-card "The Horde: Defiant Disenfrancistos"
   (let [gain-credit-ab
-        {:effect (effect (gain-credits 1))
-         :msg "gain 1 [Credit]"}
+        {:effect (effect (gain-credits 2))
+         :msg "gain 2 [Credit]"}
 
         draw-card-ab
         {:effect (effect (draw eid 1 nil))

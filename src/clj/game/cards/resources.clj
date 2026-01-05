@@ -1207,24 +1207,34 @@
           (or (#{:deck :hand} (first (:previous-zone t)))
               (= [:servers :hq :content] (:previous-zone t))
               (= [:servers :rd :content] (:previous-zone t))
-              (= [:servers :archives :content] (:previous-zone t))))]
+              (= [:servers :archives :content] (:previous-zone t))))
+        (gain-cred-and-corp-trash-ab [manual-msg-str]
+          {:once :per-turn
+           :msg (msg manual-msg-str "gain 1 [Credits] and force the Corp to trash a card from HQ")
+           :async true
+           :effect (req (gain-credits state :runner 1)
+                        (if (= 0 (count (:hand corp)))
+                          (do (system-msg state :corp "does not need to trash a card because HQ is empty.")
+                              (effect-completed state :runner eid))
+                          (do (show-wait-prompt state :runner "Corp to trash 1 card from HQ")
+                              (continue-ability state :corp
+                                                {:prompt "Choose a card in HQ to discard"
+                                                 :player :corp
+                                                 :choices {:all true
+                                                           :card #(and (in-hand? %)
+                                                                       (corp? %))}
+                                                 :msg "force the Corp to trash 1 card from HQ"
+                                                 :async true
+                                                 :effect (effect (clear-wait-prompt :runner)
+                                                                 (trash :corp eid target nil))}
+                                                card nil))))})]
   (define-card "Human Rights Riot"
     {:implementation "Ability can be triggered manually in case of bugs."
-     :abilities [{:label "gain 1 [Credit] and force the Corp to trash a random card from HQ"
-                  :once :per-turn
-                  :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
-                  :async true
-                  :effect (req (gain-credits state :runner 1)
-                               (let [card-to-trash (first (shuffle (:hand corp)))]
-                                 (trash state :corp eid card-to-trash nil)))}]
-     :events [{:event :trash-during-access
-               :req (req (first-event? state side :trash-during-access #(target-in-central (first %))))
-               :once :per-turn
-               :msg (msg "gain 1 [Credits] and force the Corp to trash a random card from HQ")
-               :async true
-               :effect (req (gain-credits state :runner 1)
-                            (let [card-to-trash (first (shuffle (:hand corp)))]
-                              (trash state :corp eid card-to-trash nil)))}]}))
+     :abilities [(assoc (gain-cred-and-corp-trash-ab "manually ")
+                        :label "gain 1 [Credit] and force the Corp to trash a card from HQ")]
+     :events [(assoc (gain-cred-and-corp-trash-ab "")
+                     :event :trash-during-access
+                     :req (req (first-event? state side :trash-during-access #(target-in-central (first %)))))]}))
 
 (define-card "Hunting Grounds"
   {:implementation "Use prevention ability during approach, after ice is rezzed"
