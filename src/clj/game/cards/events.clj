@@ -3238,7 +3238,7 @@
 
 
 
-(define-card "24 Hour Stream"
+(define-card "By Popular Demand"
   (letfn [(multi-run [n]
             (if (pos? n)
               {:async true

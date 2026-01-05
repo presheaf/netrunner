@@ -3096,7 +3096,7 @@
      :choices (req servers)
      :effect (effect (update! (assoc-in card [:special :server-target] target)))
      :msg (msg "target " target)
-     :data {:counter {:power 2}}
+     :data {:counter {:power 3}}
      :events [(assoc ability :event :runner-turn-begins)]
      :abilities [ability]}))
 
