@@ -2084,19 +2084,17 @@
 (define-card "CommunaLink Rollout"
   {:effect (req (change-hand-size state :runner 1)
                 (when tagged
-                  (change-hand-size state :corp 2)))
+                  (change-hand-size state :corp 3)))
    :leave-play (req (change-hand-size state :runner -1)
                     (when tagged
-                      (change-hand-size state :corp -2)))
+                      (change-hand-size state :corp -3)))
    :events [;; Events for tracking hand size
             {:event :runner-gain-tag
-             :effect (req
-                      (println (str "rgt: " target " " (count-tags state)))
-                      (when (and (> target 0) (= target (count-tags state))) ; runner now has exactly as many tags as they just got, so they went from untagged to tagged
-                            (change-hand-size state :corp 2)))}
+             :effect (req (when (and (> target 0) (= target (count-tags state))) ; runner now has exactly as many tags as they just got, so they went from untagged to tagged
+                            (change-hand-size state :corp 3)))}
             {:event :runner-lose-tag
              :effect (req (when (not tagged)
-                            (change-hand-size state :corp -2)))}]})
+                            (change-hand-size state :corp -3)))}]})
 
 (define-card "Uncanny Compulsion"
   (let [prompts ["Choose first card to reshuffle"
